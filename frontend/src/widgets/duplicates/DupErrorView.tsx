@@ -23,7 +23,7 @@ export const DupErrorView: FC = () => {
       if (jobId) await FileService.CancelJob(jobId).catch(() => undefined);
       const id = await FileService.NewJobID();
       console.info(
-        `[dup] job=${id} start root=${setup.root} hidden=${setup.includeHidden} minSize=${setup.minSize} exclude=${setup.exclude}`,
+        `[dup] job=${id} start root=${setup.root} hidden=${setup.includeHidden} minSize=${setup.minSize} exclude=${setup.exclude} similar=${setup.similarImages} pct=${setup.similarityPct} ocr=${setup.ocr}`,
       );
       if (!id) throw new Error('empty jobID');
       useDuplicatesStore.getState().beginScan(id);
@@ -33,6 +33,9 @@ export const DupErrorView: FC = () => {
         setup.includeHidden,
         setup.minSize,
         setup.exclude,
+        setup.similarImages,
+        setup.similarityPct,
+        setup.ocr,
       );
       return id;
     },

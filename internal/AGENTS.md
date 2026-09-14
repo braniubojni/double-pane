@@ -15,6 +15,8 @@ Parent: root `AGENTS.md`. All app logic lives here; `main.go` only wires Wails +
 | `storage`    | SQLite bookmarks + crypto helpers                                             |
 | `config`     | Config dir, OS open, Open-with (`openwith_*.go`)                              |
 | `service`    | Wails-bound services (thin orchestration over packages above)                 |
+| `imghash`    | 64-bit dHash for similar-image duplicate groups (pure Go, no CGo)             |
+| `ocr`        | System `tesseract` exec wrapper for optional OCR duplicate groups (no CGo)   |
 | `version`    | `Version` string; set via `-ldflags` / Task `VERSION`                         |
 
 ## Services (Wails)

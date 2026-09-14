@@ -1,8 +1,17 @@
 import { create } from 'zustand';
+import { isMEGAPath } from '../connections/helpers';
 import { defaultKeepAndChecked } from './helpers';
 import type { DuplicatesState, DupSetup } from './types';
 
-const emptySetup = (): DupSetup => ({ root: '', includeHidden: false, minSize: 0, exclude: '' });
+const emptySetup = (): DupSetup => ({
+  root: '',
+  includeHidden: false,
+  minSize: 0,
+  exclude: '',
+  similarImages: true,
+  similarityPct: 90,
+  ocr: false,
+});
 
 const idle: Pick<
   DuplicatesState,
@@ -51,17 +60,30 @@ export const useDuplicatesStore = create<DuplicatesState>((set, get) => ({
       ...idle,
       dialogOpen: true,
       phase: 'setup',
-      setup: { ...s.setup, root: cwd },
+      setup: {
+        ...s.setup,
+        root: cwd,
+        similarImages: !isMEGAPath(cwd),
+        similarityPct: s.setup.similarityPct || 90,
+        ocr: false,
+      },
     });
   },
 
   closeDialog: () => set({ dialogOpen: false }),
 
   patchSetup: (p) =>
-    set((s) => ({
-      setup: { ...s.setup, ...p },
-      estimate: null,
-    })),
+    set((s) => {
+      const setup = { ...s.setup, ...p };
+      const cost =
+        p.root !== undefined ||
+        p.includeHidden !== undefined ||
+        p.minSize !== undefined ||
+        p.exclude !== undefined ||
+        p.similarImages !== undefined ||
+        p.ocr !== undefined;
+      return { setup, estimate: cost ? null : s.estimate };
+    }),
 
   setEstimate: (estimate) => set({ estimate }),
 
@@ -110,6 +132,9 @@ export const useDuplicatesStore = create<DuplicatesState>((set, get) => ({
         groups: p.groups,
         skipped: p.skipped,
         currentPath: p.currentPath,
+        phase: p.phase,
+        doneImages: p.doneImages,
+        totalImages: p.totalImages,
       },
     });
   },

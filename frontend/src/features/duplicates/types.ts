@@ -14,6 +14,9 @@ export type DuplicateGroup = {
   hash: string;
   size: number;
   files: DuplicateFile[];
+  kind?: 'exact' | 'visual' | 'ocr';
+  similarity?: number;
+  snippet?: string;
 };
 
 type DupSkipped = { path: string; message: string };
@@ -26,6 +29,9 @@ type DupProgress = {
   groups: number;
   skipped: number;
   currentPath: string;
+  phase?: string;
+  doneImages?: number;
+  totalImages?: number;
 };
 
 export type DupProgressPayload = DupProgress & { jobId: string };
@@ -38,6 +44,9 @@ export type DupSetup = {
   includeHidden: boolean;
   minSize: number;
   exclude: string;
+  similarImages: boolean;
+  similarityPct: number;
+  ocr: boolean;
 };
 
 export type DuplicatesState = {

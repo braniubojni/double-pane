@@ -7,12 +7,13 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useEffect, type FC } from 'react';
 import { useDuplicatesStore } from '../../features/duplicates/duplicatesStore';
 import { FileService } from '../../shared/api/bindings';
 import { errMessage, formatSize } from '../../shared/lib/format';
 import { useSnack } from '../../shared/ui/SnackbarHost';
+import { DupSimilarSetup } from './DupSimilarSetup';
 import { formatEta, megaDiskWarning } from './helpers';
 import { viewSx } from './styles';
 
@@ -24,21 +25,41 @@ export const DupSetupView: FC = () => {
   const setEstimate = useDuplicatesStore((s) => s.setEstimate);
   const closeDialog = useDuplicatesStore((s) => s.closeDialog);
 
+  const ocrAvailQ = useQuery({
+    queryKey: ['ocrAvailable'],
+    queryFn: () => FileService.OCRAvailable(),
+    staleTime: Infinity,
+  });
+  const ocrAvailable = Boolean(ocrAvailQ.data);
+
   const estimateMut = useMutation({
     mutationFn: (vars: {
       root: string;
       includeHidden: boolean;
       minSize: number;
       exclude: string;
+      similarImages: boolean;
+      similarityPct: number;
+      ocr: boolean;
     }) =>
-      FileService.EstimateDuplicateScan(vars.root, vars.includeHidden, vars.minSize, vars.exclude),
+      FileService.EstimateDuplicateScan(
+        vars.root,
+        vars.includeHidden,
+        vars.minSize,
+        vars.exclude,
+        vars.similarImages,
+        vars.similarityPct,
+        vars.ocr,
+      ),
     onSuccess: (est, vars) => {
       const cur = useDuplicatesStore.getState().setup;
       if (
         cur.root !== vars.root ||
         cur.includeHidden !== vars.includeHidden ||
         cur.minSize !== vars.minSize ||
-        cur.exclude !== vars.exclude
+        cur.exclude !== vars.exclude ||
+        cur.similarImages !== vars.similarImages ||
+        cur.ocr !== vars.ocr
       ) {
         return;
       }
@@ -54,7 +75,7 @@ export const DupSetupView: FC = () => {
     mutationFn: async () => {
       const jobId = await FileService.NewJobID();
       console.info(
-        `[dup] job=${jobId} start root=${setup.root} hidden=${setup.includeHidden} minSize=${setup.minSize} exclude=${setup.exclude}`,
+        `[dup] job=${jobId} start root=${setup.root} hidden=${setup.includeHidden} minSize=${setup.minSize} exclude=${setup.exclude} similar=${setup.similarImages} pct=${setup.similarityPct} ocr=${setup.ocr}`,
       );
       if (!jobId) throw new Error('empty jobID');
       useDuplicatesStore.getState().beginScan(jobId);
@@ -64,6 +85,9 @@ export const DupSetupView: FC = () => {
         setup.includeHidden,
         setup.minSize,
         setup.exclude,
+        setup.similarImages,
+        setup.similarityPct,
+        setup.ocr,
       );
       return jobId;
     },
@@ -82,6 +106,10 @@ export const DupSetupView: FC = () => {
   }, []);
 
   const mega = estimate?.protocol === 'mega' || Boolean(estimate?.megaDownload);
+  const warnBytes =
+    setup.similarImages || setup.ocr
+      ? (estimate?.megaDownloadBytes ?? 0)
+      : (estimate?.byteCount ?? 0);
   const canStart = Boolean(estimate) && !estimateMut.isPending && !startMut.isPending;
 
   return (
@@ -130,20 +158,33 @@ export const DupSetupView: FC = () => {
         <Typography variant="body2" color="text.secondary">
           Algorithm: SHA-256 (exact content)
         </Typography>
+        <DupSimilarSetup />
         <FormControlLabel
-          disabled
-          control={<Checkbox checked={false} data-testid="chk-dup-ocr" />}
-          label="OCR (V2)"
+          disabled={!ocrAvailable}
+          control={
+            <Checkbox
+              checked={setup.ocr && ocrAvailable}
+              onChange={(e) => patchSetup({ ocr: e.target.checked })}
+              data-testid="chk-dup-ocr"
+            />
+          }
+          label={ocrAvailable ? 'OCR text' : 'OCR text (install tesseract)'}
         />
         {estimate ? (
           <Typography variant="body2" data-testid="dup-estimate">
             {estimate.fileCount} files · {formatSize(estimate.byteCount, false)} · ETA{' '}
-            {formatEta(estimate.etaSeconds)}
+            {formatEta(estimate.etaExactSeconds || estimate.etaSeconds)}
+            {setup.similarImages
+              ? ` · ${estimate.imageCount ?? 0} images · visual ${formatEta(estimate.etaVisualSeconds ?? 0)}`
+              : ''}
+            {setup.ocr
+              ? ` · OCR ${formatEta(estimate.etaOcrSeconds ?? 0)}`
+              : ''}
           </Typography>
         ) : null}
         {estimate && mega ? (
           <Alert severity="warning" data-testid="dup-mega-warning">
-            {megaDiskWarning(estimate.byteCount)}
+            {megaDiskWarning(warnBytes)}
           </Alert>
         ) : null}
       </Stack>

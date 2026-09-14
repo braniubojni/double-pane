@@ -47,7 +47,7 @@ func TestDuplicateScanIdenticalAndDifferent(t *testing.T) {
 	}
 
 	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
-	est, err := s.EstimateDuplicateScan(root, false, 0, "")
+	est, err := s.EstimateDuplicateScan(root, false, 0, "", false, 90, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -92,7 +92,7 @@ func TestDuplicateScanIdenticalAndDifferent(t *testing.T) {
 		return filesystem.HashFile(ctx, path)
 	}
 	id := s.NewJobID()
-	if err := s.StartDuplicateScan(id, root, false, 0, ""); err != nil {
+	if err := s.StartDuplicateScan(id, root, false, 0, "", false, 90, false); err != nil {
 		t.Fatal(err)
 	}
 	got := waitDupDone(t, done)
@@ -143,7 +143,7 @@ func TestDuplicateScanDoesNotFloodProgress(t *testing.T) {
 			done <- data.(domain.DupDonePayload)
 		}
 	}
-	if err := s.StartDuplicateScan(s.NewJobID(), work, false, 0, ""); err != nil {
+	if err := s.StartDuplicateScan(s.NewJobID(), work, false, 0, "", false, 90, false); err != nil {
 		t.Fatal(err)
 	}
 	got := waitDupDone(t, done)
@@ -178,16 +178,16 @@ func TestStartDuplicateScanRejectsArchiveAndBadRoot(t *testing.T) {
 		t.Fatal(err)
 	}
 	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
-	if err := s.StartDuplicateScan(s.NewJobID(), zipPath, false, 0, ""); err == nil {
+	if err := s.StartDuplicateScan(s.NewJobID(), zipPath, false, 0, "", false, 90, false); err == nil {
 		t.Fatal("expected archive root rejected")
 	}
-	if err := s.StartDuplicateScan(s.NewJobID(), filepath.Join(work, "missing"), false, 0, ""); err == nil {
+	if err := s.StartDuplicateScan(s.NewJobID(), filepath.Join(work, "missing"), false, 0, "", false, 90, false); err == nil {
 		t.Fatal("expected ListDir failure")
 	}
-	if err := s.StartDuplicateScan("", work, false, 0, ""); err == nil || !strings.Contains(err.Error(), "jobID") {
+	if err := s.StartDuplicateScan("", work, false, 0, "", false, 90, false); err == nil || !strings.Contains(err.Error(), "jobID") {
 		t.Fatalf("empty jobID: %v", err)
 	}
-	if err := s.StartDuplicateScan(s.NewJobID(), "", false, 0, ""); err == nil {
+	if err := s.StartDuplicateScan(s.NewJobID(), "", false, 0, "", false, 90, false); err == nil {
 		t.Fatal("empty root")
 	}
 }
@@ -228,7 +228,7 @@ func TestStartDuplicateScanCancelDuringHash(t *testing.T) {
 		}
 	}
 	id := s.NewJobID()
-	if err := s.StartDuplicateScan(id, root, false, 0, ""); err != nil {
+	if err := s.StartDuplicateScan(id, root, false, 0, "", false, 90, false); err != nil {
 		t.Fatal(err)
 	}
 	select {
@@ -295,7 +295,7 @@ func TestStartDuplicateScanCancelStopsWalk(t *testing.T) {
 		}
 	}
 	id := s.NewJobID()
-	if err := s.StartDuplicateScan(id, root, false, 0, ""); err != nil {
+	if err := s.StartDuplicateScan(id, root, false, 0, "", false, 90, false); err != nil {
 		t.Fatal(err)
 	}
 	select {
@@ -335,10 +335,10 @@ func TestStartDuplicateScanOneJob(t *testing.T) {
 		t.Fatal(err)
 	}
 	id := s.NewJobID()
-	if err := s.StartDuplicateScan(id, work, false, 0, ""); err != nil {
+	if err := s.StartDuplicateScan(id, work, false, 0, "", false, 90, false); err != nil {
 		t.Fatal(err)
 	}
-	if err := s.StartDuplicateScan(s.NewJobID(), work, false, 0, ""); err == nil {
+	if err := s.StartDuplicateScan(s.NewJobID(), work, false, 0, "", false, 90, false); err == nil {
 		t.Fatal("expected already running")
 	}
 	close(block)
@@ -363,14 +363,14 @@ func TestDuplicateScanExcludeMarkdown(t *testing.T) {
 	}
 
 	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
-	all, err := s.EstimateDuplicateScan(root, false, 0, "")
+	all, err := s.EstimateDuplicateScan(root, false, 0, "", false, 90, false)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if all.FileCount != 3 {
 		t.Fatalf("empty exclude fileCount=%d", all.FileCount)
 	}
-	est, err := s.EstimateDuplicateScan(root, false, 0, "*.md")
+	est, err := s.EstimateDuplicateScan(root, false, 0, "*.md", false, 90, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -391,7 +391,7 @@ func TestDuplicateScanExcludeMarkdown(t *testing.T) {
 			done <- data.(domain.DupDonePayload)
 		}
 	}
-	if err := s.StartDuplicateScan(s.NewJobID(), root, false, 0, "*.md"); err != nil {
+	if err := s.StartDuplicateScan(s.NewJobID(), root, false, 0, "*.md", false, 90, false); err != nil {
 		t.Fatal(err)
 	}
 	got := waitDupDone(t, done)

@@ -51,17 +51,41 @@ func (m *MEGAManager) OpenRead(string) (io.ReadCloser, error) {
 }
 
 func hashViaTemp(ctx context.Context, cacheDir string, download func(dest string) error) (string, error) {
+	var sum string
+	err := withTempFile(ctx, cacheDir, download, func(dest string) error {
+		var e error
+		sum, e = filesystem.HashFile(ctx, dest)
+		return e
+	})
+	return sum, err
+}
+
+// WithTempFile downloads vpath into cacheDir, runs fn on the local copy, then deletes it.
+func (m *MEGAManager) WithTempFile(ctx context.Context, vpath, cacheDir string, fn func(localPath string) error) error {
+	sess, n, loc, err := m.resolve(vpath)
+	if err != nil {
+		return err
+	}
+	if megaIsDir(n) {
+		return fmt.Errorf("not a file: %s", loc.RemotePath)
+	}
+	return withTempFile(ctx, cacheDir, func(dest string) error {
+		return megaDownloadFileCtx(ctx, sess.client, n, dest)
+	}, fn)
+}
+
+func withTempFile(ctx context.Context, cacheDir string, download func(dest string) error, then func(dest string) error) error {
 	if err := os.MkdirAll(cacheDir, 0o700); err != nil {
-		return "", err
+		return err
 	}
 	f, err := os.CreateTemp(cacheDir, "dup-*")
 	if err != nil {
-		return "", err
+		return err
 	}
 	dest := f.Name()
 	if err := f.Close(); err != nil {
 		_ = os.Remove(dest)
-		return "", err
+		return err
 	}
 	megaLog(ctx, "mega temp create path=%s", dest)
 	defer func() {
@@ -69,22 +93,25 @@ func hashViaTemp(ctx context.Context, cacheDir string, download func(dest string
 		megaLog(ctx, "mega temp cleanup path=%s", dest)
 	}()
 	if err := ctx.Err(); err != nil {
-		return "", err
+		return err
 	}
 	errCh := make(chan error, 1)
 	go func() { errCh <- download(dest) }()
 	select {
 	case err := <-errCh:
 		if err != nil {
-			return "", err
+			return err
 		}
 	case <-ctx.Done():
-		return "", ctx.Err()
+		return ctx.Err()
 	}
 	if err := ctx.Err(); err != nil {
-		return "", err
+		return err
 	}
-	return filesystem.HashFile(ctx, dest)
+	if then == nil {
+		return nil
+	}
+	return then(dest)
 }
 
 func megaDownloadFileCtx(ctx context.Context, client *mega.Mega, n *mega.Node, dest string) error {

@@ -23,6 +23,8 @@ export const DupGroupCard: FC<Props> = ({ group, keep, checked, onKeep, onToggle
     <Box sx={groupCardSx} data-testid="dup-group">
       <Typography variant="subtitle2">
         {group.files.length} files · {formatSize(group.size, false)} · {hashPrefix(group.hash)}
+        {group.kind === 'visual' && group.similarity ? ` · ~${group.similarity}%` : ''}
+        {group.kind === 'ocr' && group.snippet ? ` · “${group.snippet}”` : ''}
       </Typography>
       <RadioGroup value={keep} onChange={(e) => onKeep(e.target.value)}>
         {group.files.map((f) => (

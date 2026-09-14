@@ -102,8 +102,8 @@ export function DiskUsage(path: string): $CancellablePromise<domain$0.DiskUsage>
 /**
  * EstimateDuplicateScan counts files and bytes under root without hashing.
  */
-export function EstimateDuplicateScan(root: string, includeHidden: boolean, minSize: number, exclude: string): $CancellablePromise<domain$0.ScanEstimate> {
-    return $Call.ByID(1804249746, root, includeHidden, minSize, exclude);
+export function EstimateDuplicateScan(root: string, includeHidden: boolean, minSize: number, exclude: string, similarImages: boolean, similarityPct: number, ocrOn: boolean): $CancellablePromise<domain$0.ScanEstimate> {
+    return $Call.ByID(1804249746, root, includeHidden, minSize, exclude, similarImages, similarityPct, ocrOn);
 }
 
 export function Exists(path: string): $CancellablePromise<boolean> {
@@ -216,6 +216,13 @@ export function NewJobID(): $CancellablePromise<string> {
 }
 
 /**
+ * OCRAvailable reports whether the system tesseract binary is on PATH.
+ */
+export function OCRAvailable(): $CancellablePromise<boolean> {
+    return $Call.ByID(568981119);
+}
+
+/**
  * Open opens a path with the OS default application.
  */
 export function Open(path: string): $CancellablePromise<void> {
@@ -315,8 +322,8 @@ export function SetArchivePassword(archivePath: string, password: string): $Canc
 /**
  * StartDuplicateScan runs a cancellable SHA-256 duplicate scan in the background.
  */
-export function StartDuplicateScan(jobID: string, root: string, includeHidden: boolean, minSize: number, exclude: string): $CancellablePromise<void> {
-    return $Call.ByID(3653197540, jobID, root, includeHidden, minSize, exclude);
+export function StartDuplicateScan(jobID: string, root: string, includeHidden: boolean, minSize: number, exclude: string, similarImages: boolean, similarityPct: number, ocrOn: boolean): $CancellablePromise<void> {
+    return $Call.ByID(3653197540, jobID, root, includeHidden, minSize, exclude, similarImages, similarityPct, ocrOn);
 }
 
 /**

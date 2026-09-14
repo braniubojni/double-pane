@@ -44,6 +44,8 @@ type FileService struct {
 	dupCacheDir  string
 	onEvent      func(name string, data any)
 	hashFile     func(context.Context, string) (string, error)
+	dhashFile    func(context.Context, string) (uint64, error)
+	ocrFile      func(context.Context, string) (string, error)
 	listDup      listDirFunc
 }
 

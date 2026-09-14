@@ -208,11 +208,16 @@ type SearchDeniedPayload struct {
 
 // ScanEstimate is a pre-hash count for the duplicate-finder setup dialog.
 type ScanEstimate struct {
-	FileCount    int64  `json:"fileCount"`
-	ByteCount    int64  `json:"byteCount"`
-	EtaSeconds   int    `json:"etaSeconds"`
-	Protocol     string `json:"protocol"` // local | ssh | smb | mega
-	MegaDownload bool   `json:"megaDownload"`
+	FileCount         int64  `json:"fileCount"`
+	ByteCount         int64  `json:"byteCount"`
+	EtaSeconds        int    `json:"etaSeconds"`
+	Protocol          string `json:"protocol"` // local | ssh | smb | mega
+	MegaDownload      bool   `json:"megaDownload"`
+	ImageCount        int64  `json:"imageCount"`
+	EtaExactSeconds   int    `json:"etaExactSeconds"`
+	EtaVisualSeconds  int    `json:"etaVisualSeconds"`
+	EtaOcrSeconds     int    `json:"etaOcrSeconds"`
+	MegaDownloadBytes int64  `json:"megaDownloadBytes"`
 }
 
 // DuplicateFile is one member of a same-hash group.
@@ -224,11 +229,14 @@ type DuplicateFile struct {
 	Protocol string `json:"protocol"` // local | ssh | smb | mega
 }
 
-// DuplicateGroup is files that share one SHA-256 and size.
+// DuplicateGroup is files that share one SHA-256 (kind=exact), dHash, or OCR text.
 type DuplicateGroup struct {
-	Hash  string          `json:"hash"`
-	Size  int64           `json:"size"`
-	Files []DuplicateFile `json:"files"`
+	Hash       string          `json:"hash"`
+	Size       int64           `json:"size"`
+	Files      []DuplicateFile `json:"files"`
+	Kind       string          `json:"kind"`                 // exact | visual | ocr
+	Similarity int             `json:"similarity,omitempty"` // visual Hamming % or OCR Jaccard %
+	Snippet    string          `json:"snippet,omitempty"`    // OCR text preview (≤80 chars)
 }
 
 // DupProgressPayload is emitted while a duplicate scan runs.
@@ -241,6 +249,9 @@ type DupProgressPayload struct {
 	Groups      int    `json:"groups"`
 	Skipped     int    `json:"skipped"`
 	CurrentPath string `json:"currentPath"`
+	Phase       string `json:"phase,omitempty"` // walk | exact | visual | ocr
+	DoneImages  int64  `json:"doneImages,omitempty"`
+	TotalImages int64  `json:"totalImages,omitempty"`
 }
 
 // DupGroupPayload streams one closed duplicate group.

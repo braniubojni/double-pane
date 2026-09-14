@@ -39,3 +39,9 @@ export const bytesOfPaths = (groups: DuplicateGroup[], paths: string[]): number 
   }
   return n;
 };
+
+export const isExactGroup = (g: DuplicateGroup): boolean => !g.kind || g.kind === 'exact';
+
+export const isVisualGroup = (g: DuplicateGroup): boolean => g.kind === 'visual';
+
+export const isOcrGroup = (g: DuplicateGroup): boolean => g.kind === 'ocr';

@@ -20,7 +20,12 @@ export const DupRunningView: FC = () => {
 
   const done = progress?.doneFiles ?? 0;
   const total = progress?.totalFiles ?? 0;
-  const pct = total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0;
+  const imagePhase = progress?.phase === 'visual' || progress?.phase === 'ocr';
+  const imgDone = progress?.doneImages ?? 0;
+  const imgTotal = progress?.totalImages ?? 0;
+  const numer = imagePhase ? imgDone : done;
+  const denom = imagePhase ? imgTotal : total;
+  const pct = denom > 0 ? Math.min(100, Math.round((numer / denom) * 100)) : 0;
 
   const onCancel = () => {
     console.info(`[dup] job=${jobId || '-'} cancel`);
@@ -36,14 +41,18 @@ export const DupRunningView: FC = () => {
     <>
       <Stack sx={viewSx} data-testid="dup-running">
         <Typography variant="body2">
-          Duplicates: {done}/{total}
-          {progress && progress.totalBytes > 0
+          {progress?.phase === 'ocr'
+            ? `OCR: ${imgDone}/${imgTotal}`
+            : progress?.phase === 'visual'
+              ? `Similar photos: ${imgDone}/${imgTotal}`
+              : `Duplicates: ${done}/${total}`}
+          {!imagePhase && progress && progress.totalBytes > 0
             ? ` · ${formatSize(progress.doneBytes, false)} / ${formatSize(progress.totalBytes, false)}`
             : ''}
           {progress ? ` · ${progress.groups} groups` : ''}
         </Typography>
         <LinearProgress
-          variant={total > 0 ? 'determinate' : 'indeterminate'}
+          variant={(imagePhase ? imgTotal : total) > 0 ? 'determinate' : 'indeterminate'}
           value={pct}
           data-testid="dup-progress"
         />

@@ -400,6 +400,11 @@ export interface ScanEstimate {
      */
     "protocol": string;
     "megaDownload": boolean;
+    "imageCount": number;
+    "etaExactSeconds": number;
+    "etaVisualSeconds": number;
+    "etaOcrSeconds": number;
+    "megaDownloadBytes": number;
 }
 
 /**
