@@ -40,20 +40,29 @@ export type ToolbarBarProps = {
   onGitDiff: () => void;
   onRename: () => void;
   onDelete: () => void;
+  onDeletePermanent: () => void;
+  onRestoreTrash: () => void;
+  onEmptyTrash: () => void;
   onArchive: () => void;
   onExtract: () => void;
   onBookmark: () => void;
   onRefresh: () => void;
   onCycleTheme: () => void;
   onSettings: () => void;
+  onTrash: () => void;
+  trashActive: boolean;
 };
 
 export type FileActionsMenuProps = {
   otherPaneLabel: PaneId;
+  inTrash: boolean;
   onCopy: () => void;
   onMove: () => void;
   onRename: () => void;
   onDelete: () => void;
+  onDeletePermanent: () => void;
+  onRestoreTrash: () => void;
+  onEmptyTrash: () => void;
 };
 
 export type BookmarksSelectProps = {
@@ -81,6 +90,7 @@ export type DeleteDialogsProps = {
   remote: boolean;
   deleteBtnRef: RefObject<HTMLButtonElement | null>;
   onConfirm: () => void;
+  onEmpty: () => void;
 };
 
 export type ArchiveDialogProps = {

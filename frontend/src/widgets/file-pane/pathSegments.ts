@@ -1,9 +1,11 @@
 import { REMOTE_ORIGIN_RE } from '../../features/connections/helpers';
+import { isTrashPath, TRASH_URI } from '../../shared/lib/trash';
 
 export type PathCrumb = { label: string; path: string };
 
 export function pathCrumbs(path: string): PathCrumb[] {
   const raw = path.trim() || '/';
+  if (isTrashPath(raw)) return [{ label: 'Trash', path: TRASH_URI }];
   const remote = raw.replace(/\?[^/]*$/, '').match(REMOTE_ORIGIN_RE);
   if (remote) return remoteCrumbs(remote[1], remote[2] || '/', /^smb:/i.test(remote[1]));
   if (/^[a-zA-Z]:/.test(raw)) return windowsCrumbs(raw);

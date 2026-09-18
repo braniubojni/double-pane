@@ -6,6 +6,7 @@ import type { KeyboardEvent, ReactElement } from 'react';
 import { createElement } from 'react';
 import type { FileEntry, PaneId } from '../../entities/file/types';
 import { isRemotePath, parentOfVirtualPath } from '../../features/connections/helpers';
+import { isTrashPath } from '../../shared/lib/trash';
 import { useFolderSizeStore } from '../../features/folder-size/folderSizeStore';
 import type { PaneJobKind } from '../../features/jobs/types';
 import { usePaneStore } from '../../features/pane/paneStore';
@@ -62,6 +63,7 @@ export const jobKindIcon = (kind: PaneJobKind): ReactElement => {
 
 /** Parent directory for local or remote virtual paths. */
 export const parentOfPath = (path: string): string => {
+  if (isTrashPath(path)) return '';
   const virtual = parentOfVirtualPath(path);
   if (virtual) return virtual;
   const parent = path.replace(/\/+$/, '').split(/[/\\]/).slice(0, -1).join('/') || '/';

@@ -2,6 +2,7 @@ import ArchiveIcon from '@mui/icons-material/Archive';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
 import DeleteIcon from '@mui/icons-material/Delete';
+import RestoreFromTrashIcon from '@mui/icons-material/RestoreFromTrash';
 import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove';
 import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
 import EditIcon from '@mui/icons-material/Edit';
@@ -18,6 +19,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import type { FC, ReactNode } from 'react';
 import { isRemotePath, isSMBPath, parentOfVirtualPath } from '../../features/connections/helpers';
+import { isTrashPath } from '../../shared/lib/trash';
 import { useDuplicatesStore } from '../../features/duplicates/duplicatesStore';
 import { isLocalArchivePath } from '../../features/duplicates/helpers';
 import { useContextMenuStore } from '../../features/file-ops/contextMenuStore';
@@ -85,10 +87,35 @@ export const FileContextMenu: FC = () => {
     fn();
   };
   const op = (action: FileOpsAction) => act(() => trigger(action));
+  const inTrash = isTrashPath(panePath);
 
   const items: Item[] = [];
 
-  if (entry) {
+  if (inTrash) {
+    if (entry && entry.name !== '..') {
+      items.push({
+        key: 'restore',
+        label: 'Restore',
+        icon: <RestoreFromTrashIcon fontSize="small" />,
+        run: op('restoreTrash'),
+      });
+      items.push({
+        key: 'delete',
+        label: 'Delete permanently',
+        icon: <DeleteIcon fontSize="small" color="error" />,
+        run: op('delete'),
+        danger: true,
+      });
+    }
+    items.push({
+      key: 'empty',
+      label: 'Empty Trash',
+      icon: <DeleteIcon fontSize="small" color="error" />,
+      run: op('emptyTrash'),
+      danger: true,
+      dividerBefore: items.length > 0,
+    });
+  } else if (entry) {
     items.push({
       key: 'open',
       label: isDir || canBrowse ? 'Open folder' : 'Open',
@@ -176,7 +203,7 @@ export const FileContextMenu: FC = () => {
   }
 
   const folder = entry?.isDir ? entry.path : entry ? parentOf(entry.path) : panePath;
-  if (!inArchive && folder) {
+  if (!inTrash && !inArchive && folder) {
     if (!isRemotePath(folder)) {
       items.push({
         key: 'open-os',
@@ -203,7 +230,7 @@ export const FileContextMenu: FC = () => {
     }
   }
 
-  if (!inArchive) {
+  if (!inTrash && !inArchive) {
     items.push({
       key: 'mkdir',
       label: 'New folder',
@@ -219,16 +246,18 @@ export const FileContextMenu: FC = () => {
     });
   }
 
-  items.push({
-    key: 'duplicates',
-    label: 'Find duplicates…',
-    icon: <FilterNoneIcon fontSize="small" />,
-    run: act(() => openDuplicates(panePath)),
-    disabled: dupRunning || isLocalArchivePath(panePath),
-    dividerBefore: true,
-  });
+  if (!inTrash) {
+    items.push({
+      key: 'duplicates',
+      label: 'Find duplicates…',
+      icon: <FilterNoneIcon fontSize="small" />,
+      run: act(() => openDuplicates(panePath)),
+      disabled: dupRunning || isLocalArchivePath(panePath),
+      dividerBefore: true,
+    });
+  }
 
-  if (entry && !inArchive) {
+  if (!inTrash && entry && !inArchive) {
     items.push({
       key: 'delete',
       label: 'Delete',

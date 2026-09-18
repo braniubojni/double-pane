@@ -17,6 +17,7 @@ Not commitments — ideas to triage. Check here before proposing new features (s
 - [ ] Filter results by size/date/type
 - [ ] Save search as smart folder
 - [ ] Search inside archives
+- [ ] Option to search by filename(currently implemented only by folder name and file content)
 
 ## Remote/SFTP
 
@@ -38,8 +39,11 @@ Not commitments — ideas to triage. Check here before proposing new features (s
 
 ## Other
 
-- [ ] Smart tool that will analyze the files and folders and will highlight the files that are similar to each other(by content or by name, by metadata and etc.). It should be able to work with the files in the all remote connections as well. Let's also have OCR I want functionality that will going to find duplicates and if user need it it will show in dialog percentage of two photos together and user will be able to select all or select one by one, then remove it. Tool should work everywhere. sftp, google drive, icloude, SMB, Mega. OCR can be optional, user should have some sort of dialog with checkboxes -> OCR and we can show him approximate estimation time according to what he picked. We should have also abiltiy to do it in background(we will keep info in status bar + option to open back that dialog(in progress one)). Example use case, I am using mega cloud and I have a lot of duplicate photos which I would like to remove, so I need - dialog where I can select exact folder/drive to look for duplicates(with options that I suggested, u r free to add more) - another state of tool dialog which will start to work after I clicked start, it is going to show the progress, or if during work some error accured we should have options like continue, revert or restart - after progress finished, we need to have another state of dialog which will going to be some kind of merger, in this dialog I should be able to review duplicate files and unselect or select back if needed. At the end I will click to merge and we simply remove duplicates - we may also have some percentage option like if in case of metadata missmatch we have OCR percentage of 90 that they are similar to each other
-- [ ] Trash/recycle bin integration (soft delete, restore) instead of permanent delete
+- [x] Duplicate finder (exact SHA-256, similar images, optional OCR; setup → progress → review → merge; background + status bar). Local, SSH/SFTP, SMB, MEGA.
+- [ ] Duplicate finder on native Google Drive / iCloud APIs (today those connections are local OS mounts only)
+- [x] Local trash/recycle bin (OS trash, in-app `trash://` restore, empty, Shift+Delete)
+- [ ] Ability to show cursor usage in the status bar
+- [ ] SSH/SMB soft-delete/restore (MEGA already uses MEGA trash)
 - [ ] Disk usage treemap view (like WinDirStat) per folder
 - [ ] Plugin/extension points — low priority, only if long-term extensibility actually needed
 - [ ] New settings to show only in the tray or both tray and system menu

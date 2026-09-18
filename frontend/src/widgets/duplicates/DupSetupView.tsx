@@ -177,9 +177,7 @@ export const DupSetupView: FC = () => {
             {setup.similarImages
               ? ` · ${estimate.imageCount ?? 0} images · visual ${formatEta(estimate.etaVisualSeconds ?? 0)}`
               : ''}
-            {setup.ocr
-              ? ` · OCR ${formatEta(estimate.etaOcrSeconds ?? 0)}`
-              : ''}
+            {setup.ocr ? ` · OCR ${formatEta(estimate.etaOcrSeconds ?? 0)}` : ''}
           </Typography>
         ) : null}
         {estimate && mega ? (

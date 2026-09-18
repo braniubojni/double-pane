@@ -12,6 +12,8 @@ export interface FileEntry {
   isSymlink: boolean;
   /** 'full' | 'readonly' | 'partial' | 'none', or '' when unknown (remote). */
   access: string;
+  /** Put Back path for trash:// rows. */
+  origin?: string;
 }
 
 export interface PortListener {

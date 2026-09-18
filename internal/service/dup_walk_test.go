@@ -22,7 +22,7 @@ func TestWalkForDuplicatesPastSearchCaps(t *testing.T) {
 		}
 		return nil, fmt.Errorf("unexpected %s", path)
 	}
-	files, skipped, err := walkForDuplicates(context.Background(), list, "ssh://h/root", false, 0, "", "")
+	files, skipped, err := walkForDuplicates(context.Background(), list, "ssh://h/root", false, 0, nil, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -56,7 +56,7 @@ func TestWalkForDuplicatesDeepTree(t *testing.T) {
 	list := func(path string, _ bool) ([]domain.FileEntry, error) {
 		return tree[path], nil
 	}
-	files, _, err := walkForDuplicates(context.Background(), list, "ssh://h/d0", false, 0, "", "")
+	files, _, err := walkForDuplicates(context.Background(), list, "ssh://h/d0", false, 0, nil, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -82,7 +82,7 @@ func TestWalkForDuplicatesChildListErrorNotFatal(t *testing.T) {
 			return nil, fmt.Errorf("unexpected %s", path)
 		}
 	}
-	files, skipped, err := walkForDuplicates(context.Background(), list, "ssh://h/root", false, 0, "", "")
+	files, skipped, err := walkForDuplicates(context.Background(), list, "ssh://h/root", false, 0, nil, "")
 	if err != nil {
 		t.Fatalf("child list error must not be fatal: %v", err)
 	}
@@ -103,7 +103,7 @@ func TestWalkForDuplicatesRemoteZipIsFile(t *testing.T) {
 		}
 		return nil, fmt.Errorf("unexpected %s", path)
 	}
-	files, _, err := walkForDuplicates(context.Background(), list, "ssh://h/root", false, 0, "", "")
+	files, _, err := walkForDuplicates(context.Background(), list, "ssh://h/root", false, 0, nil, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -119,7 +119,7 @@ func TestWalkForDuplicatesSessionDropIsFatal(t *testing.T) {
 		}
 		return nil, fmt.Errorf("not connected to h; connect first")
 	}
-	_, _, err := walkForDuplicates(context.Background(), list, "ssh://h/root", false, 0, "", "")
+	_, _, err := walkForDuplicates(context.Background(), list, "ssh://h/root", false, 0, nil, "")
 	if err == nil {
 		t.Fatal("expected fatal session error")
 	}
@@ -139,7 +139,7 @@ func TestWalkForDuplicatesCancel(t *testing.T) {
 	}
 	errCh := make(chan error, 1)
 	go func() {
-		_, _, err := walkForDuplicates(ctx, list, "root", false, 0, "", "")
+		_, _, err := walkForDuplicates(ctx, list, "root", false, 0, nil, "")
 		errCh <- err
 	}()
 	select {
@@ -189,7 +189,7 @@ func TestWalkForDuplicatesExclude(t *testing.T) {
 			return nil, fmt.Errorf("unexpected %s", path)
 		}
 	}
-	files, skipped, err := walkForDuplicates(context.Background(), list, "ssh://h/root", false, 0, "", "*.md, build")
+	files, skipped, err := walkForDuplicates(context.Background(), list, "ssh://h/root", false, 0, nil, "*.md, build")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -203,11 +203,39 @@ func TestWalkForDuplicatesExclude(t *testing.T) {
 		t.Fatalf("files %+v", files)
 	}
 
-	all, _, err := walkForDuplicates(context.Background(), list, "ssh://h/root", false, 0, "", "")
+	all, _, err := walkForDuplicates(context.Background(), list, "ssh://h/root", false, 0, nil, "")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(all) != 3 {
 		t.Fatalf("empty exclude should keep all files, got %d", len(all))
+	}
+}
+
+func TestWalkSkipsSystemTrash(t *testing.T) {
+	root := "/tmp/home"
+	trash := "/tmp/home/.Trash"
+	keep := root + "/keep.txt"
+	list := func(path string, _ bool) ([]domain.FileEntry, error) {
+		switch path {
+		case root:
+			return []domain.FileEntry{
+				{Name: "keep.txt", Path: keep, Size: 1},
+				{Name: ".Trash", Path: trash, IsDir: true},
+			}, nil
+		case trash:
+			return []domain.FileEntry{
+				{Name: "gone.txt", Path: trash + "/gone.txt", Size: 1},
+			}, nil
+		default:
+			return nil, fmt.Errorf("unexpected %s", path)
+		}
+	}
+	files, _, err := walkForDuplicates(context.Background(), list, root, true, 0, nil, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(files) != 1 || files[0].Path != keep {
+		t.Fatalf("files %+v", files)
 	}
 }

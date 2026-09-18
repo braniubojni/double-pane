@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"time"
@@ -52,11 +53,124 @@ func (s *FileService) trashRootLocal() string {
 	return s.trash.Root()
 }
 
+func (s *FileService) trashSkipRoots() []string {
+	var roots []string
+	if s != nil && s.trash != nil && s.trash.Root() != "" {
+		roots = append(roots, s.trash.Root())
+	}
+	if s != nil && s.osTrash != nil {
+		roots = append(roots, s.osTrash.Roots()...)
+	}
+	return roots
+}
+
 func (s *FileService) megaCacheDir() string {
 	if s != nil && s.dupCacheDir != "" {
 		return s.dupCacheDir
 	}
-	return os.TempDir()
+	return ""
+}
+
+// migrateDupCache moves an old trash/dup-cache tree into cfgDir/dup-cache once.
+func migrateDupCache(oldDir, newDir string) {
+	if oldDir == "" || newDir == "" || oldDir == newDir {
+		return
+	}
+	st, err := os.Stat(oldDir)
+	if err != nil || !st.IsDir() {
+		return
+	}
+	if err := os.MkdirAll(filepath.Dir(newDir), 0o700); err != nil {
+		return
+	}
+	if _, err := os.Stat(newDir); os.IsNotExist(err) {
+		if err := os.Rename(oldDir, newDir); err == nil {
+			return
+		}
+	}
+	if err := os.MkdirAll(newDir, 0o700); err != nil {
+		return
+	}
+	entries, err := os.ReadDir(oldDir)
+	if err != nil {
+		return
+	}
+	for _, e := range entries {
+		src := filepath.Join(oldDir, e.Name())
+		dst := filepath.Join(newDir, e.Name())
+		if _, err := os.Stat(dst); err == nil {
+			continue
+		}
+		if err := os.Rename(src, dst); err != nil {
+			if cpErr := copyDupCacheEntry(src, dst); cpErr != nil {
+				continue
+			}
+			_ = os.RemoveAll(src)
+		}
+	}
+	_ = os.RemoveAll(oldDir)
+}
+
+func copyDupCacheEntry(src, dst string) error {
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = in.Close() }()
+	info, err := in.Stat()
+	if err != nil {
+		return err
+	}
+	if info.IsDir() {
+		return fmt.Errorf("unexpected dir in dup-cache: %s", src)
+	}
+	out, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, info.Mode().Perm())
+	if err != nil {
+		return err
+	}
+	_, copyErr := io.Copy(out, in)
+	closeErr := out.Close()
+	if copyErr != nil {
+		return copyErr
+	}
+	return closeErr
+}
+
+// purgeDupCacheDir removes entries under dir. maxAge <= 0 deletes all;
+// otherwise only entries with mtime older than maxAge.
+func purgeDupCacheDir(dir string, maxAge time.Duration) error {
+	if dir == "" {
+		return nil
+	}
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+	var cutoff time.Time
+	if maxAge > 0 {
+		cutoff = time.Now().Add(-maxAge)
+	}
+	var firstErr error
+	for _, e := range entries {
+		path := filepath.Join(dir, e.Name())
+		if maxAge > 0 {
+			info, err := e.Info()
+			if err != nil || info.ModTime().After(cutoff) {
+				continue
+			}
+		}
+		if err := os.RemoveAll(path); err != nil && firstErr == nil {
+			firstErr = err
+		}
+	}
+	return firstErr
+}
+
+func (s *FileService) clearDupCache() {
+	_ = purgeDupCacheDir(s.megaCacheDir(), 0)
 }
 
 func (s *FileService) validateDupRoot(root string) error {
@@ -168,7 +282,14 @@ func (s *FileService) ocrPath(ctx context.Context, jobID, path string) (string, 
 			return "", err
 		}
 		defer func() { _ = r.Close() }()
-		f, err := os.CreateTemp(s.megaCacheDir(), "ocr-*")
+		cache := s.megaCacheDir()
+		if cache == "" {
+			return "", fmt.Errorf("dup cache dir required")
+		}
+		if err := os.MkdirAll(cache, 0o700); err != nil {
+			return "", err
+		}
+		f, err := os.CreateTemp(cache, "ocr-*")
 		if err != nil {
 			return "", err
 		}
@@ -204,9 +325,9 @@ func (s *FileService) EstimateDuplicateScan(root string, includeHidden bool, min
 	if err != nil {
 		return domain.ScanEstimate{}, err
 	}
-	trash := ""
+	var trash []string
 	if !remote.IsRemote(root) {
-		trash = s.trashRootLocal()
+		trash = s.trashSkipRoots()
 	}
 	files, _, err := walkForDuplicates(context.Background(), list, root, includeHidden, minSize, trash, exclude)
 	if err != nil {
@@ -287,9 +408,11 @@ func (s *FileService) StartDuplicateScan(jobID, root string, includeHidden bool,
 func (s *FileService) runDuplicateScan(ctx context.Context, jobID, root string, includeHidden bool, minSize int64, exclude string, similarImages bool, similarityPct int, ocrOn bool) {
 	defer func() { _ = s.FinishJob(jobID) }()
 	defer s.clearDupJob(jobID)
+	defer s.clearDupCache() // leftover temps after success/cancel/fatal — delete now, not 24h later
 
 	var collected []domain.DuplicateGroup
 	finish := func(path string, err error) {
+		s.clearDupCache() // finished job = delete now (before done so UI/tests see a clean cache)
 		msg := ""
 		if err != nil {
 			msg = err.Error()
@@ -318,9 +441,9 @@ func (s *FileService) runDuplicateScan(ctx context.Context, jobID, root string, 
 		finish(root, err)
 		return
 	}
-	trash := ""
+	var trash []string
 	if !remote.IsRemote(root) {
-		trash = s.trashRootLocal()
+		trash = s.trashSkipRoots()
 	}
 	files, skipped, err := walkForDuplicates(ctx, list, root, includeHidden, minSize, trash, exclude)
 	if err != nil {

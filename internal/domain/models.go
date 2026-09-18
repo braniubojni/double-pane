@@ -14,6 +14,8 @@ type FileEntry struct {
 	// mode for everything, so the bits would be a lie. Remote access is instead
 	// discovered by operations that actually get denied — see DirSizes.Denied.
 	Access string `json:"access"`
+	// Origin is the Put Back path for trash:// listings. Empty elsewhere.
+	Origin string `json:"origin,omitempty"`
 }
 
 // OpenWithApp is one OS application that can open a local file.

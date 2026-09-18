@@ -4,10 +4,14 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
+
+	mega "github.com/t3rm1n4l/go-mega"
 )
 
 func TestHashViaTempCleansUpAndDoesNotReadAll(t *testing.T) {
@@ -172,5 +176,80 @@ func TestHashViaTempUsesStreamHashNotReadFile(t *testing.T) {
 	}
 	if sum != hex.EncodeToString(h.Sum(nil)) {
 		t.Fatal("hash mismatch")
+	}
+}
+
+func TestDownloadRetrySucceedsAfterTransientFailures(t *testing.T) {
+	prev := megaRetrySleep
+	megaRetrySleep = func(int) {}
+	defer func() { megaRetrySleep = prev }()
+
+	cache := t.TempDir()
+	dest := filepath.Join(cache, "partial")
+	if err := os.WriteFile(dest, nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	var n int
+	err := downloadRetry(context.Background(), "mega://u@h/a.bin", dest, func() error {
+		n++
+		if n < 3 {
+			return errors.New("unexpected EOF")
+		}
+		return os.WriteFile(dest, []byte("ok"), 0o600)
+	}, nil)
+	if err != nil {
+		t.Fatalf("expected success after retries: %v", err)
+	}
+	if n != 3 {
+		t.Fatalf("attempts=%d want 3", n)
+	}
+}
+
+func TestDownloadRetrySkipsAfterThreeFailuresAndClearsTemp(t *testing.T) {
+	prev := megaRetrySleep
+	megaRetrySleep = func(int) {}
+	defer func() { megaRetrySleep = prev }()
+
+	cache := t.TempDir()
+	var thenCalled bool
+	err := withTempFile(context.Background(), cache, func(dest string) error {
+		return downloadRetry(context.Background(), "mega://u@h/a.bin", dest, func() error {
+			_ = os.WriteFile(dest, []byte("partial"), 0o600)
+			return errors.New("Unsolicited response received on idle HTTP channel")
+		}, nil)
+	}, func(string) error {
+		thenCalled = true
+		return nil
+	})
+	if err == nil {
+		t.Fatal("expected skip error")
+	}
+	if !strings.Contains(err.Error(), "mega download failed after 3 attempts") {
+		t.Fatalf("got %v", err)
+	}
+	if thenCalled {
+		t.Fatal("must not hash after failed download")
+	}
+	ents, err := os.ReadDir(cache)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(ents) != 0 {
+		t.Fatalf("temp left behind: %v", ents)
+	}
+}
+
+func TestDownloadRetryThreeSessionDeadIsFatal(t *testing.T) {
+	prev := megaRetrySleep
+	megaRetrySleep = func(int) {}
+	defer func() { megaRetrySleep = prev }()
+
+	dest := filepath.Join(t.TempDir(), "x")
+	_ = os.WriteFile(dest, nil, 0o600)
+	err := downloadRetry(context.Background(), "mega://u@h/a.bin", dest, func() error {
+		return mega.ESID
+	}, nil)
+	if err == nil || !strings.Contains(err.Error(), "not connected") {
+		t.Fatalf("expected fatal not connected, got %v", err)
 	}
 }

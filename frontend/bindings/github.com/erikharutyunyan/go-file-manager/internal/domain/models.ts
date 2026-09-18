@@ -205,6 +205,11 @@ export interface FileEntry {
      * discovered by operations that actually get denied — see DirSizes.Denied.
      */
     "access": string;
+
+    /**
+     * Origin is the Put Back path for trash:// listings. Empty elsewhere.
+     */
+    "origin"?: string;
 }
 
 /**

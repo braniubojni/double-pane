@@ -18,7 +18,7 @@ export const mergeConfirmCopy = (protocol: string): string => {
   if (protocol === 'ssh' || protocol === 'smb') {
     return 'Permanent delete. App Undo will not restore these.';
   }
-  return 'Undo available for 24h in app trash.';
+  return 'Moved to the system trash. Undo from the notification or open Trash.';
 };
 
 export const megaDiskWarning = (byteCount: number): string =>

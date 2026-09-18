@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"path/filepath"
 	"strings"
 
 	"github.com/erikharutyunyan/go-file-manager/internal/domain"
@@ -39,13 +38,13 @@ func walkForDuplicates(
 	root string,
 	includeHidden bool,
 	minSize int64,
-	trashRoot string,
+	trashRoots []string,
 	exclude string,
 ) (files []dupFile, skipped []dupSkip, err error) {
 	if err := ctx.Err(); err != nil {
 		return nil, nil, err
 	}
-	if trashRoot != "" && !remote.IsRemote(root) && underDir(root, trashRoot) {
+	if !remote.IsRemote(root) && filesystem.SkipDuplicateTrash(root, trashRoots) {
 		return nil, nil, nil
 	}
 	filter := filesystem.NewPathFilter("", exclude)
@@ -71,7 +70,7 @@ func walkForDuplicates(
 			if !includeHidden && strings.HasPrefix(e.Name, ".") {
 				continue
 			}
-			if trashRoot != "" && !remote.IsRemote(e.Path) && underDir(e.Path, trashRoot) {
+			if !remote.IsRemote(e.Path) && filesystem.SkipDuplicateTrash(e.Path, trashRoots) {
 				continue
 			}
 			rel := e.Name
@@ -121,32 +120,6 @@ func listDirWithCtx(ctx context.Context, list listDirFunc, path string, hidden b
 	case r := <-ch:
 		return r.ents, r.err
 	}
-}
-
-func underDir(path, root string) bool {
-	if root == "" {
-		return false
-	}
-	abs, err := filepath.Abs(path)
-	if err != nil {
-		return false
-	}
-	base, err := filepath.Abs(root)
-	if err != nil {
-		return false
-	}
-	rel, err := filepath.Rel(base, abs)
-	if err != nil {
-		return false
-	}
-	if rel == "." {
-		return true
-	}
-	sep := string(filepath.Separator)
-	if rel == ".." || strings.HasPrefix(rel, ".."+sep) {
-		return false
-	}
-	return true
 }
 
 func isDupFatalErr(err error) bool {

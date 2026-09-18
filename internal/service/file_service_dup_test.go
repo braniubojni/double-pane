@@ -415,3 +415,199 @@ func TestDuplicateScanExcludeMarkdown(t *testing.T) {
 		}
 	}
 }
+
+func TestDupCacheDirIsSiblingOfTrash(t *testing.T) {
+	work := t.TempDir()
+	trash := filepath.Join(work, "trash")
+	s := NewFileService(nil, nil, nil, trash)
+	want := filepath.Join(work, "dup-cache")
+	if s.megaCacheDir() != want {
+		t.Fatalf("dup-cache=%q want %q (not under trash)", s.megaCacheDir(), want)
+	}
+	if strings.Contains(s.megaCacheDir(), string(filepath.Separator)+"trash"+string(filepath.Separator)) {
+		t.Fatal("dup-cache must not live under trash/")
+	}
+}
+
+func TestMigrateDupCacheFromTrash(t *testing.T) {
+	work := t.TempDir()
+	trash := filepath.Join(work, "trash")
+	old := filepath.Join(trash, "dup-cache")
+	if err := os.MkdirAll(old, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	legacy := filepath.Join(old, "leftover")
+	if err := os.WriteFile(legacy, []byte("x"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	s := NewFileService(nil, nil, nil, trash)
+	want := filepath.Join(work, "dup-cache", "leftover")
+	if _, err := os.Stat(want); err != nil {
+		t.Fatalf("migrated file missing: %v", err)
+	}
+	if _, err := os.Stat(old); !os.IsNotExist(err) {
+		t.Fatalf("old trash/dup-cache should be gone: %v", err)
+	}
+	if s.megaCacheDir() != filepath.Join(work, "dup-cache") {
+		t.Fatalf("cache dir=%s", s.megaCacheDir())
+	}
+}
+
+func TestPurgeTrashDoesNotDeleteDupCache(t *testing.T) {
+	work := t.TempDir()
+	trash := filepath.Join(work, "trash")
+	s := NewFileService(nil, nil, nil, trash)
+	cache := s.megaCacheDir()
+	if err := os.MkdirAll(cache, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	keep := filepath.Join(cache, "keep-me")
+	if err := os.WriteFile(keep, []byte("alive"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	// Misplaced leftover under trash must also survive PurgeTrash.
+	misplacedDir := filepath.Join(trash, "dup-cache")
+	if err := os.MkdirAll(misplacedDir, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	misplaced := filepath.Join(misplacedDir, "still-here")
+	if err := os.WriteFile(misplaced, []byte("x"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	oldBatch := filepath.Join(trash, "20200101-000000001-1")
+	if err := os.MkdirAll(oldBatch, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	oldTime := time.Now().Add(-48 * time.Hour)
+	if err := os.Chtimes(oldBatch, oldTime, oldTime); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := s.PurgeTrash(); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(keep); err != nil {
+		t.Fatalf("sibling dup-cache file deleted by PurgeTrash: %v", err)
+	}
+	if _, err := os.Stat(misplaced); err != nil {
+		t.Fatalf("trash/dup-cache deleted by PurgeTrash: %v", err)
+	}
+	if _, err := os.Stat(oldBatch); err != nil {
+		t.Fatalf("leftover trash batch must survive PurgeTrash: %v", err)
+	}
+}
+
+func TestPurgeDupCacheAge(t *testing.T) {
+	work := t.TempDir()
+	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	cache := s.megaCacheDir()
+	if err := os.MkdirAll(cache, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	oldPath := filepath.Join(cache, "old-temp")
+	freshPath := filepath.Join(cache, "fresh-temp")
+	if err := os.WriteFile(oldPath, []byte("old"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(freshPath, []byte("new"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	oldTime := time.Now().Add(-25 * time.Hour)
+	if err := os.Chtimes(oldPath, oldTime, oldTime); err != nil {
+		t.Fatal(err)
+	}
+	// Leave a trash batch alone — purge must never touch it.
+	trashBatch := filepath.Join(work, "trash", "20200101-000000001-1")
+	if err := os.MkdirAll(trashBatch, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(trashBatch, "manifest.json"), []byte("[]"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := s.PurgeDupCache(); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(oldPath); !os.IsNotExist(err) {
+		t.Fatalf("old temp should be deleted: %v", err)
+	}
+	if _, err := os.Stat(freshPath); err != nil {
+		t.Fatalf("fresh temp should be kept: %v", err)
+	}
+	if _, err := os.Stat(trashBatch); err != nil {
+		t.Fatalf("trash must not be touched: %v", err)
+	}
+}
+
+func TestCancelClearsInFlightDupTemp(t *testing.T) {
+	work := t.TempDir()
+	root := filepath.Join(work, "scan")
+	if err := os.Mkdir(root, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "a.bin"), []byte("aa"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "b.bin"), []byte("aa"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	cache := s.megaCacheDir()
+	if err := os.MkdirAll(cache, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	started := make(chan struct{})
+	var tempPath string
+	s.hashFile = func(ctx context.Context, _ string) (string, error) {
+		f, err := os.CreateTemp(cache, "dup-*")
+		if err != nil {
+			return "", err
+		}
+		tempPath = f.Name()
+		_ = f.Close()
+		select {
+		case <-started:
+		default:
+			close(started)
+		}
+		<-ctx.Done()
+		// Simulate cancel/crash leaving the temp (no per-file Remove).
+		return "", ctx.Err()
+	}
+	done := make(chan domain.DupDonePayload, 1)
+	s.onEvent = func(name string, data any) {
+		if name == "dup:done" {
+			done <- data.(domain.DupDonePayload)
+		}
+	}
+	id := s.NewJobID()
+	if err := s.StartDuplicateScan(id, root, false, 0, "", false, 90, false); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-started:
+	case <-time.After(5 * time.Second):
+		t.Fatal("hash did not start")
+	}
+	if err := s.CancelJob(id); err != nil {
+		t.Fatal(err)
+	}
+	got := waitDupDone(t, done)
+	if got.Error == "" {
+		t.Fatal("expected cancel error")
+	}
+	if tempPath == "" {
+		t.Fatal("in-flight temp was not created")
+	}
+	if _, err := os.Stat(tempPath); !os.IsNotExist(err) {
+		t.Fatalf("in-flight temp should be removed on job end: %v", err)
+	}
+	ents, err := os.ReadDir(cache)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(ents) != 0 {
+		t.Fatalf("dup-cache not empty after cancel: %v", ents)
+	}
+}

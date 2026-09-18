@@ -8,6 +8,7 @@ import {
   SettingsService,
 } from '../../shared/api/bindings';
 import { isRemotePath } from '../../features/connections/helpers';
+import { isTrashPath } from '../../shared/lib/trash';
 import type {
   AIUsage,
   AppSettings,
@@ -222,7 +223,7 @@ export const useDirListing = (path: string | undefined, showHidden: boolean) => 
 };
 
 export const useDiskUsage = (path: string | undefined) => {
-  const remote = isRemotePath(path);
+  const remote = isRemotePath(path) || isTrashPath(path);
   return useQuery({
     queryKey: queryKeys.diskUsage(path ?? ''),
     queryFn: async (): Promise<DiskUsage> => {
@@ -241,7 +242,7 @@ export const useDiskUsage = (path: string | undefined) => {
 
 /** Git working-tree status for one local directory (parallel to ListDir). */
 export const useGitDirStatus = (path: string | undefined, enabled: boolean) => {
-  const remote = isRemotePath(path);
+  const remote = isRemotePath(path) || isTrashPath(path);
   return useQuery({
     queryKey: queryKeys.gitStatus(path ?? ''),
     queryFn: async (): Promise<GitDirStatus> => {
@@ -365,6 +366,11 @@ export const useFileOps = () => {
     onSuccess: (_d, paths) => invalidate(...parentDirs(paths)),
   });
 
+  const delPermanent = useMutation({
+    mutationFn: (paths: string[]) => FileService.DeletePermanent(paths),
+    onSuccess: (_d, paths) => invalidate(...parentDirs(paths)),
+  });
+
   const rename = useMutation({
     mutationFn: ({ oldPath, newName }: { oldPath: string; newName: string }) =>
       FileService.Rename(oldPath, newName),
@@ -397,7 +403,7 @@ export const useFileOps = () => {
     },
   });
 
-  return { del, rename, mkdir, mkfile, addBookmark, removeBookmark };
+  return { del, delPermanent, rename, mkdir, mkfile, addBookmark, removeBookmark };
 };
 
 const parentDirs = (paths: string[]): string[] => {

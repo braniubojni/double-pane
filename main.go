@@ -3,10 +3,12 @@ package main
 import (
 	"embed"
 	"log"
+	"os"
 	"path/filepath"
 
 	"github.com/erikharutyunyan/go-file-manager/internal/config"
 	"github.com/erikharutyunyan/go-file-manager/internal/domain"
+	"github.com/erikharutyunyan/go-file-manager/internal/filesystem"
 	"github.com/erikharutyunyan/go-file-manager/internal/remote"
 	"github.com/erikharutyunyan/go-file-manager/internal/service"
 	"github.com/erikharutyunyan/go-file-manager/internal/storage"
@@ -35,8 +37,11 @@ func main() {
 	smbMgr := remote.NewSMBManager()
 	megaMgr := remote.NewMEGAManager()
 	fileSvc := service.NewFileService(remoteMgr, smbMgr, megaMgr, filepath.Join(cfgStore.Dir(), "trash"))
-	if err := fileSvc.PurgeTrash(); err != nil {
-		log.Printf("purge trash: %v", err)
+	if os.Getenv(config.EnvConfigDir) == "" {
+		fileSvc.SetTrashBackend(filesystem.NewPlatformTrash())
+	}
+	if err := fileSvc.PurgeDupCache(); err != nil {
+		log.Printf("purge dup-cache: %v", err)
 	}
 	settingsSvc := service.NewSettingsService(db, cfgStore)
 	bookmarkSvc := service.NewBookmarkService(db)

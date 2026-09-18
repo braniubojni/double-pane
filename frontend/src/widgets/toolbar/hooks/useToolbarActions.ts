@@ -6,6 +6,7 @@ import { parentDirOf, useEditorStore } from '../../../features/editor/editorStor
 import { openDocument } from '../../../shared/lib/openDocument';
 import { useGoToStore } from '../../../features/go-to/goToStore';
 import { isRemotePath } from '../../../features/connections/helpers';
+import { isTrashPath, TRASH_URI } from '../../../shared/lib/trash';
 import { usePaneStore } from '../../../features/pane/paneStore';
 import { useDialogStore } from '../../../features/ui/dialogStore';
 import { FileService } from '../../../shared/api/bindings';
@@ -74,8 +75,16 @@ export const useToolbarActions = () => {
 
   const goParent = async () => {
     if (!activePath) return;
+    if (isTrashPath(activePath)) {
+      await goHome();
+      return;
+    }
     try {
       const next = parentPath(activePath);
+      if (!next) {
+        await goHome();
+        return;
+      }
       if (await FileService.Exists(next)) {
         enterPaneTab(activePane, next);
         navigateStore(activePane, next);
@@ -127,12 +136,20 @@ export const useToolbarActions = () => {
     openGoTo();
   };
 
+  const onTrash = () => {
+    enterPaneTab(activePane, TRASH_URI);
+    navigateStore(activePane, TRASH_URI);
+  };
+
   useFileOpsRequest(
     createToolbarRequestHandlers({
       copy: fileOps.onCopy,
       paste: fileOps.onPaste,
       move: fileOps.onMove,
       delete: fileOps.onDelete,
+      deletePermanent: fileOps.onDeletePermanent,
+      restoreTrash: fileOps.onRestoreTrash,
+      emptyTrash: fileOps.onEmptyTrash,
       rename: fileOps.onRename,
       mkdir: fileOps.onMkdir,
       mkfile: fileOps.onMkfile,
@@ -166,6 +183,8 @@ export const useToolbarActions = () => {
     onEditFile,
     onGitDiff,
     onGoTo,
+    onTrash,
+    trashActive: isTrashPath(activePath),
     ...fileOps,
     ...archiveOps,
   };

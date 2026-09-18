@@ -36,6 +36,7 @@ import { useGridPrefsStore } from '../../features/ui/gridPrefsStore';
 import { useDmgPasswordStore } from '../../features/dmg/dmgPasswordStore';
 import { startAttachDmg } from '../../features/dmg/startAttach';
 import { isBrowsableArchive } from '../../shared/lib/archives';
+import { isTrashPath } from '../../shared/lib/trash';
 import { errMessage } from '../../shared/lib/format';
 import { openDocument } from '../../shared/lib/openDocument';
 import { FileService } from '../../shared/api/bindings';
@@ -165,7 +166,13 @@ export const useFilePane = (id: PaneId) => {
 
   const goUp = () => {
     if (!path) return;
-    navigate(parentOfPath(path));
+    if (isTrashPath(path)) {
+      goHome();
+      return;
+    }
+    const parent = parentOfPath(path);
+    if (parent) navigate(parent);
+    else goHome();
   };
 
   const goHome = () => {
@@ -176,6 +183,7 @@ export const useFilePane = (id: PaneId) => {
 
   const openEntry = (entry: FileEntry) => {
     if (entry.isDir) {
+      if (isTrashPath(path) && entry.name !== '..') return;
       navigate(entry.path);
       return;
     }
@@ -477,8 +485,9 @@ export const useFileTable = ({
   const orderedPaths = useMemo(() => rows.map((r) => r.path), [rows]);
 
   const columns = useMemo<GridColDef[]>(
-    () => getColumns(widths, selected, folderSizes, deniedPaths, prefs.order),
-    [widths, folderSizes, selected, deniedPaths, prefs.order],
+    () =>
+      getColumns(widths, selected, folderSizes, deniedPaths, prefs.order, isTrashPath(panePath)),
+    [widths, folderSizes, selected, deniedPaths, prefs.order, panePath],
   );
 
   const moveFocus = useCallback(
