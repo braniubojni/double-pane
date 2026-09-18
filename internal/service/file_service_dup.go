@@ -46,13 +46,6 @@ func (s *FileService) dupRunning() bool {
 	return s.dupJob != ""
 }
 
-func (s *FileService) trashRootLocal() string {
-	if s == nil || s.trash == nil {
-		return ""
-	}
-	return s.trash.Root()
-}
-
 func (s *FileService) trashSkipRoots() []string {
 	var roots []string
 	if s != nil && s.trash != nil && s.trash.Root() != "" {

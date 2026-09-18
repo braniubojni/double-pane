@@ -32,9 +32,9 @@ func IsSystemTrashPath(path string) bool {
 		if UnderDir(abs, filepath.Join(home, ".Trash")) {
 			return true
 		}
-		if UnderDir(abs, filepath.Join(home, ".local", "share", "Trash")) {
-			return true
-		}
+	}
+	if d := xdgDataTrashDir(); d != "" && UnderDir(abs, d) {
+		return true
 	}
 	return false
 }
