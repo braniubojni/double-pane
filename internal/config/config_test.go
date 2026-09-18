@@ -111,3 +111,15 @@ func TestSameDirShortcuts(t *testing.T) {
 		t.Fatal("ShortcutCatalog missing sameDirLeft/sameDirRight")
 	}
 }
+
+func TestDeletePermanentShortcut(t *testing.T) {
+	if got := DefaultShortcuts()["deletePermanent"]; got != "Shift+Delete" {
+		t.Fatalf("deletePermanent default=%q", got)
+	}
+	for _, d := range ShortcutCatalog() {
+		if d.ID == "deletePermanent" {
+			return
+		}
+	}
+	t.Fatal("ShortcutCatalog missing deletePermanent")
+}

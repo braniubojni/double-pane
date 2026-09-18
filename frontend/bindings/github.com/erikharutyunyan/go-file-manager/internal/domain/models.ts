@@ -205,6 +205,11 @@ export interface FileEntry {
      * discovered by operations that actually get denied — see DirSizes.Denied.
      */
     "access": string;
+
+    /**
+     * Origin is the Put Back path for trash:// listings. Empty elsewhere.
+     */
+    "origin"?: string;
 }
 
 /**
@@ -385,6 +390,26 @@ export interface SSHConfigHost {
      * absolute path of the file this entry was read from
      */
     "configPath"?: string;
+}
+
+/**
+ * ScanEstimate is a pre-hash count for the duplicate-finder setup dialog.
+ */
+export interface ScanEstimate {
+    "fileCount": number;
+    "byteCount": number;
+    "etaSeconds": number;
+
+    /**
+     * local | ssh | smb | mega
+     */
+    "protocol": string;
+    "megaDownload": boolean;
+    "imageCount": number;
+    "etaExactSeconds": number;
+    "etaVisualSeconds": number;
+    "etaOcrSeconds": number;
+    "megaDownloadBytes": number;
 }
 
 /**

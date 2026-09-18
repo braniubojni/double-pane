@@ -211,6 +211,24 @@ func (m *Manager) get(loc Location) (*Session, error) {
 	return s, nil
 }
 
+// OpenRead returns a streaming reader for a remote file (SFTP). Caller closes it.
+func (m *Manager) OpenRead(vpath string) (io.ReadCloser, error) {
+	loc, err := ParseLocation(vpath)
+	if err != nil {
+		return nil, err
+	}
+	s, err := m.get(loc)
+	if err != nil {
+		return nil, err
+	}
+	rp := remoteAbsPath(loc.RemotePath)
+	f, err := s.sftp.Open(rp)
+	if err != nil {
+		return nil, fmt.Errorf("open %s: %w", rp, err)
+	}
+	return f, nil
+}
+
 // HomePath returns remote home directory as virtual path, or root.
 func (m *Manager) HomePath(spec Spec) (string, error) {
 	loc := Location{Spec: spec, RemotePath: "."}

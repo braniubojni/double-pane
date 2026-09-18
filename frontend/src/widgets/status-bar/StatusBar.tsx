@@ -7,6 +7,7 @@ import { useFolderSizeStore } from '../../features/folder-size/folderSizeStore';
 import { usePaneStore } from '../../features/pane/paneStore';
 import { formatSize } from '../../shared/lib/format';
 import { formatSelectionCaption, selectedEntryPaths } from './helpers';
+import { DuplicateStatusChip } from './DuplicateStatusChip';
 import { TransferStatusSegment } from './TransferStatusSegment';
 
 export const StatusBar: FC = () => {
@@ -51,6 +52,7 @@ export const StatusBar: FC = () => {
       >
         {path}
       </Typography>
+      <DuplicateStatusChip />
       <TransferStatusSegment />
       <Typography data-testid="status-items" variant="caption" color="text.secondary">
         Items: {count}

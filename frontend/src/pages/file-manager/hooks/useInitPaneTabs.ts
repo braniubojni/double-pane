@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useHomeDir, usePaneTabs } from '../../../entities/file/queries';
 import { usePaneStore, type PaneTab } from '../../../features/pane/paneStore';
 import { isRemotePath } from '../../../features/connections/helpers';
+import { isTrashPath } from '../../../shared/lib/trash';
 import { FileService } from '../../../shared/api/bindings';
 
 let tabSeq = 0;
@@ -12,6 +13,7 @@ const makeTab = (path: string): PaneTab => ({ id: `boot${++tabSeq}`, path, back:
 const isValidTab = async (path: string): Promise<boolean> => {
   if (!path) return false;
   if (isRemotePath(path)) return true;
+  if (isTrashPath(path)) return true;
   try {
     return await FileService.Exists(path);
   } catch {

@@ -2,9 +2,12 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	gopath "path"
+	"path/filepath"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -19,7 +22,7 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
-// TrashMaxAge is how long an undoable delete stays on disk.
+// TrashMaxAge is how long duplicate-scan temps stay on disk.
 const TrashMaxAge = 24 * time.Hour
 
 // maxConcurrentTransfers caps overlapping copy/move/attach jobs.
@@ -34,9 +37,18 @@ type FileService struct {
 	smb          *remote.SMBManager
 	mega         *remote.MEGAManager
 	trash        *filesystem.Trash
+	osTrash      filesystem.TrashBackend
 	app          *application.App
 	vols         *volumes.Manager
 	archivePw    sync.Map // archive abs path -> password, cached for the session
+	dupMu        sync.Mutex
+	dupJob       string
+	dupCacheDir  string
+	onEvent      func(name string, data any)
+	hashFile     func(context.Context, string) (string, error)
+	dhashFile    func(context.Context, string) (uint64, error)
+	ocrFile      func(context.Context, string) (string, error)
+	listDup      listDirFunc
 }
 
 type remoteBackend interface {
@@ -53,16 +65,32 @@ type remoteBackend interface {
 	ReadTextFile(path string) (string, error)
 	WriteTextFile(path, content string) error
 	DirChildSizesCtx(ctx context.Context, dir string) (domain.DirSizes, error)
+	OpenRead(path string) (io.ReadCloser, error)
 }
 
 func NewFileService(remoteMgr *remote.Manager, smbMgr *remote.SMBManager, megaMgr *remote.MEGAManager, trashDir string) *FileService {
+	// dup-cache lives next to trash/ under the config dir, not inside trash/.
+	cfgDir := filepath.Dir(trashDir)
+	dupCache := filepath.Join(cfgDir, "dup-cache")
+	migrateDupCache(filepath.Join(trashDir, "dup-cache"), dupCache)
 	return &FileService{
 		transferGate: make(chan struct{}, maxConcurrentTransfers),
 		remote:       remoteMgr,
 		smb:          smbMgr,
 		mega:         megaMgr,
 		trash:        filesystem.NewTrash(trashDir),
+		osTrash:      filesystem.NewXDGTrash(filepath.Join(cfgDir, "Trash")),
 		vols:         volumes.NewManager(),
+		dupCacheDir:  dupCache,
+	}
+}
+
+// SetTrashBackend replaces the OS trash implementation (production vs isolated XDG).
+//
+//wails:ignore
+func (s *FileService) SetTrashBackend(b filesystem.TrashBackend) {
+	if s != nil && b != nil {
+		s.osTrash = b
 	}
 }
 
@@ -110,9 +138,17 @@ func (s *FileService) backendFor(path string) (remoteBackend, error) {
 	return nil, fmt.Errorf("not a remote path")
 }
 
-// PurgeTrash drops undo batches older than TrashMaxAge (called at startup).
+// PurgeTrash is a no-op: leftover app-trash batches stay until restore or EmptyTrash.
 func (s *FileService) PurgeTrash() error {
-	return s.trash.PurgeOlderThan(TrashMaxAge)
+	return nil
+}
+
+// PurgeDupCache drops stale duplicate-scan temps older than TrashMaxAge.
+// Called at startup; does not touch trash/ or app.db.
+//
+//wails:ignore
+func (s *FileService) PurgeDupCache() error {
+	return purgeDupCacheDir(s.megaCacheDir(), TrashMaxAge)
 }
 
 // SetApp injects the application for search event emission (call after application.New).
@@ -127,7 +163,10 @@ func (s *FileService) SetApp(app *application.App) {
 }
 
 func (s *FileService) emit(name string, data any) {
-	if s.app != nil {
+	if s != nil && s.onEvent != nil {
+		s.onEvent(name, data)
+	}
+	if s != nil && s.app != nil {
 		s.app.Event.Emit(name, data)
 	}
 }
@@ -141,10 +180,22 @@ type jobHandle struct {
 // NewJobID allocates a cancellable job context and returns its id.
 func (s *FileService) NewJobID() string {
 	id := fmt.Sprintf("job-%d", s.jobSeq.Add(1))
+	s.storeJob(id)
+	return id
+}
+
+// storeJob puts id in the CancelJob map, or returns the existing ctx.
+func (s *FileService) storeJob(id string) context.Context {
+	if id == "" {
+		return context.Background()
+	}
+	if v, ok := s.jobs.Load(id); ok {
+		return v.(*jobHandle).ctx
+	}
 	reg := filesystem.NewFileCancelRegistry()
 	ctx, cancel := context.WithCancel(filesystem.WithFileCancelRegistry(context.Background(), reg))
 	s.jobs.Store(id, &jobHandle{ctx: ctx, cancel: cancel, fileCancel: reg})
-	return id
+	return ctx
 }
 
 func (s *FileService) jobCtx(jobID string) context.Context {
@@ -196,6 +247,10 @@ func (s *FileService) FinishJob(jobID string) error {
 }
 
 func (s *FileService) ListDir(path string, showHidden bool) ([]domain.FileEntry, error) {
+	if filesystem.IsTrashPath(path) {
+		home, _ := filesystem.HomeDir()
+		return filesystem.ListTrashEntries(s.osTrash, s.trash, home)
+	}
 	if remote.IsRemote(path) {
 		be, err := s.backendFor(path)
 		if err != nil {
@@ -240,6 +295,9 @@ func (s *FileService) GoogleDrivePaths() ([]string, error) {
 }
 
 func (s *FileService) Exists(path string) (bool, error) {
+	if filesystem.IsTrashPath(path) {
+		return true, nil
+	}
 	if remote.IsRemote(path) {
 		be, err := s.backendFor(path)
 		if err != nil {
@@ -258,6 +316,9 @@ func (s *FileService) Exists(path string) (bool, error) {
 
 // DiskUsage returns volume capacity for a local path.
 func (s *FileService) DiskUsage(path string) (domain.DiskUsage, error) {
+	if filesystem.IsTrashPath(path) {
+		return domain.DiskUsage{}, fmt.Errorf("disk usage is not available in trash")
+	}
 	if remote.IsRemote(path) {
 		return domain.DiskUsage{}, fmt.Errorf("disk usage is not available on remote paths")
 	}
@@ -310,6 +371,9 @@ func (s *FileService) runTransfer(jobID, kind string, sources []string, destDir 
 	defer s.releaseTransfer()
 
 	if err := rejectArchiveDest(destDir); err != nil {
+		return err
+	}
+	if err := s.rejectTrashDest(destDir); err != nil {
 		return err
 	}
 	if n := countInsideArchive(sources); n > 0 {
@@ -513,11 +577,13 @@ func transferKind(sources []string, destDir string) (xferKind, error) {
 	}
 }
 
-// Delete removes paths and returns an undo batch id. The id is empty when the
-// delete cannot be undone: remote (SFTP has no trash) or a cross-volume path
-// that had to be removed outright. The frontend only offers Undo for a non-empty id.
+// Delete removes paths and returns an undo token. The token is empty when the
+// delete cannot be undone (remote). The frontend only offers Undo for a non-empty token.
 func (s *FileService) Delete(paths []string) (string, error) {
 	if err := rejectInsideArchive(paths...); err != nil {
+		return "", err
+	}
+	if err := rejectTrashWrite(paths...); err != nil {
 		return "", err
 	}
 	if anyRemote(paths) {
@@ -536,16 +602,196 @@ func (s *FileService) Delete(paths []string) (string, error) {
 		}
 		return "", be.Delete(paths)
 	}
-	return s.trash.MoveToTrash(paths)
+	if s.inTrash(paths) {
+		return "", s.DeletePermanent(paths)
+	}
+	origins := make([]string, 0, len(paths))
+	for _, p := range paths {
+		abs, err := filesystem.Resolve(p)
+		if err != nil {
+			return "", err
+		}
+		origins = append(origins, abs)
+	}
+	if s.osTrash == nil {
+		return "", filesystem.Delete(paths)
+	}
+	if err := s.osTrash.Put(paths); err != nil {
+		return "", err
+	}
+	raw, err := json.Marshal(origins)
+	if err != nil {
+		return "", err
+	}
+	return string(raw), nil
 }
 
-// RestoreDeleted puts a delete batch back where it came from.
-func (s *FileService) RestoreDeleted(batchID string) error {
-	return s.trash.Restore(batchID)
+// DeletePermanent unlinks paths without sending them to trash.
+func (s *FileService) DeletePermanent(paths []string) error {
+	if err := rejectInsideArchive(paths...); err != nil {
+		return err
+	}
+	if err := rejectTrashWrite(paths...); err != nil {
+		return err
+	}
+	if anyRemote(paths) {
+		if !allRemote(paths) {
+			return fmt.Errorf("mixed local/remote delete not supported")
+		}
+		be, err := s.backendFor(paths[0])
+		if err != nil {
+			return err
+		}
+		return be.Delete(paths)
+	}
+	var first error
+	osPaths := make([]string, 0, len(paths))
+	leftPaths := make([]string, 0, len(paths))
+	plain := make([]string, 0, len(paths))
+	for _, p := range paths {
+		switch {
+		case s.trash != nil && s.trash.Contains(p):
+			leftPaths = append(leftPaths, p)
+		case s.osTrash != nil && s.osTrash.Contains(p):
+			osPaths = append(osPaths, p)
+		default:
+			plain = append(plain, p)
+		}
+	}
+	if len(osPaths) > 0 {
+		if err := s.osTrash.Remove(osPaths); err != nil && first == nil {
+			first = err
+		}
+	}
+	if len(leftPaths) > 0 {
+		if err := s.trash.Remove(leftPaths); err != nil && first == nil {
+			first = err
+		}
+	}
+	if len(plain) > 0 {
+		if err := filesystem.Delete(plain); err != nil && first == nil {
+			first = err
+		}
+	}
+	return first
+}
+
+// RestoreDeleted puts a delete batch back (JSON original paths, or a leftover batch id).
+func (s *FileService) RestoreDeleted(token string) error {
+	token = strings.TrimSpace(token)
+	if token == "" {
+		return fmt.Errorf("nothing to restore")
+	}
+	if filesystem.IsLegacyBatchID(token) {
+		return s.trash.Restore(token)
+	}
+	var origins []string
+	if err := json.Unmarshal([]byte(token), &origins); err != nil {
+		return fmt.Errorf("invalid restore token")
+	}
+	n := 0
+	var first error
+	if s.osTrash != nil {
+		got, err := s.osTrash.RestoreOrigins(origins)
+		n += got
+		if err != nil && first == nil {
+			first = err
+		}
+	}
+	if s.trash != nil {
+		got, err := s.trash.RestoreOrigins(origins)
+		n += got
+		if err != nil && first == nil {
+			first = err
+		}
+	}
+	if n == 0 {
+		if first != nil {
+			return first
+		}
+		return fmt.Errorf("nothing left to restore")
+	}
+	return nil
+}
+
+// RestoreTrash puts selected trash:// rows back to their original paths.
+func (s *FileService) RestoreTrash(paths []string) error {
+	var osPaths, leftPaths []string
+	for _, p := range paths {
+		if s.trash != nil && s.trash.Contains(p) {
+			leftPaths = append(leftPaths, p)
+			continue
+		}
+		osPaths = append(osPaths, p)
+	}
+	var first error
+	if len(osPaths) > 0 && s.osTrash != nil {
+		if err := s.osTrash.Restore(osPaths); err != nil {
+			first = err
+		}
+	}
+	if len(leftPaths) > 0 && s.trash != nil {
+		if err := s.trash.RestoreStored(leftPaths); err != nil && first == nil {
+			first = err
+		}
+	}
+	return first
+}
+
+// EmptyTrash empties the system trash and leftover app-trash batches.
+func (s *FileService) EmptyTrash() error {
+	var first error
+	if s.osTrash != nil {
+		first = s.osTrash.Empty()
+	}
+	if s.trash != nil {
+		if err := s.trash.Empty(); err != nil && first == nil {
+			first = err
+		}
+	}
+	return first
+}
+
+func (s *FileService) inTrash(paths []string) bool {
+	if len(paths) == 0 {
+		return false
+	}
+	for _, p := range paths {
+		if filesystem.IsTrashPath(p) {
+			return true
+		}
+		in := (s.osTrash != nil && s.osTrash.Contains(p)) || (s.trash != nil && s.trash.Contains(p))
+		if !in {
+			return false
+		}
+	}
+	return true
+}
+
+func rejectTrashWrite(paths ...string) error {
+	for _, p := range paths {
+		if filesystem.IsTrashPath(p) {
+			return filesystem.ErrTrashReadOnly
+		}
+	}
+	return nil
+}
+
+func (s *FileService) rejectTrashDest(paths ...string) error {
+	if err := rejectTrashWrite(paths...); err != nil {
+		return err
+	}
+	if s.inTrash(paths) {
+		return filesystem.ErrTrashReadOnly
+	}
+	return nil
 }
 
 func (s *FileService) Rename(oldPath, newName string) (string, error) {
 	if err := rejectInsideArchive(oldPath); err != nil {
+		return "", err
+	}
+	if err := s.rejectTrashDest(oldPath); err != nil {
 		return "", err
 	}
 	if remote.IsRemote(oldPath) {
@@ -562,6 +808,9 @@ func (s *FileService) Mkdir(parent, name string) (string, error) {
 	if err := rejectArchiveWrite(parent); err != nil {
 		return "", err
 	}
+	if err := s.rejectTrashDest(parent); err != nil {
+		return "", err
+	}
 	if remote.IsRemote(parent) {
 		be, err := s.backendFor(parent)
 		if err != nil {
@@ -575,6 +824,9 @@ func (s *FileService) Mkdir(parent, name string) (string, error) {
 // CreateFile creates an empty file under parent (local or remote).
 func (s *FileService) CreateFile(parent, name string) (string, error) {
 	if err := rejectArchiveWrite(parent); err != nil {
+		return "", err
+	}
+	if err := s.rejectTrashDest(parent); err != nil {
 		return "", err
 	}
 	if remote.IsRemote(parent) {
@@ -600,6 +852,9 @@ func (s *FileService) CreateFile(parent, name string) (string, error) {
 // PasteClipboard copies OS clipboard files into dest, or writes a PNG image.
 func (s *FileService) PasteClipboard(dest string) error {
 	if err := rejectArchiveWrite(dest); err != nil {
+		return err
+	}
+	if err := s.rejectTrashDest(dest); err != nil {
 		return err
 	}
 	if remote.IsRemote(dest) {
@@ -645,6 +900,9 @@ func (s *FileService) WriteTextFile(path, content string) error {
 
 // SearchTree finds nested files/folders under root (local and remote; Go-to).
 func (s *FileService) SearchTree(root, query string, showHidden bool, limit int) ([]domain.SearchHit, error) {
+	if filesystem.IsTrashPath(root) {
+		return nil, fmt.Errorf("go-to is not available in trash")
+	}
 	if filesystem.IsArchivePath(root) {
 		return nil, fmt.Errorf("go-to is not available inside archives yet")
 	}
@@ -691,6 +949,9 @@ func (s *FileService) StartSearch(
 	caseSensitive, showHidden bool,
 	limit int,
 ) error {
+	if filesystem.IsTrashPath(root) {
+		return fmt.Errorf("search is not available in trash")
+	}
 	if remote.IsRemote(root) && mode != domain.SearchModeFolders {
 		return fmt.Errorf("content search is not available on remote connections yet")
 	}
@@ -874,7 +1135,7 @@ func (s *FileService) OpenWithPicker(path string) error {
 // jobID from NewJobID enables CancelJob; empty jobID is non-cancellable.
 func (s *FileService) DirChildSizes(jobID string, dir string) (domain.DirSizes, error) {
 	defer func() { _ = s.FinishJob(jobID) }()
-	if filesystem.IsArchivePath(dir) {
+	if filesystem.IsTrashPath(dir) || filesystem.IsArchivePath(dir) {
 		return domain.DirSizes{Sizes: map[string]int64{}, Denied: []string{}}, nil
 	}
 	if remote.IsRemote(dir) {

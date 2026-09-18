@@ -9,3 +9,5 @@ export {
   PortService,
   AIUsageService,
 } from '../../../bindings/github.com/erikharutyunyan/go-file-manager/internal/service';
+
+export type { ScanEstimate } from '../../../bindings/github.com/erikharutyunyan/go-file-manager/internal/domain';

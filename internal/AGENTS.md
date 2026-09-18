@@ -7,7 +7,7 @@ Parent: root `AGENTS.md`. All app logic lives here; `main.go` only wires Wails +
 | Package      | Role                                                                          |
 | ------------ | ----------------------------------------------------------------------------- |
 | `domain`     | Shared models (settings, files, bookmarks)                       |
-| `filesystem` | Local FS: list/copy/move/delete (clonefile/FICLONE then byte copy; workers from CPU + I/O class: HDD 2, SSD `NumCPU()*2` cap 64, network 32; cancel deletes copy dests), archive/extract, zip/tar virtual folders, search, text R/W, dir sizes, `DiskUsage` |
+| `filesystem` | Local FS: list/copy/move/delete (clonefile/FICLONE then byte copy; workers from CPU + I/O class: HDD 2, SSD `NumCPU()*2` cap 64, network 32; cancel deletes copy dests), **OS trash** + virtual `trash://`, archive/extract, zip/tar virtual folders, search, text R/W, dir sizes, `DiskUsage` |
 | `volumes`    | OS mounts list/unmount, DMG attach (darwin), poll watcher                       |
 | `ports`      | Local TCP LISTEN sockets (`lsof`/`netstat`) + user processes + force-kill by PID                 |
 | `gitstatus`  | Upward-only repo root + one scoped `git status` (no disk-wide `.git` walk)   |
@@ -15,6 +15,8 @@ Parent: root `AGENTS.md`. All app logic lives here; `main.go` only wires Wails +
 | `storage`    | SQLite bookmarks + crypto helpers                                             |
 | `config`     | Config dir, OS open, Open-with (`openwith_*.go`)                              |
 | `service`    | Wails-bound services (thin orchestration over packages above)                 |
+| `imghash`    | 64-bit dHash for similar-image duplicate groups (pure Go, no CGo)             |
+| `ocr`        | System `tesseract` exec wrapper for optional OCR duplicate groups (no CGo)   |
 | `version`    | `Version` string; set via `-ldflags` / Task `VERSION`                         |
 
 ## Services (Wails)
@@ -32,7 +34,7 @@ Registered in `main.go`:
 
 ## Remote paths
 
-- Virtual paths: `ssh://user@host:port/remote/path`, `smb://user@host:port/Share/path`, or `mega://user@domain/path` (see `remote.ParseLocation`).
+- Virtual paths: `ssh://user@host:port/remote/path`, `smb://user@host:port/Share/path`, or `mega://user@domain/path` (see `remote.ParseLocation`). `trash://` lists OS trash (plus leftover app-trash batches).
 - Archive browse: pane path is the zip/tar file plus inner members (`/path/to/a.zip/docs`); writes inside archives are rejected (`ErrArchiveReadOnly`).
 - `Location` **embeds** `Spec` → use `loc.JoinPath(...)`, not `loc.Spec.JoinPath` (staticcheck QF1008).
 

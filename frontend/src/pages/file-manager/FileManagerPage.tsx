@@ -1,18 +1,20 @@
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import { Suspense, lazy, type FC } from 'react';
+import { ArchivePasswordDialog } from '../../features/archive/ArchivePasswordDialog';
+import { DmgPasswordDialog } from '../../features/dmg/DmgPasswordDialog';
 import { useExternalFileDrop } from '../../features/dnd/useExternalFileDrop';
+import { useDuplicateEvents } from '../../features/duplicates/useDuplicateEvents';
 import { useEditorStore } from '../../features/editor/editorStore';
 import { useFileOpsStore } from '../../features/file-ops/fileOpsStore';
 import { useTransferEvents } from '../../features/transfers/useTransferEvents';
-import { useVolumeEvents } from '../../features/volumes/useVolumeEvents';
 import { useDialogStore } from '../../features/ui/dialogStore';
 import { useAutoUpdateCheck } from '../../features/updates/hooks/useAutoUpdateCheck';
-import { DmgPasswordDialog } from '../../features/dmg/DmgPasswordDialog';
-import { ArchivePasswordDialog } from '../../features/archive/ArchivePasswordDialog';
+import { useVolumeEvents } from '../../features/volumes/useVolumeEvents';
+import { CommandPaletteHost } from '../../widgets/command-palette/CommandPaletteHost';
+import { DuplicatesHost } from '../../widgets/duplicates/DuplicatesHost';
 import { FileContextMenu } from '../../widgets/file-pane/FileContextMenu';
 import { FilePane } from '../../widgets/file-pane/FilePane';
-import { CommandPaletteHost } from '../../widgets/command-palette/CommandPaletteHost';
 import { GoToHost } from '../../widgets/go-to/GoToHost';
 import { AppMenuBar } from '../../widgets/menu/AppMenuBar';
 import { SearchHost } from '../../widgets/search/SearchHost';
@@ -43,6 +45,7 @@ export const FileManagerPage: FC = () => {
   useAutoUpdateCheck(ready);
   useExternalFileDrop(ready);
   useTransferEvents();
+  useDuplicateEvents();
   useVolumeEvents();
 
   const settingsOpen = useDialogStore((s) => s.settingsOpen);
@@ -96,6 +99,7 @@ export const FileManagerPage: FC = () => {
       <GoToHost />
       <CommandPaletteHost />
       <SearchHost />
+      <DuplicatesHost />
 
       <Suspense fallback={null}>
         {settingsOpen && <SettingsDialog open={settingsOpen} onClose={closeSettings} />}

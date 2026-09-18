@@ -76,7 +76,7 @@ test.describe("file operations", () => {
     await refresh(page);
     await selectRow(page, "left", name);
     await fileAction(page, "btn-copy");
-    await expect(page.getByTestId("snackbar")).toContainText("completed", { timeout: 10_000 });
+    await expect(page.getByTestId("snackbar")).toContainText("Copied 1 item(s)", { timeout: 10_000 });
     await expectRowVisible(page, "right", name);
     expect(fs.existsSync(path.join(RIGHT_DIR, name))).toBeTruthy();
     // source remains
@@ -89,7 +89,7 @@ test.describe("file operations", () => {
     await refresh(page);
     await selectRow(page, "left", name);
     await fileAction(page, "btn-move");
-    await expect(page.getByTestId("snackbar")).toContainText("completed", { timeout: 10_000 });
+    await expect(page.getByTestId("snackbar")).toContainText("Moved 1 item(s)", { timeout: 10_000 });
     await expectRowVisible(page, "right", name);
     await expectRowVisible(page, "left", name, false);
   });
@@ -123,6 +123,36 @@ test.describe("file operations", () => {
     await expect(page.getByTestId("snackbar")).toContainText("Delete undone", { timeout: 10_000 });
     await expectRowVisible(page, "left", name);
     expect(fs.readFileSync(path.join(LEFT_DIR, name), "utf8")).toBe("back");
+  });
+
+  test("trash pane restores a deleted file", async ({ page }) => {
+    const name = `trash-pane-${Date.now()}.txt`;
+    fs.writeFileSync(path.join(LEFT_DIR, name), "keep");
+    await refresh(page);
+    await selectRow(page, "left", name);
+    await confirmDelete(page);
+    await expectRowVisible(page, "left", name, false);
+
+    await page.getByTestId("btn-trash").click();
+    await expect(page.getByTestId("status-path")).toContainText("trash://", { timeout: 10_000 });
+    await selectRow(page, "left", name);
+    await fileAction(page, "btn-restore-trash");
+    await expect(page.getByTestId("snackbar")).toContainText("Restored", { timeout: 10_000 });
+
+    await page.getByTestId("pane-left").click();
+    const input = page.getByTestId("path-input-left").locator("input");
+    await input.fill(LEFT_DIR);
+    await input.press("Enter");
+    await expectRowVisible(page, "left", name);
+    expect(fs.readFileSync(path.join(LEFT_DIR, name), "utf8")).toBe("keep");
+  });
+
+  test("trash pane has no Shift+Delete menu item", async ({ page }) => {
+    await page.getByTestId("btn-trash").click();
+    await expect(page.getByTestId("status-path")).toContainText("trash://", { timeout: 10_000 });
+    await page.getByTestId("btn-file-actions").click();
+    await expect(page.getByTestId("btn-delete")).toBeVisible();
+    await expect(page.getByTestId("btn-delete-permanent")).toHaveCount(0);
   });
 
   test("right-click menu renames via the dialog", async ({ page }) => {
@@ -224,7 +254,7 @@ test.describe("file operations", () => {
     await expectRowVisible(page, "left", inner);
     await selectRow(page, "left", inner);
     await fileAction(page, "btn-copy");
-    await expect(page.getByTestId("snackbar")).toContainText(/Copied|completed/, {
+    await expect(page.getByTestId("snackbar")).toContainText("Copied 1 item(s)", {
       timeout: 15_000,
     });
     await expectRowVisible(page, "right", inner);

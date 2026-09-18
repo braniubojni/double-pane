@@ -1,6 +1,7 @@
 import type { PaneId } from '../../entities/file/types';
 import { parentOfVirtualPath } from '../../features/connections/helpers';
 import type { FileOpsAction } from '../../features/file-ops/types';
+import { isTrashPath } from '../../shared/lib/trash';
 import type { ToolbarRequestHandlers } from './types';
 
 export type { ToolbarRequestHandlers } from './types';
@@ -16,6 +17,7 @@ export const isPermissionError = (msg: string): boolean => {
 
 /** Parent directory for local or remote virtual paths. */
 export const parentPath = (activePath: string): string => {
+  if (isTrashPath(activePath)) return '';
   const virtual = parentOfVirtualPath(activePath);
   if (virtual) return virtual;
   const parent = activePath.replace(/\/+$/, '').split(/[/\\]/).slice(0, -1).join('/') || '/';
@@ -49,6 +51,9 @@ export const createToolbarRequestHandlers = (
     'paste',
     'move',
     'delete',
+    'deletePermanent',
+    'restoreTrash',
+    'emptyTrash',
     'rename',
     'mkdir',
     'mkfile',

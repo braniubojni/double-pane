@@ -84,6 +84,24 @@ func (m *SMBManager) listShareEntries(loc Location, showHidden bool) ([]domain.F
 	return result, nil
 }
 
+// OpenRead returns a streaming reader for a file on an SMB share. Caller closes it.
+func (m *SMBManager) OpenRead(vpath string) (io.ReadCloser, error) {
+	loc, err := ParseLocation(vpath)
+	if err != nil {
+		return nil, err
+	}
+	fs, err := m.shareFS(loc)
+	if err != nil {
+		return nil, err
+	}
+	rel := smbRel(loc)
+	f, err := fs.Open(rel)
+	if err != nil {
+		return nil, fmt.Errorf("open %s: %w", rel, err)
+	}
+	return f, nil
+}
+
 // Exists checks an SMB virtual path.
 func (m *SMBManager) Exists(vpath string) (bool, error) {
 	loc, err := ParseLocation(vpath)

@@ -2,8 +2,10 @@ package remote
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/erikharutyunyan/go-file-manager/internal/domain"
 	mega "github.com/t3rm1n4l/go-mega"
@@ -18,6 +20,25 @@ type MEGAManager struct {
 type megaSession struct {
 	Spec   Spec
 	client *mega.Mega
+	http   *http.Client
+}
+
+func (s *megaSession) closeIdleConns() {
+	if s == nil || s.http == nil {
+		return
+	}
+	if tr, ok := s.http.Transport.(*http.Transport); ok {
+		tr.CloseIdleConnections()
+	}
+}
+
+func newMegaHTTPClient() *http.Client {
+	return &http.Client{
+		Timeout: 60 * time.Second,
+		Transport: &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+		},
+	}
 }
 
 // NewMEGAManager creates an empty MEGA session pool.
@@ -45,11 +66,13 @@ func (m *MEGAManager) Connect(spec Spec, password, totp string) error {
 		return nil
 	}
 
+	httpClient := newMegaHTTPClient()
 	client := mega.New()
+	client.SetClient(httpClient)
 	if err := client.MultiFactorLogin(spec.MEGAEmail(), password, totp); err != nil {
 		return wrapMegaLogin(err)
 	}
-	m.sessions[key] = &megaSession{Spec: spec, client: client}
+	m.sessions[key] = &megaSession{Spec: spec, client: client, http: httpClient}
 	return nil
 }
 

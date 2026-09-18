@@ -4,6 +4,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
+import RestoreFromTrashIcon from '@mui/icons-material/RestoreFromTrash';
 import DifferenceIcon from '@mui/icons-material/Difference';
 import EditIcon from '@mui/icons-material/Edit';
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
@@ -90,15 +91,29 @@ export const ToolbarBar: FC<ToolbarBarProps> = (p) => {
 
         <FileActionsMenu
           otherPaneLabel={p.otherPaneLabel}
+          inTrash={p.trashActive}
           onCopy={p.onCopy}
           onMove={p.onMove}
           onRename={p.onRename}
           onDelete={p.onDelete}
+          onDeletePermanent={p.onDeletePermanent}
+          onRestoreTrash={p.onRestoreTrash}
+          onEmptyTrash={p.onEmptyTrash}
         />
-        <Button data-testid="btn-mkdir" startIcon={<CreateNewFolderIcon />} onClick={p.onMkdir}>
+        <Button
+          data-testid="btn-mkdir"
+          startIcon={<CreateNewFolderIcon />}
+          onClick={p.onMkdir}
+          disabled={p.trashActive}
+        >
           New folder
         </Button>
-        <Button data-testid="btn-mkfile" startIcon={<NoteAddIcon />} onClick={p.onMkfile}>
+        <Button
+          data-testid="btn-mkfile"
+          startIcon={<NoteAddIcon />}
+          onClick={p.onMkfile}
+          disabled={p.trashActive}
+        >
           New file
         </Button>
         <Button data-testid="btn-edit" startIcon={<EditIcon />} onClick={p.onEditFile}>
@@ -126,6 +141,15 @@ export const ToolbarBar: FC<ToolbarBarProps> = (p) => {
         <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
         <ConnectionsMenu />
         <DrivesMenu />
+        <Tooltip title="Trash">
+          <IconButton
+            data-testid="btn-trash"
+            onClick={p.onTrash}
+            color={p.trashActive ? 'primary' : 'default'}
+          >
+            <RestoreFromTrashIcon />
+          </IconButton>
+        </Tooltip>
 
         <BookmarksSelect activePane={p.activePane} onAddCurrent={p.onBookmark} />
         <Box sx={{ flex: 1 }} />

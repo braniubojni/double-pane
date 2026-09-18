@@ -75,12 +75,18 @@ export function CreateFile(parent: string, name: string): $CancellablePromise<st
 }
 
 /**
- * Delete removes paths and returns an undo batch id. The id is empty when the
- * delete cannot be undone: remote (SFTP has no trash) or a cross-volume path
- * that had to be removed outright. The frontend only offers Undo for a non-empty id.
+ * Delete removes paths and returns an undo token. The token is empty when the
+ * delete cannot be undone (remote). The frontend only offers Undo for a non-empty token.
  */
 export function Delete(paths: string[] | null): $CancellablePromise<string> {
     return $Call.ByID(4015740351, paths);
+}
+
+/**
+ * DeletePermanent unlinks paths without sending them to trash.
+ */
+export function DeletePermanent(paths: string[] | null): $CancellablePromise<void> {
+    return $Call.ByID(373969711, paths);
 }
 
 /**
@@ -97,6 +103,20 @@ export function DirChildSizes(jobID: string, dir: string): $CancellablePromise<d
  */
 export function DiskUsage(path: string): $CancellablePromise<domain$0.DiskUsage> {
     return $Call.ByID(1676274460, path);
+}
+
+/**
+ * EmptyTrash empties the system trash and leftover app-trash batches.
+ */
+export function EmptyTrash(): $CancellablePromise<void> {
+    return $Call.ByID(3947753685);
+}
+
+/**
+ * EstimateDuplicateScan counts files and bytes under root without hashing.
+ */
+export function EstimateDuplicateScan(root: string, includeHidden: boolean, minSize: number, exclude: string, similarImages: boolean, similarityPct: number, ocrOn: boolean): $CancellablePromise<domain$0.ScanEstimate> {
+    return $Call.ByID(1804249746, root, includeHidden, minSize, exclude, similarImages, similarityPct, ocrOn);
 }
 
 export function Exists(path: string): $CancellablePromise<boolean> {
@@ -209,6 +229,13 @@ export function NewJobID(): $CancellablePromise<string> {
 }
 
 /**
+ * OCRAvailable reports whether the system tesseract binary is on PATH.
+ */
+export function OCRAvailable(): $CancellablePromise<boolean> {
+    return $Call.ByID(568981119);
+}
+
+/**
  * Open opens a path with the OS default application.
  */
 export function Open(path: string): $CancellablePromise<void> {
@@ -251,7 +278,7 @@ export function PasteClipboard(dest: string): $CancellablePromise<void> {
 }
 
 /**
- * PurgeTrash drops undo batches older than TrashMaxAge (called at startup).
+ * PurgeTrash is a no-op: leftover app-trash batches stay until restore or EmptyTrash.
  */
 export function PurgeTrash(): $CancellablePromise<void> {
     return $Call.ByID(2708353615);
@@ -283,10 +310,17 @@ export function ReplaceOccurrence(path: string, find: string, replace: string, l
 }
 
 /**
- * RestoreDeleted puts a delete batch back where it came from.
+ * RestoreDeleted puts a delete batch back (JSON original paths, or a leftover batch id).
  */
-export function RestoreDeleted(batchID: string): $CancellablePromise<void> {
-    return $Call.ByID(2741867447, batchID);
+export function RestoreDeleted(token: string): $CancellablePromise<void> {
+    return $Call.ByID(2741867447, token);
+}
+
+/**
+ * RestoreTrash puts selected trash:// rows back to their original paths.
+ */
+export function RestoreTrash(paths: string[] | null): $CancellablePromise<void> {
+    return $Call.ByID(2347990404, paths);
 }
 
 /**
@@ -303,6 +337,13 @@ export function SearchTree(root: string, query: string, showHidden: boolean, lim
  */
 export function SetArchivePassword(archivePath: string, password: string): $CancellablePromise<void> {
     return $Call.ByID(3737787471, archivePath, password);
+}
+
+/**
+ * StartDuplicateScan runs a cancellable SHA-256 duplicate scan in the background.
+ */
+export function StartDuplicateScan(jobID: string, root: string, includeHidden: boolean, minSize: number, exclude: string, similarImages: boolean, similarityPct: number, ocrOn: boolean): $CancellablePromise<void> {
+    return $Call.ByID(3653197540, jobID, root, includeHidden, minSize, exclude, similarImages, similarityPct, ocrOn);
 }
 
 /**

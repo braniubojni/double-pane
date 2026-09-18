@@ -14,6 +14,8 @@ type FileEntry struct {
 	// mode for everything, so the bits would be a lie. Remote access is instead
 	// discovered by operations that actually get denied — see DirSizes.Denied.
 	Access string `json:"access"`
+	// Origin is the Put Back path for trash:// listings. Empty elsewhere.
+	Origin string `json:"origin,omitempty"`
 }
 
 // OpenWithApp is one OS application that can open a local file.
@@ -204,6 +206,77 @@ type SearchDeniedPayload struct {
 	JobID string `json:"jobId"`
 	Path  string `json:"path"`
 	Error string `json:"error"`
+}
+
+// ScanEstimate is a pre-hash count for the duplicate-finder setup dialog.
+type ScanEstimate struct {
+	FileCount         int64  `json:"fileCount"`
+	ByteCount         int64  `json:"byteCount"`
+	EtaSeconds        int    `json:"etaSeconds"`
+	Protocol          string `json:"protocol"` // local | ssh | smb | mega
+	MegaDownload      bool   `json:"megaDownload"`
+	ImageCount        int64  `json:"imageCount"`
+	EtaExactSeconds   int    `json:"etaExactSeconds"`
+	EtaVisualSeconds  int    `json:"etaVisualSeconds"`
+	EtaOcrSeconds     int    `json:"etaOcrSeconds"`
+	MegaDownloadBytes int64  `json:"megaDownloadBytes"`
+}
+
+// DuplicateFile is one member of a same-hash group.
+type DuplicateFile struct {
+	Path     string `json:"path"`
+	Name     string `json:"name"`
+	Size     int64  `json:"size"`
+	ModTime  int64  `json:"modTime"`
+	Protocol string `json:"protocol"` // local | ssh | smb | mega
+}
+
+// DuplicateGroup is files that share one SHA-256 (kind=exact), dHash, or OCR text.
+type DuplicateGroup struct {
+	Hash       string          `json:"hash"`
+	Size       int64           `json:"size"`
+	Files      []DuplicateFile `json:"files"`
+	Kind       string          `json:"kind"`                 // exact | visual | ocr
+	Similarity int             `json:"similarity,omitempty"` // visual Hamming % or OCR Jaccard %
+	Snippet    string          `json:"snippet,omitempty"`    // OCR text preview (≤80 chars)
+}
+
+// DupProgressPayload is emitted while a duplicate scan runs.
+type DupProgressPayload struct {
+	JobID       string `json:"jobId"`
+	DoneFiles   int64  `json:"doneFiles"`
+	TotalFiles  int64  `json:"totalFiles"`
+	DoneBytes   int64  `json:"doneBytes"`
+	TotalBytes  int64  `json:"totalBytes"`
+	Groups      int    `json:"groups"`
+	Skipped     int    `json:"skipped"`
+	CurrentPath string `json:"currentPath"`
+	Phase       string `json:"phase,omitempty"` // walk | exact | visual | ocr
+	DoneImages  int64  `json:"doneImages,omitempty"`
+	TotalImages int64  `json:"totalImages,omitempty"`
+}
+
+// DupGroupPayload streams one closed duplicate group.
+type DupGroupPayload struct {
+	JobID string         `json:"jobId"`
+	Group DuplicateGroup `json:"group"`
+}
+
+// DupErrorPayload is a per-path skip (fatal=false) or a job-ending failure.
+type DupErrorPayload struct {
+	JobID   string `json:"jobId"`
+	Path    string `json:"path"`
+	Message string `json:"message"`
+	Fatal   bool   `json:"fatal"`
+}
+
+// DupDonePayload is emitted when a duplicate scan finishes or is cancelled.
+// Groups are attached here (not streamed as dup:group) so a fast scan cannot
+// flood Wails ExecJS and drop this event — the running dialog would hang.
+type DupDonePayload struct {
+	JobID  string           `json:"jobId"`
+	Error  string           `json:"error,omitempty"`
+	Groups []DuplicateGroup `json:"groups,omitempty"`
 }
 
 // SearchErrorPayload is a fatal search failure.

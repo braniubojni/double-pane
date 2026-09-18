@@ -25,6 +25,7 @@ export type {
     ReplaceAllResult,
     SMBShare,
     SSHConfigHost,
+    ScanEstimate,
     SearchHit,
     SearchPrefs,
     Settings,

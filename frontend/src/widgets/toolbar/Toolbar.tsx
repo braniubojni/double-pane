@@ -31,12 +31,17 @@ export const Toolbar: FC = () => {
         onGitDiff={a.onGitDiff}
         onRename={a.onRename}
         onDelete={a.onDelete}
+        onDeletePermanent={a.onDeletePermanent}
+        onRestoreTrash={a.onRestoreTrash}
+        onEmptyTrash={a.onEmptyTrash}
         onArchive={() => void a.openArchiveDialog()}
         onExtract={a.openExtractDialog}
         onBookmark={a.onBookmark}
         onRefresh={a.refreshAll}
         onCycleTheme={a.cycleTheme}
         onSettings={a.openSettings}
+        onTrash={a.onTrash}
+        trashActive={a.trashActive}
       />
 
       <NameDialog
@@ -83,6 +88,7 @@ export const Toolbar: FC = () => {
         remote={a.remote}
         deleteBtnRef={a.deleteBtnRef}
         onConfirm={a.confirmDelete}
+        onEmpty={a.confirmEmptyTrash}
       />
 
       <ArchiveDialog

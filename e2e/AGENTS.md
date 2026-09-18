@@ -9,7 +9,7 @@ e2e/
   playwright.config.ts
   global-setup.ts
   fixtures/app.ts
-  specs/*.spec.ts     # bookmarks, file-ops, keyboard-terminal, navigation, view-settings
+  specs/*.spec.ts     # bookmarks, file-ops, duplicates, keyboard-terminal, navigation, view-settings
   scripts/prepare-and-start.sh
   paths.ts
 ```

@@ -16,6 +16,7 @@ import { useSnack } from '../../../shared/ui/SnackbarHost';
 import { isRemotePath } from '../../../features/connections/helpers';
 import { isArchivePanePath } from '../../../shared/lib/archives';
 import { isPermissionError } from '../helpers';
+import { isTrashPath } from '../../../shared/lib/trash';
 import type { FileOpDialogsArgs } from '../types';
 
 /** How long the Undo action stays on screen after a delete. */
@@ -56,7 +57,14 @@ export const useFileOpDialogs = ({
     [show, clearSelection],
   );
 
+  const rejectTrashEdit = (): boolean => {
+    if (!isTrashPath(activePath)) return false;
+    show('Restore items or empty Trash instead', 'warning');
+    return true;
+  };
+
   const onCopy = () => {
+    if (rejectTrashEdit()) return;
     if (!realSelection.length) return show('Select files to copy', 'warning');
     startTransfer({
       kind: 'copy',
@@ -72,6 +80,7 @@ export const useFileOpDialogs = ({
   };
 
   const onPaste = () => {
+    if (rejectTrashEdit()) return;
     if (isRemotePath(activePath) || isArchivePanePath(activePath)) {
       return show('Paste is not available here', 'warning');
     }
@@ -92,6 +101,7 @@ export const useFileOpDialogs = ({
   };
 
   const onMove = () => {
+    if (rejectTrashEdit()) return;
     if (!realSelection.length) return show('Select files to move', 'warning');
     startTransfer({
       kind: 'move',
@@ -108,7 +118,16 @@ export const useFileOpDialogs = ({
 
   const onDelete = () => {
     if (!realSelection.length) return show('Select files to delete', 'warning');
-    dispatchDelete({ type: 'open_confirm', paths: realSelection });
+    dispatchDelete({
+      type: 'open_confirm',
+      paths: realSelection,
+      permanent: isTrashPath(activePath),
+    });
+  };
+
+  const onDeletePermanent = () => {
+    if (!realSelection.length) return show('Select files to delete', 'warning');
+    dispatchDelete({ type: 'open_confirm', paths: realSelection, permanent: true });
   };
 
   const undoDelete = (batchID: string) => {
@@ -125,31 +144,66 @@ export const useFileOpDialogs = ({
     if (!del.confirmOpen) return;
     const paths = del.paths.length ? del.paths : realSelection;
     if (!paths.length) return;
+    const permanent = del.permanent;
     dispatchDelete({ type: 'close_confirm' });
+    const onOk = (batchID?: string) => {
+      clearSelection();
+      void qc.invalidateQueries({ queryKey: ['dir'] });
+      void qc.invalidateQueries({ queryKey: ['gitStatus'] });
+      show(
+        'Delete completed',
+        'success',
+        batchID
+          ? {
+              duration: UNDO_WINDOW_MS,
+              action: {
+                label: 'Undo',
+                testId: 'btn-undo-delete',
+                onClick: () => undoDelete(batchID),
+              },
+            }
+          : undefined,
+      );
+    };
+    if (permanent || isRemotePath(activePath)) {
+      ops.delPermanent.mutate(paths, { onSuccess: () => onOk(), onError: onOpError });
+      return;
+    }
     ops.del.mutate(paths, {
-      // Empty batch id = nothing restorable (remote, or cross-volume): no Undo.
-      onSuccess: (batchID) => {
-        clearSelection();
-        show(
-          'Delete completed',
-          'success',
-          batchID
-            ? {
-                duration: UNDO_WINDOW_MS,
-                action: {
-                  label: 'Undo',
-                  testId: 'btn-undo-delete',
-                  onClick: () => undoDelete(batchID),
-                },
-              }
-            : undefined,
-        );
-      },
+      onSuccess: (batchID) => onOk(batchID || undefined),
       onError: onOpError,
     });
   };
 
+  const onRestoreTrash = () => {
+    if (!isTrashPath(activePath)) return;
+    if (!realSelection.length) return show('Select items to restore', 'warning');
+    void FileService.RestoreTrash(realSelection)
+      .then(() => {
+        clearSelection();
+        void qc.invalidateQueries({ queryKey: ['dir'] });
+        void qc.invalidateQueries({ queryKey: ['gitStatus'] });
+        show('Restored', 'success');
+      })
+      .catch((e) => show(errMessage(e), 'error'));
+  };
+
+  const onEmptyTrash = () => dispatchDelete({ type: 'open_empty' });
+
+  const confirmEmptyTrash = () => {
+    if (!del.emptyOpen) return;
+    dispatchDelete({ type: 'close_empty' });
+    void FileService.EmptyTrash()
+      .then(() => {
+        clearSelection();
+        void qc.invalidateQueries({ queryKey: ['dir'] });
+        show('Trash emptied', 'success');
+      })
+      .catch((e) => show(errMessage(e), 'error'));
+  };
+
   const onMkdir = () => {
+    if (rejectTrashEdit()) return;
     dispatchMkdir({ type: 'open', name: 'New Folder' });
   };
 
@@ -165,6 +219,7 @@ export const useFileOpDialogs = ({
   };
 
   const onMkfile = () => {
+    if (rejectTrashEdit()) return;
     dispatchMkfile({ type: 'open', name: 'untitled.txt' });
   };
 
@@ -180,6 +235,7 @@ export const useFileOpDialogs = ({
   };
 
   const onRename = () => {
+    if (rejectTrashEdit()) return;
     if (realSelection.length !== 1) return show('Select exactly one item to rename', 'warning');
     const base = realSelection[0].split(/[/\\]/).pop() || '';
     dispatchRename({ type: 'open', name: base });
@@ -225,6 +281,9 @@ export const useFileOpDialogs = ({
     onPaste,
     onMove,
     onDelete,
+    onDeletePermanent,
+    onRestoreTrash,
+    onEmptyTrash,
     onMkdir,
     onMkfile,
     onRename,
@@ -233,5 +292,6 @@ export const useFileOpDialogs = ({
     confirmMkfile,
     confirmRename,
     confirmDelete,
+    confirmEmptyTrash,
   };
 };

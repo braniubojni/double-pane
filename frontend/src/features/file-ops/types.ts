@@ -11,13 +11,17 @@ export type NameDialogAction =
 export type DeleteDialogState = {
   confirmOpen: boolean;
   permissionOpen: boolean;
+  emptyOpen: boolean;
   permissionMessage: string;
   paths: string[];
+  permanent: boolean;
 };
 
 export type DeleteDialogAction =
-  | { type: 'open_confirm'; paths: string[] }
+  | { type: 'open_confirm'; paths: string[]; permanent?: boolean }
   | { type: 'close_confirm' }
+  | { type: 'open_empty' }
+  | { type: 'close_empty' }
   | { type: 'open_permission'; message: string }
   | { type: 'close_permission' }
   | { type: 'reset' };
@@ -27,6 +31,9 @@ export type FileOpsRequest =
   | 'paste'
   | 'move'
   | 'delete'
+  | 'deletePermanent'
+  | 'restoreTrash'
+  | 'emptyTrash'
   | 'rename'
   | 'mkdir'
   | 'mkfile'

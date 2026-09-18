@@ -11,8 +11,13 @@ import Toolbar from '@mui/material/Toolbar';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState, type FC, type MouseEvent } from 'react';
 import { usePatchSettings, useSettings } from '../../entities/file/queries';
+import { useDuplicatesStore } from '../../features/duplicates/duplicatesStore';
+import { useFileOpsStore } from '../../features/file-ops/fileOpsStore';
+import { isLocalArchivePath } from '../../features/duplicates/helpers';
+import { usePaneStore } from '../../features/pane/paneStore';
 import { useSearchStore } from '../../features/search/searchStore';
 import { useDialogStore } from '../../features/ui/dialogStore';
+import { isTrashPath } from '../../shared/lib/trash';
 import { errMessage } from '../../shared/lib/format';
 import { useSnack } from '../../shared/ui/SnackbarHost';
 import { appBarSx, checkPlaceholderSx, listItemIconSx, toolbarSx } from './styles';
@@ -32,6 +37,12 @@ export const AppMenuBar: FC<AppMenuBarProps> = ({
   const openSettings = useDialogStore((s) => s.openSettings);
   const openShortcuts = useDialogStore((s) => s.openShortcuts);
   const openSearch = useSearchStore((s) => s.openSearch);
+  const openDuplicates = useDuplicatesStore((s) => s.openDialog);
+  const dupRunning = useDuplicatesStore((s) => s.phase === 'running');
+  const cwd = usePaneStore((s) => s.getPath(s.activePane));
+  const trigger = useFileOpsStore((s) => s.trigger);
+  const dupDisabled = dupRunning || isLocalArchivePath(cwd);
+  const inTrash = isTrashPath(cwd);
   const qc = useQueryClient();
 
   const [fileAnchor, setFileAnchor] = useState<null | HTMLElement>(null);
@@ -65,6 +76,7 @@ export const AppMenuBar: FC<AppMenuBarProps> = ({
         <Menu anchorEl={fileAnchor} open={Boolean(fileAnchor)} onClose={closeAll}>
           <MenuItem
             data-testid="menu-file-mkdir"
+            disabled={inTrash}
             onClick={() => {
               closeAll();
               onNewFolder();
@@ -74,6 +86,7 @@ export const AppMenuBar: FC<AppMenuBarProps> = ({
           </MenuItem>
           <MenuItem
             data-testid="menu-file-mkfile"
+            disabled={inTrash}
             onClick={() => {
               closeAll();
               onNewFile();
@@ -101,6 +114,7 @@ export const AppMenuBar: FC<AppMenuBarProps> = ({
           </MenuItem>
           <MenuItem
             data-testid="menu-file-rename"
+            disabled={inTrash}
             onClick={() => {
               closeAll();
               onRename();
@@ -117,6 +131,24 @@ export const AppMenuBar: FC<AppMenuBarProps> = ({
           >
             Delete
           </MenuItem>
+          <MenuItem
+            data-testid="menu-file-delete-permanent"
+            onClick={() => {
+              closeAll();
+              trigger('deletePermanent');
+            }}
+          >
+            Delete permanently
+          </MenuItem>
+          <MenuItem
+            data-testid="menu-file-empty-trash"
+            onClick={() => {
+              closeAll();
+              trigger('emptyTrash');
+            }}
+          >
+            Empty Trash
+          </MenuItem>
           <Divider />
           <MenuItem
             data-testid="menu-file-search"
@@ -126,6 +158,16 @@ export const AppMenuBar: FC<AppMenuBarProps> = ({
             }}
           >
             Find in files…
+          </MenuItem>
+          <MenuItem
+            data-testid="menu-file-duplicates"
+            disabled={dupDisabled}
+            onClick={() => {
+              closeAll();
+              openDuplicates(cwd);
+            }}
+          >
+            Find duplicates…
           </MenuItem>
           <MenuItem
             data-testid="menu-file-settings"

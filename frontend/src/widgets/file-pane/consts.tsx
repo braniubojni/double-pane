@@ -18,6 +18,7 @@ export const getColumns = (
   folderSizes: Record<string, number> | undefined,
   deniedPaths?: Set<string>,
   order: string[] = [],
+  showOrigin = false,
 ): GridColDef[] =>
   orderColumns<GridColDef>(
     [
@@ -89,6 +90,19 @@ export const getColumns = (
         cellClassName: 'no-select-cell',
         valueFormatter: (value) => formatModTime(Number(value) || 0),
       },
+      ...(showOrigin
+        ? [
+            {
+              field: 'origin',
+              headerName: 'Original path',
+              width: widths.origin ?? 280,
+              flex: widths.origin ? undefined : 1,
+              minWidth: 140,
+              cellClassName: 'no-select-cell',
+              valueGetter: (_v: unknown, row: FileEntry) => row.origin || '',
+            } satisfies GridColDef,
+          ]
+        : []),
       {
         field: 'ext',
         headerName: 'Type',
