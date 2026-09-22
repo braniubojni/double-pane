@@ -16,26 +16,26 @@ import { Call as $Call, CancellablePromise as $CancellablePromise } from "@wails
  * Errors propagate to the frontend so the caller can show failures.
  */
 export function CheckAndInstall(): $CancellablePromise<void> {
-    return $Call.ByID(3005346729);
+    return $Call.ByID(2928726912);
 }
 
 /**
  * GetVersion returns the build-injected app version (no leading v).
  */
 export function GetVersion(): $CancellablePromise<string> {
-    return $Call.ByID(4232056307);
+    return $Call.ByID(2751948644);
 }
 
 /**
  * OpenReleasesPage opens the GitHub releases page in the browser.
  */
 export function OpenReleasesPage(): $CancellablePromise<void> {
-    return $Call.ByID(2403015818);
+    return $Call.ByID(589026589);
 }
 
 /**
  * ReleasesURL is the human-facing releases page.
  */
 export function ReleasesURL(): $CancellablePromise<string> {
-    return $Call.ByID(1370296590);
+    return $Call.ByID(2013219207);
 }

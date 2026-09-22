@@ -23,14 +23,14 @@ import * as domain$0 from "../domain/models.js";
  * transfer-bar row itself around the call, the same way startTransfer does.
  */
 export function Archive(jobID: string, sources: string[] | null, destPath: string, format: string, password: string): $CancellablePromise<void> {
-    return $Call.ByID(275001290, jobID, sources, destPath, format, password);
+    return $Call.ByID(2987799023, jobID, sources, destPath, format, password);
 }
 
 /**
  * ArchiveExtension returns the extension for a create format.
  */
 export function ArchiveExtension(format: string): $CancellablePromise<string> {
-    return $Call.ByID(3092024763, format);
+    return $Call.ByID(3192215576, format);
 }
 
 /**
@@ -39,14 +39,14 @@ export function ArchiveExtension(format: string): $CancellablePromise<string> {
  * password is used for encrypted images (hdiutil -stdinpass).
  */
 export function AttachDiskImage(jobID: string, path: string, password: string): $CancellablePromise<string> {
-    return $Call.ByID(1140398445, jobID, path, password);
+    return $Call.ByID(17450036, jobID, path, password);
 }
 
 /**
  * CancelJob cancels a long-running Archive/Extract/DirChildSizes/Copy/Move/Attach started with NewJobID.
  */
 export function CancelJob(jobID: string): $CancellablePromise<void> {
-    return $Call.ByID(2151147385, jobID);
+    return $Call.ByID(3761349872, jobID);
 }
 
 /**
@@ -56,7 +56,7 @@ export function CancelJob(jobID: string): $CancellablePromise<void> {
  * remote SMB/SFTP jobs still support job-wide cancel only.
  */
 export function CancelTransferFile(jobID: string, path: string): $CancellablePromise<void> {
-    return $Call.ByID(1905417083, jobID, path);
+    return $Call.ByID(38274908, jobID, path);
 }
 
 /**
@@ -64,14 +64,14 @@ export function CancelTransferFile(jobID: string, path: string): $CancellablePro
  * jobID from NewJobID enables CancelJob and transfer:progress events; empty is fire-and-forget.
  */
 export function Copy(jobID: string, sources: string[] | null, destDir: string): $CancellablePromise<void> {
-    return $Call.ByID(3419756089, jobID, sources, destDir);
+    return $Call.ByID(3277247150, jobID, sources, destDir);
 }
 
 /**
  * CreateFile creates an empty file under parent (local or remote).
  */
 export function CreateFile(parent: string, name: string): $CancellablePromise<string> {
-    return $Call.ByID(1566414454, parent, name);
+    return $Call.ByID(3381936409, parent, name);
 }
 
 /**
@@ -79,14 +79,14 @@ export function CreateFile(parent: string, name: string): $CancellablePromise<st
  * delete cannot be undone (remote). The frontend only offers Undo for a non-empty token.
  */
 export function Delete(paths: string[] | null): $CancellablePromise<string> {
-    return $Call.ByID(4015740351, paths);
+    return $Call.ByID(2990017148, paths);
 }
 
 /**
  * DeletePermanent unlinks paths without sending them to trash.
  */
 export function DeletePermanent(paths: string[] | null): $CancellablePromise<void> {
-    return $Call.ByID(373969711, paths);
+    return $Call.ByID(1198404850, paths);
 }
 
 /**
@@ -95,32 +95,32 @@ export function DeletePermanent(paths: string[] | null): $CancellablePromise<voi
  * jobID from NewJobID enables CancelJob; empty jobID is non-cancellable.
  */
 export function DirChildSizes(jobID: string, dir: string): $CancellablePromise<domain$0.DirSizes> {
-    return $Call.ByID(4082514371, jobID, dir);
+    return $Call.ByID(2547814994, jobID, dir);
 }
 
 /**
  * DiskUsage returns volume capacity for a local path.
  */
 export function DiskUsage(path: string): $CancellablePromise<domain$0.DiskUsage> {
-    return $Call.ByID(1676274460, path);
+    return $Call.ByID(1615260713, path);
 }
 
 /**
  * EmptyTrash empties the system trash and leftover app-trash batches.
  */
 export function EmptyTrash(): $CancellablePromise<void> {
-    return $Call.ByID(3947753685);
+    return $Call.ByID(1975012022);
 }
 
 /**
  * EstimateDuplicateScan counts files and bytes under root without hashing.
  */
 export function EstimateDuplicateScan(root: string, includeHidden: boolean, minSize: number, exclude: string, similarImages: boolean, similarityPct: number, ocrOn: boolean): $CancellablePromise<domain$0.ScanEstimate> {
-    return $Call.ByID(1804249746, root, includeHidden, minSize, exclude, similarImages, similarityPct, ocrOn);
+    return $Call.ByID(2624051987, root, includeHidden, minSize, exclude, similarImages, similarityPct, ocrOn);
 }
 
 export function Exists(path: string): $CancellablePromise<boolean> {
-    return $Call.ByID(2431508164, path);
+    return $Call.ByID(3202863039, path);
 }
 
 /**
@@ -130,7 +130,7 @@ export function Exists(path: string): $CancellablePromise<boolean> {
  * jobID across several Extract calls, so only the caller knows when it's done.
  */
 export function Extract(jobID: string, archivePath: string, destDir: string, password: string): $CancellablePromise<void> {
-    return $Call.ByID(1130524277, jobID, archivePath, destDir, password);
+    return $Call.ByID(4256391132, jobID, archivePath, destDir, password);
 }
 
 /**
@@ -141,76 +141,83 @@ export function Extract(jobID: string, archivePath: string, destDir: string, pas
  * Does not finish the job — call FinishJob after, or CancelJob.
  */
 export function ExtractBatch(jobID: string, archivePaths: string[] | null, destDirs: string[] | null, password: string): $CancellablePromise<void> {
-    return $Call.ByID(397110539, jobID, archivePaths, destDirs, password);
+    return $Call.ByID(3945168868, jobID, archivePaths, destDirs, password);
 }
 
 /**
  * FinishJob releases a completed job (no-op if already cancelled).
  */
 export function FinishJob(jobID: string): $CancellablePromise<void> {
-    return $Call.ByID(3134074410, jobID);
+    return $Call.ByID(2019898331, jobID);
 }
 
 export function GetHomeDir(): $CancellablePromise<string> {
-    return $Call.ByID(3323712262);
+    return $Call.ByID(3554878385);
+}
+
+/**
+ * GetQuickPlaces returns well-known local folders for the per-pane quick-places menu.
+ */
+export function GetQuickPlaces(): $CancellablePromise<domain$0.QuickPlace[] | null> {
+    return $Call.ByID(174503280);
 }
 
 /**
  * GoogleDrivePaths returns local Google Drive for desktop folders, or nil if none.
  */
 export function GoogleDrivePaths(): $CancellablePromise<string[] | null> {
-    return $Call.ByID(286644403);
+    return $Call.ByID(1182066724);
 }
 
 /**
  * ICloudDrivePath returns the macOS iCloud Drive folder, or "" if it is not present.
  */
 export function ICloudDrivePath(): $CancellablePromise<string> {
-    return $Call.ByID(2428495003);
+    return $Call.ByID(2567891454);
 }
 
 /**
  * IsArchivePath reports whether path is a browsable archive or a member inside one.
  */
 export function IsArchivePath(path: string): $CancellablePromise<boolean> {
-    return $Call.ByID(1196725953, path);
+    return $Call.ByID(1802815596, path);
 }
 
 /**
  * IsEncryptedDiskImage reports whether a local disk image needs a passphrase.
  */
 export function IsEncryptedDiskImage(path: string): $CancellablePromise<boolean> {
-    return $Call.ByID(4166480454, path);
+    return $Call.ByID(910465757, path);
 }
 
 /**
  * ListArchiveCreateFormats returns formats the create dialog can use.
  */
 export function ListArchiveCreateFormats(): $CancellablePromise<string[] | null> {
-    return $Call.ByID(494576994);
+    return $Call.ByID(991444209);
 }
 
 export function ListDir(path: string, showHidden: boolean): $CancellablePromise<domain$0.FileEntry[] | null> {
-    return $Call.ByID(299481683, path, showHidden);
+    return $Call.ByID(1778669830, path, showHidden);
 }
 
 /**
  * ListOpenWithApps returns applications that can open a local file.
  */
 export function ListOpenWithApps(path: string): $CancellablePromise<domain$0.OpenWithApp[] | null> {
-    return $Call.ByID(1534248348, path);
+    return $Call.ByID(3422288207, path);
 }
 
 export function ListPathCompletions(partial: string): $CancellablePromise<string[] | null> {
-    return $Call.ByID(1004009986, partial);
+    return $Call.ByID(853867543, partial);
 }
 
 export function ListVolumes(): $CancellablePromise<domain$0.Volume[] | null> {
-    return $Call.ByID(403434231);
+    return $Call.ByID(3072351718);
 }
 
 export function Mkdir(parent: string, name: string): $CancellablePromise<string> {
-    return $Call.ByID(1882308327, parent, name);
+    return $Call.ByID(1998568806, parent, name);
 }
 
 /**
@@ -218,116 +225,116 @@ export function Mkdir(parent: string, name: string): $CancellablePromise<string>
  * jobID from NewJobID enables CancelJob and transfer:progress events; empty is fire-and-forget.
  */
 export function Move(jobID: string, sources: string[] | null, destDir: string): $CancellablePromise<void> {
-    return $Call.ByID(113183649, jobID, sources, destDir);
+    return $Call.ByID(1650262070, jobID, sources, destDir);
 }
 
 /**
  * NewJobID allocates a cancellable job context and returns its id.
  */
 export function NewJobID(): $CancellablePromise<string> {
-    return $Call.ByID(1905051552);
+    return $Call.ByID(4058420667);
 }
 
 /**
  * OCRAvailable reports whether the system tesseract binary is on PATH.
  */
 export function OCRAvailable(): $CancellablePromise<boolean> {
-    return $Call.ByID(568981119);
+    return $Call.ByID(3311452396);
 }
 
 /**
  * Open opens a path with the OS default application.
  */
 export function Open(path: string): $CancellablePromise<void> {
-    return $Call.ByID(2881462676, path);
+    return $Call.ByID(421688227, path);
 }
 
 /**
  * OpenLocalNetworkSettings opens OS Local Network / firewall settings when possible.
  */
 export function OpenLocalNetworkSettings(): $CancellablePromise<void> {
-    return $Call.ByID(2911533994);
+    return $Call.ByID(2632835293);
 }
 
 /**
  * OpenPrivacySettings opens OS privacy / full-disk access settings when possible.
  */
 export function OpenPrivacySettings(): $CancellablePromise<void> {
-    return $Call.ByID(3870616985);
+    return $Call.ByID(712389280);
 }
 
 /**
  * OpenWith opens path with the application identified by appID.
  */
 export function OpenWith(path: string, appID: string): $CancellablePromise<void> {
-    return $Call.ByID(3516877804, path, appID);
+    return $Call.ByID(2724460683, path, appID);
 }
 
 /**
  * OpenWithPicker opens the OS application picker for a local file.
  */
 export function OpenWithPicker(path: string): $CancellablePromise<void> {
-    return $Call.ByID(769482294, path);
+    return $Call.ByID(3807297897, path);
 }
 
 /**
  * PasteClipboard copies OS clipboard files into dest, or writes a PNG image.
  */
 export function PasteClipboard(dest: string): $CancellablePromise<void> {
-    return $Call.ByID(3462084799, dest);
+    return $Call.ByID(1459197228, dest);
 }
 
 /**
  * PurgeTrash is a no-op: leftover app-trash batches stay until restore or EmptyTrash.
  */
 export function PurgeTrash(): $CancellablePromise<void> {
-    return $Call.ByID(2708353615);
+    return $Call.ByID(2049623488);
 }
 
 /**
  * ReadTextFile reads a text file for the built-in editor (local or remote).
  */
 export function ReadTextFile(path: string): $CancellablePromise<string> {
-    return $Call.ByID(2975228065, path);
+    return $Call.ByID(2519083954, path);
 }
 
 export function Rename(oldPath: string, newName: string): $CancellablePromise<string> {
-    return $Call.ByID(2594677718, oldPath, newName);
+    return $Call.ByID(3795259733, oldPath, newName);
 }
 
 /**
  * ReplaceAllInPaths replaces find with replace in each path (all occurrences per file).
  */
 export function ReplaceAllInPaths(paths: string[] | null, find: string, replace: string, caseSensitive: boolean): $CancellablePromise<domain$0.ReplaceAllResult> {
-    return $Call.ByID(1188295608, paths, find, replace, caseSensitive);
+    return $Call.ByID(87829521, paths, find, replace, caseSensitive);
 }
 
 /**
  * ReplaceOccurrence replaces one content match at path:line:column.
  */
 export function ReplaceOccurrence(path: string, find: string, replace: string, line: number, column: number, caseSensitive: boolean): $CancellablePromise<void> {
-    return $Call.ByID(1113297057, path, find, replace, line, column, caseSensitive);
+    return $Call.ByID(2794947284, path, find, replace, line, column, caseSensitive);
 }
 
 /**
  * RestoreDeleted puts a delete batch back (JSON original paths, or a leftover batch id).
  */
 export function RestoreDeleted(token: string): $CancellablePromise<void> {
-    return $Call.ByID(2741867447, token);
+    return $Call.ByID(1523636304, token);
 }
 
 /**
  * RestoreTrash puts selected trash:// rows back to their original paths.
  */
 export function RestoreTrash(paths: string[] | null): $CancellablePromise<void> {
-    return $Call.ByID(2347990404, paths);
+    return $Call.ByID(1456919507, paths);
 }
 
 /**
  * SearchTree finds nested files/folders under root (local and remote; Go-to).
  */
 export function SearchTree(root: string, query: string, showHidden: boolean, limit: number): $CancellablePromise<domain$0.SearchHit[] | null> {
-    return $Call.ByID(3279656272, root, query, showHidden, limit);
+    return $Call.ByID(1505076947, root, query, showHidden, limit);
 }
 
 /**
@@ -336,14 +343,14 @@ export function SearchTree(root: string, query: string, showHidden: boolean, lim
  * subsequent calls into the same archive). Returns ErrBadPassword on mismatch.
  */
 export function SetArchivePassword(archivePath: string, password: string): $CancellablePromise<void> {
-    return $Call.ByID(3737787471, archivePath, password);
+    return $Call.ByID(4029763352, archivePath, password);
 }
 
 /**
  * StartDuplicateScan runs a cancellable SHA-256 duplicate scan in the background.
  */
 export function StartDuplicateScan(jobID: string, root: string, includeHidden: boolean, minSize: number, exclude: string, similarImages: boolean, similarityPct: number, ocrOn: boolean): $CancellablePromise<void> {
-    return $Call.ByID(3653197540, jobID, root, includeHidden, minSize, exclude, similarImages, similarityPct, ocrOn);
+    return $Call.ByID(3471566083, jobID, root, includeHidden, minSize, exclude, similarImages, similarityPct, ocrOn);
 }
 
 /**
@@ -352,16 +359,16 @@ export function StartDuplicateScan(jobID: string, root: string, includeHidden: b
  * jobID should come from NewJobID. Mode is domain.SearchModeContent or SearchModeFolders.
  */
 export function StartSearch(jobID: string, root: string, query: string, mode: string, include: string, exclude: string, caseSensitive: boolean, showHidden: boolean, limit: number): $CancellablePromise<void> {
-    return $Call.ByID(2272785060, jobID, root, query, mode, include, exclude, caseSensitive, showHidden, limit);
+    return $Call.ByID(2305281369, jobID, root, query, mode, include, exclude, caseSensitive, showHidden, limit);
 }
 
 export function UnmountVolume(path: string): $CancellablePromise<void> {
-    return $Call.ByID(822092322, path);
+    return $Call.ByID(850437847, path);
 }
 
 /**
  * WriteTextFile writes a text file from the built-in editor (local or remote).
  */
 export function WriteTextFile(path: string, content: string): $CancellablePromise<void> {
-    return $Call.ByID(1752048786, path, content);
+    return $Call.ByID(3876876911, path, content);
 }

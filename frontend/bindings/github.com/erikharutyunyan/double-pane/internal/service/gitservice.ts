@@ -19,7 +19,7 @@ import * as domain$0 from "../domain/models.js";
  * Soft-fails with Message set; remote paths return an empty result.
  */
 export function FileDiff(path: string): $CancellablePromise<domain$0.GitFileDiff> {
-    return $Call.ByID(1612400113, path);
+    return $Call.ByID(3441262852, path);
 }
 
 /**
@@ -27,5 +27,5 @@ export function FileDiff(path: string): $CancellablePromise<domain$0.GitFileDiff
  * Remote paths and non-repos return an empty result (no error).
  */
 export function StatusForDir(path: string): $CancellablePromise<domain$0.GitDirStatus> {
-    return $Call.ByID(4286462636, path);
+    return $Call.ByID(4198946597, path);
 }

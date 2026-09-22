@@ -19,11 +19,11 @@ import * as domain$0 from "../domain/models.js";
  * AddSearchHistory records a non-empty value for field (query|replace|include|exclude).
  */
 export function AddSearchHistory(field: string, value: string): $CancellablePromise<void> {
-    return $Call.ByID(3012693094, field, value);
+    return $Call.ByID(1912736581, field, value);
 }
 
 export function GetConfigDir(): $CancellablePromise<string> {
-    return $Call.ByID(780043014);
+    return $Call.ByID(3807184689);
 }
 
 /**
@@ -31,7 +31,7 @@ export function GetConfigDir(): $CancellablePromise<string> {
  * Missing or invalid blobs yield defaults (Name/asc, nothing hidden, empty order).
  */
 export function GetGridPrefs(): $CancellablePromise<domain$0.GridPrefs> {
-    return $Call.ByID(449688525);
+    return $Call.ByID(1707412686);
 }
 
 /**
@@ -41,30 +41,30 @@ export function GetGridPrefs(): $CancellablePromise<domain$0.GridPrefs> {
  * (and e2e's settings.json seed) keep working.
  */
 export function GetPaneTabs(): $CancellablePromise<domain$0.PaneTabs> {
-    return $Call.ByID(1411864435);
+    return $Call.ByID(3119216486);
 }
 
 /**
  * GetSearchPrefs returns last Find-in-files dialog fields.
  */
 export function GetSearchPrefs(): $CancellablePromise<domain$0.SearchPrefs> {
-    return $Call.ByID(2690969973);
+    return $Call.ByID(3959952858);
 }
 
 export function GetSettings(): $CancellablePromise<domain$0.Settings> {
-    return $Call.ByID(1459755560);
+    return $Call.ByID(504176641);
 }
 
 export function GetSettingsPath(): $CancellablePromise<string> {
-    return $Call.ByID(288106751);
+    return $Call.ByID(2670349306);
 }
 
 export function GetShortcuts(): $CancellablePromise<{ [_ in string]?: string } | null> {
-    return $Call.ByID(3475743136);
+    return $Call.ByID(2842990743);
 }
 
 export function GetShortcutsPath(): $CancellablePromise<string> {
-    return $Call.ByID(378564007);
+    return $Call.ByID(691770912);
 }
 
 /**
@@ -72,33 +72,33 @@ export function GetShortcutsPath(): $CancellablePromise<string> {
  * blobs yield the default size (wide enough for every file-grid column).
  */
 export function GetWindowState(): $CancellablePromise<domain$0.WindowState> {
-    return $Call.ByID(3771019838);
+    return $Call.ByID(2468447093);
 }
 
 /**
  * ListSearchHistory returns newest-first history for field (max 500).
  */
 export function ListSearchHistory(field: string, limit: number): $CancellablePromise<string[] | null> {
-    return $Call.ByID(151217717, field, limit);
+    return $Call.ByID(973626868, field, limit);
 }
 
 export function ListShortcutDefs(): $CancellablePromise<domain$0.ShortcutDef[] | null> {
-    return $Call.ByID(4040094097);
+    return $Call.ByID(4182316950);
 }
 
 export function OpenInOS(path: string): $CancellablePromise<void> {
-    return $Call.ByID(4147658382, path);
+    return $Call.ByID(1232207537, path);
 }
 
 export function RevealInOS(path: string): $CancellablePromise<void> {
-    return $Call.ByID(1818025483, path);
+    return $Call.ByID(2616089216, path);
 }
 
 /**
  * SaveGridPrefs persists each pane's file-grid preferences.
  */
 export function SaveGridPrefs(prefs: domain$0.GridPrefs): $CancellablePromise<void> {
-    return $Call.ByID(796512464, prefs);
+    return $Call.ByID(2305938213, prefs);
 }
 
 /**
@@ -106,27 +106,27 @@ export function SaveGridPrefs(prefs: domain$0.GridPrefs): $CancellablePromise<vo
  * path into Settings.LeftPath/RightPath, which stays the boot fallback.
  */
 export function SavePaneTabs(tabs: domain$0.PaneTabs): $CancellablePromise<void> {
-    return $Call.ByID(4028892756, tabs);
+    return $Call.ByID(4155159899, tabs);
 }
 
 /**
  * SaveSearchPrefs persists Find-in-files dialog fields.
  */
 export function SaveSearchPrefs(prefs: domain$0.SearchPrefs): $CancellablePromise<void> {
-    return $Call.ByID(3692396904, prefs);
+    return $Call.ByID(76729805, prefs);
 }
 
 export function SaveSettings(settings: domain$0.Settings): $CancellablePromise<void> {
-    return $Call.ByID(2524387571, settings);
+    return $Call.ByID(1476859968, settings);
 }
 
 export function SaveShortcuts(shortcuts: { [_ in string]?: string } | null): $CancellablePromise<void> {
-    return $Call.ByID(695437449, shortcuts);
+    return $Call.ByID(4222578856, shortcuts);
 }
 
 /**
  * SaveWindowState persists the main-window size for the next launch.
  */
 export function SaveWindowState(st: domain$0.WindowState): $CancellablePromise<void> {
-    return $Call.ByID(1734824719, st);
+    return $Call.ByID(1638667766, st);
 }

@@ -21,6 +21,7 @@ export type {
     PaneTabs,
     PortListener,
     ProcessInfo,
+    QuickPlace,
     RemoteRecent,
     ReplaceAllResult,
     SMBShare,

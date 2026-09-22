@@ -15,21 +15,21 @@ import { Call as $Call, CancellablePromise as $CancellablePromise } from "@wails
  * IsRunning reports whether a session exists for the pane.
  */
 export function IsRunning(paneID: string): $CancellablePromise<boolean> {
-    return $Call.ByID(2732088041, paneID);
+    return $Call.ByID(3076209528, paneID);
 }
 
 /**
  * Resize updates the pane's terminal size.
  */
 export function Resize(paneID: string, cols: number, rows: number): $CancellablePromise<void> {
-    return $Call.ByID(3439050986, paneID, cols, rows);
+    return $Call.ByID(383942493, paneID, cols, rows);
 }
 
 /**
  * SetCwd sends cd to the running shell when the pane path changes.
  */
 export function SetCwd(paneID: string, cwd: string): $CancellablePromise<void> {
-    return $Call.ByID(1023067116, paneID, cwd);
+    return $Call.ByID(2071478367, paneID, cwd);
 }
 
 /**
@@ -38,19 +38,19 @@ export function SetCwd(paneID: string, cwd: string): $CancellablePromise<void> {
  * The PTY starts at 80×24; the frontend should Resize to the fitted xterm size ASAP.
  */
 export function Start(paneID: string, cwd: string): $CancellablePromise<void> {
-    return $Call.ByID(2443104662, paneID, cwd);
+    return $Call.ByID(2705849555, paneID, cwd);
 }
 
 /**
  * Stop kills the pane's shell session.
  */
 export function Stop(paneID: string): $CancellablePromise<void> {
-    return $Call.ByID(845114430, paneID);
+    return $Call.ByID(2404925345, paneID);
 }
 
 /**
  * Write sends data to the pane's shell stdin.
  */
 export function Write(paneID: string, data: string): $CancellablePromise<void> {
-    return $Call.ByID(4079804177, paneID, data);
+    return $Call.ByID(235547272, paneID, data);
 }

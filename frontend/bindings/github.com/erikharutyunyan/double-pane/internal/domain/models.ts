@@ -334,6 +334,15 @@ export interface ProcessInfo {
 }
 
 /**
+ * SearchHit is one result from nested file/folder search (Go-to).
+ * QuickPlace is one well-known local folder shown in the per-pane quick-places menu.
+ */
+export interface QuickPlace {
+    "name": string;
+    "path": string;
+}
+
+/**
  * RemoteRecent is a recently visited remote directory path.
  */
 export interface RemoteRecent {
@@ -412,9 +421,6 @@ export interface ScanEstimate {
     "megaDownloadBytes": number;
 }
 
-/**
- * SearchHit is one result from nested file/folder search (Go-to).
- */
 export interface SearchHit {
     "name": string;
     "path": string;

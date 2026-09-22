@@ -18,14 +18,14 @@ import * as domain$0 from "../domain/models.js";
  * AddProfile parses a connection string (e.g. "ssh user@host" or config alias) and saves it.
  */
 export function AddProfile(spec: string): $CancellablePromise<domain$0.ConnectionProfile> {
-    return $Call.ByID(2055959622, spec);
+    return $Call.ByID(4256748393, spec);
 }
 
 /**
  * AddRecentPath records a remote virtual path as recently visited.
  */
 export function AddRecentPath(vpath: string): $CancellablePromise<void> {
-    return $Call.ByID(2100475021, vpath);
+    return $Call.ByID(566166752, vpath);
 }
 
 /**
@@ -33,14 +33,14 @@ export function AddRecentPath(vpath: string): $CancellablePromise<void> {
  * If save is true the host is also stored as a named connection profile (with IdentityFiles).
  */
 export function ConnectFromConfig(host: domain$0.SSHConfigHost, password: string, save: boolean): $CancellablePromise<domain$0.ConnectResult> {
-    return $Call.ByID(183864338, host, password, save);
+    return $Call.ByID(3854139643, host, password, save);
 }
 
 /**
  * ConnectMEGA logs into MEGA (email + password; totp optional).
  */
 export function ConnectMEGA(email: string, password: string, totp: string, save: boolean): $CancellablePromise<domain$0.ConnectResult> {
-    return $Call.ByID(2404764122, email, password, totp, save);
+    return $Call.ByID(1930383447, email, password, totp, save);
 }
 
 /**
@@ -48,82 +48,82 @@ export function ConnectMEGA(email: string, password: string, totp: string, save:
  * password is also tried as a private-key passphrase.
  */
 export function ConnectProfile(id: string, password: string): $CancellablePromise<domain$0.ConnectResult> {
-    return $Call.ByID(1614696825, id, password);
+    return $Call.ByID(584362562, id, password);
 }
 
 /**
  * ConnectSpec connects from a free-form string (optionally saves). password may be empty.
  */
 export function ConnectSpec(specStr: string, password: string, save: boolean): $CancellablePromise<domain$0.ConnectResult> {
-    return $Call.ByID(3241223103, specStr, password, save);
+    return $Call.ByID(2164004338, specStr, password, save);
 }
 
 /**
  * DefaultSSHConfigPaths returns the standard OpenSSH client config file paths.
  */
 export function DefaultSSHConfigPaths(): $CancellablePromise<string[] | null> {
-    return $Call.ByID(2870403019);
+    return $Call.ByID(4098545718);
 }
 
 /**
  * Disconnect closes the session for key or virtual path.
  */
 export function Disconnect(keyOrPath: string): $CancellablePromise<void> {
-    return $Call.ByID(369148480, keyOrPath);
+    return $Call.ByID(3005916707, keyOrPath);
 }
 
 /**
  * GetRecentPaths returns recently visited remote paths for a session key.
  */
 export function GetRecentPaths(sessionKey: string): $CancellablePromise<domain$0.RemoteRecent[] | null> {
-    return $Call.ByID(4024057771, sessionKey);
+    return $Call.ByID(3222832008, sessionKey);
 }
 
 /**
  * ListProfiles returns saved connection profiles.
  */
 export function ListProfiles(): $CancellablePromise<domain$0.ConnectionProfile[] | null> {
-    return $Call.ByID(3747268220);
+    return $Call.ByID(3655660987);
 }
 
 /**
  * ListSSHConfigHosts parses an SSH config file and returns its host entries.
  */
 export function ListSSHConfigHosts(configPath: string): $CancellablePromise<domain$0.SSHConfigHost[] | null> {
-    return $Call.ByID(1388953377, configPath);
+    return $Call.ByID(1260471534, configPath);
 }
 
 /**
  * ListSessions returns live SSH, SMB, and MEGA sessions.
  */
 export function ListSessions(): $CancellablePromise<domain$0.ActiveSession[] | null> {
-    return $Call.ByID(4203296871);
+    return $Call.ByID(10462616);
 }
 
 /**
  * ParseSpec validates a connection string (for the Add dialog).
  */
 export function ParseSpec(spec: string): $CancellablePromise<domain$0.ConnectionProfile> {
-    return $Call.ByID(3749591554, spec);
+    return $Call.ByID(3198895719, spec);
 }
 
 /**
  * RemoveProfile deletes a saved profile by id.
  */
 export function RemoveProfile(id: string): $CancellablePromise<void> {
-    return $Call.ByID(4184816407, id);
+    return $Call.ByID(2844740414, id);
 }
 
 /**
  * RemoveRecentPath forgets one remembered remote working directory.
  */
 export function RemoveRecentPath(vpath: string): $CancellablePromise<void> {
-    return $Call.ByID(3878844586, vpath);
+    return $Call.ByID(229892869, vpath);
 }
 
 /**
  * SetProfileDefaultWorkDir stores the preferred start path for a saved profile.
  */
 export function SetProfileDefaultWorkDir(profileID: string, vpath: string): $CancellablePromise<void> {
-    return $Call.ByID(1284601464, profileID, vpath);
+    return $Call.ByID(3780525883, profileID, vpath);
 }
