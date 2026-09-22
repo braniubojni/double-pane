@@ -116,7 +116,7 @@ const SearchFormInner: FC<Props> = ({
           control={<Radio size="small" />}
           label="Text in files"
           disabled={contentSearchDisabled}
-          title={contentSearchDisabled ? 'Not available on remote connections yet' : undefined}
+          title={contentSearchDisabled ? 'Not available on MEGA connections yet' : undefined}
         />
         <FormControlLabel value="folders" control={<Radio size="small" />} label="Folder names" />
       </RadioGroup>

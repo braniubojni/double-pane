@@ -14,7 +14,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
 )
 
 type provider struct {
@@ -26,7 +26,7 @@ type provider struct {
 var providers = []provider{
 	{"claude", "Claude Code", []string{"claude", "~/.local/bin/claude"}, collectClaude},
 	{"grok", "Grok Build", []string{"grok", "~/.grok/bin/grok"}, collectGrok},
-	{"cursor", "Cursor", []string{"cursor-agent"}, nil},
+	{"cursor", "Cursor", nil, collectCursor},
 }
 
 // List collects a usage row per known provider, in parallel (the Claude CLI
@@ -49,9 +49,12 @@ func rowFor(p provider) domain.AIUsage {
 	if p.collect == nil {
 		return emptyRow(p.id, p.name, "unsupported")
 	}
-	bin := lookBin(p.bins)
-	if bin == "" {
-		return emptyRow(p.id, p.name, "not-installed")
+	var bin string
+	if len(p.bins) > 0 {
+		bin = lookBin(p.bins)
+		if bin == "" {
+			return emptyRow(p.id, p.name, "not-installed")
+		}
 	}
 	row := p.collect(bin)
 	// JS reads .limits/.details as plain arrays, never null.

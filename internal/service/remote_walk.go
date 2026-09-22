@@ -2,10 +2,11 @@ package service
 
 import (
 	"context"
+	"io"
 	"strings"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
-	"github.com/erikharutyunyan/go-file-manager/internal/filesystem"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
+	"github.com/erikharutyunyan/double-pane/internal/filesystem"
 )
 
 // ponytail: remote listing is a serial round trip per directory (no local-fs
@@ -120,5 +121,81 @@ func (s *FileService) searchFoldersRemote(
 		return truncated, walkErr
 	}
 	_ = onDenied // remote ListDir errors are skipped silently by walkRemote, not surfaced per-dir
+	return truncated, nil
+}
+
+// searchContentRemote streams content matches from a remote tree (SSH/SMB).
+// Sequential OpenRead — no worker pool (shared remote session). Files over
+// MaxContentFileBytes are skipped without opening.
+func (s *FileService) searchContentRemote(
+	ctx context.Context,
+	be remoteBackend,
+	root, query, include, exclude string,
+	caseSensitive, showHidden bool,
+	limit int,
+	onHit func(domain.ContentSearchHit),
+	onDenied func(path string, err error),
+) (truncated bool, err error) {
+	if strings.TrimSpace(query) == "" {
+		return false, nil
+	}
+	if limit <= 0 {
+		limit = filesystem.DefaultContentHitLimit
+	}
+	filter := filesystem.NewPathFilter(include, exclude)
+	needle := query
+	if !caseSensitive {
+		needle = strings.ToLower(query)
+	}
+	hits := 0
+	walkErr := walkRemote(ctx, be, root, showHidden, func(e domain.FileEntry, rel string, _ int) (descend, stop bool) {
+		if e.IsDir {
+			if !filter.MatchDir(rel) {
+				return false, false
+			}
+			return true, false
+		}
+		if !filter.Match(rel) {
+			return false, false
+		}
+		if e.Size == 0 || e.Size > filesystem.MaxContentFileBytes {
+			return false, false
+		}
+		if ctx.Err() != nil {
+			return false, true
+		}
+
+		r, openErr := be.OpenRead(e.Path)
+		if openErr != nil {
+			if onDenied != nil {
+				onDenied(e.Path, openErr)
+			}
+			return false, false
+		}
+		data, readErr := io.ReadAll(io.LimitReader(r, filesystem.MaxContentFileBytes+1))
+		_ = r.Close()
+		if readErr != nil {
+			if onDenied != nil {
+				onDenied(e.Path, readErr)
+			}
+			return false, false
+		}
+		if int64(len(data)) > filesystem.MaxContentFileBytes {
+			return false, false
+		}
+
+		for _, h := range filesystem.ScanContentBytes(e.Path, rel, data, needle, caseSensitive, limit-hits) {
+			onHit(h)
+			hits++
+			if hits >= limit {
+				truncated = true
+				return false, true
+			}
+		}
+		return false, false
+	})
+	if walkErr != nil {
+		return truncated, walkErr
+	}
 	return truncated, nil
 }

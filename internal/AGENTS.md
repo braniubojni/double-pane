@@ -17,6 +17,7 @@ Parent: root `AGENTS.md`. All app logic lives here; `main.go` only wires Wails +
 | `service`    | Wails-bound services (thin orchestration over packages above)                 |
 | `imghash`    | 64-bit dHash for similar-image duplicate groups (pure Go, no CGo)             |
 | `ocr`        | System `tesseract` exec wrapper for optional OCR duplicate groups (no CGo)   |
+| `aiusage`    | Claude / Grok / Cursor quota snapshots for the toolbar AI usage popover      |
 | `version`    | `Version` string; set via `-ldflags` / Task `VERSION`                         |
 
 ## Services (Wails)
@@ -31,6 +32,7 @@ Registered in `main.go`:
 - `UpdateService` — thin façade over `app.Updater` (CheckAndInstall / GetVersion / OpenReleases)
 - `GitService` — `StatusForDir` (cached root + porcelain; local only)
 - `PortService` — list local TCP listeners and user processes; `Kill` / `KillAll` by PID
+- `AIUsageService` — `List` quota rows (Claude CLI, Grok session logs, Cursor dashboard)
 
 ## Remote paths
 

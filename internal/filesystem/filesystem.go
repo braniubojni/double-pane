@@ -9,7 +9,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
+	"github.com/adrg/xdg"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
 )
 
 var (
@@ -39,6 +40,35 @@ func Resolve(path string) (string, error) {
 // HomeDir returns the current user's home directory.
 func HomeDir() (string, error) {
 	return os.UserHomeDir()
+}
+
+// QuickPlaces returns well-known local folders that exist on this machine,
+// in a fixed display order. Best-effort: a folder that doesn't exist or
+// can't be statted is silently omitted, never an error.
+func QuickPlaces() []domain.QuickPlace {
+	home, err := HomeDir()
+	if err != nil {
+		return nil
+	}
+	candidates := []domain.QuickPlace{
+		{Name: "Home", Path: home},
+		{Name: "Desktop", Path: xdg.UserDirs.Desktop},
+		{Name: "Documents", Path: xdg.UserDirs.Documents},
+		{Name: "Downloads", Path: xdg.UserDirs.Download},
+		{Name: "Pictures", Path: xdg.UserDirs.Pictures},
+		{Name: "Music", Path: xdg.UserDirs.Music},
+		{Name: "Videos", Path: xdg.UserDirs.Videos},
+	}
+	out := make([]domain.QuickPlace, 0, len(candidates))
+	for _, c := range candidates {
+		if c.Path == "" {
+			continue
+		}
+		if info, err := os.Stat(c.Path); err == nil && info.IsDir() {
+			out = append(out, c)
+		}
+	}
+	return out
 }
 
 // Exists reports whether path exists.

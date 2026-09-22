@@ -3,7 +3,7 @@ package service
 import (
 	"io"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/remote"
+	"github.com/erikharutyunyan/double-pane/internal/remote"
 )
 
 // remoteShell is an interactive SSH shell, wrapping a remote.ShellSession.

@@ -13,12 +13,12 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/clipboard"
-	"github.com/erikharutyunyan/go-file-manager/internal/config"
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
-	"github.com/erikharutyunyan/go-file-manager/internal/filesystem"
-	"github.com/erikharutyunyan/go-file-manager/internal/remote"
-	"github.com/erikharutyunyan/go-file-manager/internal/volumes"
+	"github.com/erikharutyunyan/double-pane/internal/clipboard"
+	"github.com/erikharutyunyan/double-pane/internal/config"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
+	"github.com/erikharutyunyan/double-pane/internal/filesystem"
+	"github.com/erikharutyunyan/double-pane/internal/remote"
+	"github.com/erikharutyunyan/double-pane/internal/volumes"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -282,6 +282,11 @@ func (s *FileService) ListPathCompletions(partial string) ([]string, error) {
 
 func (s *FileService) GetHomeDir() (string, error) {
 	return filesystem.HomeDir()
+}
+
+// GetQuickPlaces returns well-known local folders for the per-pane quick-places menu.
+func (s *FileService) GetQuickPlaces() ([]domain.QuickPlace, error) {
+	return filesystem.QuickPlaces(), nil
 }
 
 // ICloudDrivePath returns the macOS iCloud Drive folder, or "" if it is not present.
@@ -952,8 +957,8 @@ func (s *FileService) StartSearch(
 	if filesystem.IsTrashPath(root) {
 		return fmt.Errorf("search is not available in trash")
 	}
-	if remote.IsRemote(root) && mode != domain.SearchModeFolders {
-		return fmt.Errorf("content search is not available on remote connections yet")
+	if mode != domain.SearchModeFolders && remote.IsMEGA(root) {
+		return fmt.Errorf("content search is not available on MEGA connections yet")
 	}
 	if filesystem.IsArchivePath(root) {
 		return fmt.Errorf("search is not available inside archives yet")
@@ -1021,16 +1026,25 @@ func (s *FileService) runSearch(
 			OnDenied: onDenied,
 		})
 	default:
+		onHit := func(h domain.ContentSearchHit) {
+			hitCount++
+			cp := h
+			s.emit("search:hit", domain.SearchHitPayload{
+				JobID:   jobID,
+				Mode:    domain.SearchModeContent,
+				Content: &cp,
+			})
+		}
+		if remote.IsRemote(root) {
+			var be remoteBackend
+			be, err = s.backendFor(root)
+			if err == nil {
+				truncated, err = s.searchContentRemote(ctx, be, root, query, include, exclude, caseSensitive, showHidden, limit, onHit, onDenied)
+			}
+			break
+		}
 		truncated, err = filesystem.SearchContent(ctx, root, query, include, exclude, showHidden, caseSensitive, limit, filesystem.ContentSearchCallbacks{
-			OnHit: func(h domain.ContentSearchHit) {
-				hitCount++
-				cp := h
-				s.emit("search:hit", domain.SearchHitPayload{
-					JobID:   jobID,
-					Mode:    domain.SearchModeContent,
-					Content: &cp,
-				})
-			},
+			OnHit:    onHit,
 			OnDenied: onDenied,
 		})
 	}

@@ -26,7 +26,8 @@ Not commitments — ideas to triage. Check here before proposing new features (s
 - [ ] Copy/move between SSH and SMB in one step
 - [ ] Persist remote passwords (SSH/SMB) in OS keychain
 - [ ] SMB discovery / Bonjour browse for nearby shares
-- [ ] Create-empty-file / archive / search on remote (SSH and SMB)
+- [ ] Create-empty-file / archive on remote (SSH and SMB)
+- [x] Search on remote (SSH and SMB; content mode; MEGA still blocked)
 - [ ] Saved connection profiles (host/user/key) in SQLite alongside bookmarks
 - [ ] SSH key auth UI (not just password) — pick key file, agent forwarding
 - [ ] Remote tab reconnect on drop, connection status indicator per pane
@@ -42,7 +43,7 @@ Not commitments — ideas to triage. Check here before proposing new features (s
 - [x] Duplicate finder (exact SHA-256, similar images, optional OCR; setup → progress → review → merge; background + status bar). Local, SSH/SFTP, SMB, MEGA.
 - [ ] Duplicate finder on native Google Drive / iCloud APIs (today those connections are local OS mounts only)
 - [x] Local trash/recycle bin (OS trash, in-app `trash://` restore, empty, Shift+Delete)
-- [ ] Ability to show cursor usage in the status bar
+- [x] Cursor usage in the AI usage toolbar popover (personal Pro quota via local Cursor session; not a status-bar chip)
 - [ ] SSH/SMB soft-delete/restore (MEGA already uses MEGA trash)
 - [ ] Disk usage treemap view (like WinDirStat) per folder
 - [ ] Plugin/extension points — low priority, only if long-term extensibility actually needed

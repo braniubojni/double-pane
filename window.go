@@ -4,8 +4,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
-	"github.com/erikharutyunyan/go-file-manager/internal/service"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
+	"github.com/erikharutyunyan/double-pane/internal/service"
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
 )

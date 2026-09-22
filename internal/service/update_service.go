@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/config"
-	"github.com/erikharutyunyan/go-file-manager/internal/version"
+	"github.com/erikharutyunyan/double-pane/internal/config"
+	"github.com/erikharutyunyan/double-pane/internal/version"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 const (
 	githubOwner = "braniubojni"
-	githubRepo  = "go-file-manager"
+	githubRepo  = "double-pane"
 )
 
 // UpdateService is a thin Wails-bound façade over app.Updater.

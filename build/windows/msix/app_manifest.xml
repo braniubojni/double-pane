@@ -8,7 +8,7 @@
   IgnorableNamespaces="uap3">
   
   <Identity 
-    Name="com.example.gofilemanager"
+    Name="com.example.doublepane"
     Publisher="CN=My Company"
     Version="0.1.0.0" 
     ProcessorArchitecture="arm64" />
@@ -16,7 +16,7 @@
   <Properties>
     <DisplayName>My Product</DisplayName>
     <PublisherDisplayName>My Company</PublisherDisplayName>
-    <Description>A go-file-manager application</Description>
+    <Description>A double-pane application</Description>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
   
@@ -29,10 +29,10 @@
   </Resources>
   
   <Applications>
-    <Application Id="com.example.gofilemanager" Executable="go-file-manager" EntryPoint="Windows.FullTrustApplication">
+    <Application Id="com.example.doublepane" Executable="double-pane" EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
         DisplayName="My Product"
-        Description="A go-file-manager application"
+        Description="A double-pane application"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png">
@@ -41,7 +41,7 @@
       </uap:VisualElements>
       
       <Extensions>
-        <desktop:Extension Category="windows.fullTrustProcess" Executable="go-file-manager" />
+        <desktop:Extension Category="windows.fullTrustProcess" Executable="double-pane" />
         
         
       </Extensions>

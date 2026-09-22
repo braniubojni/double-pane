@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/cloudsoda/go-smb2"
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
 )
 
 // SMBManager holds live SMB sessions (one per host; shares mount lazily).

@@ -8,6 +8,6 @@ export {
   GitService,
   PortService,
   AIUsageService,
-} from '../../../bindings/github.com/erikharutyunyan/go-file-manager/internal/service';
+} from '../../../bindings/github.com/erikharutyunyan/double-pane/internal/service';
 
-export type { ScanEstimate } from '../../../bindings/github.com/erikharutyunyan/go-file-manager/internal/domain';
+export type { ScanEstimate } from '../../../bindings/github.com/erikharutyunyan/double-pane/internal/domain';

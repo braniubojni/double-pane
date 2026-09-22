@@ -2,7 +2,7 @@
 
 package config
 
-import "github.com/erikharutyunyan/go-file-manager/internal/domain"
+import "github.com/erikharutyunyan/double-pane/internal/domain"
 
 func listOpenWithApps(string) ([]domain.OpenWithApp, error) {
 	return nil, nil

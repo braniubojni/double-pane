@@ -62,6 +62,11 @@ export interface Volume {
   device?: string;
 }
 
+export interface QuickPlace {
+  name: string;
+  path: string;
+}
+
 export interface DiskUsage {
   path: string;
   total: number;

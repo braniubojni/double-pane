@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/filesystem"
+	"github.com/erikharutyunyan/double-pane/internal/filesystem"
 )
 
 func TestOpenReadNotConnected(t *testing.T) {

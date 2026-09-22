@@ -3,7 +3,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import { useCallback, useEffect, useState, type FC } from 'react';
 import { useSettings } from '../../entities/file/queries';
-import { isRemotePath } from '../../features/connections/helpers';
+import { isMEGAPath } from '../../features/connections/helpers';
 import { useEditorStore } from '../../features/editor/editorStore';
 import { openDocument } from '../../shared/lib/openDocument';
 import { usePaneStore } from '../../features/pane/paneStore';
@@ -222,7 +222,7 @@ export const SearchDialog: FC<Props> = ({ open, onClose }) => {
             patch={patch}
             searching={searching}
             resultCount={results.length}
-            contentSearchDisabled={isRemotePath(root)}
+            contentSearchDisabled={isMEGAPath(root)}
             onSearch={() => void runSearch()}
             onReplaceOne={() => void replaceOne()}
             onReplaceAll={() => void replaceAll()}
@@ -232,7 +232,7 @@ export const SearchDialog: FC<Props> = ({ open, onClose }) => {
           ) : null}
         </Box>
         <SearchResultsList
-          remote={isRemotePath(root) && prefs.mode !== 'folders'}
+          remote={isMEGAPath(root) && prefs.mode !== 'folders'}
           searching={searching}
           results={results}
           index={index}

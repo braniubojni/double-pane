@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
-	"github.com/erikharutyunyan/go-file-manager/internal/filesystem"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
+	"github.com/erikharutyunyan/double-pane/internal/filesystem"
 )
 
 func waitDupDone(t *testing.T, done <-chan domain.DupDonePayload) domain.DupDonePayload {

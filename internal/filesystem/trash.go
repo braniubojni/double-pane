@@ -14,7 +14,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
 )
 
 // TrashURI is the virtual pane path for the in-app trash folder.

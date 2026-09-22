@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
 )
 
 func (s *FileService) ListVolumes() ([]domain.Volume, error) {

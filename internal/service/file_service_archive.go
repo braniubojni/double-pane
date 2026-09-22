@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/filesystem"
+	"github.com/erikharutyunyan/double-pane/internal/filesystem"
 )
 
 func rejectArchiveWrite(path string) error {

@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/erikharutyunyan/go-file-manager/internal/aiusage"
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
+	"github.com/erikharutyunyan/double-pane/internal/aiusage"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
 )
 
 // AIUsageService reports quota snapshots for locally installed AI coding-agent CLIs.

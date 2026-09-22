@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
 )
 
 var ansiRe = regexp.MustCompile("\x1b\\[[0-9;]*m")

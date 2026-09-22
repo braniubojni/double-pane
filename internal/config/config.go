@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
 )
 
 // Store loads/saves settings.json and shortcuts.json under the user config dir.

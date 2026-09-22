@@ -39,6 +39,7 @@ export const FilePane: FC<FilePaneProps> = ({ id }) => {
         onSelectTab={p.onSelectTab}
         onCloseTab={p.onCloseTab}
         onAddTab={p.onAddTab}
+        onAddTabAt={p.onAddTabAt}
       />
       <PathBar
         paneId={id}

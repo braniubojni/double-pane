@@ -20,16 +20,16 @@ wails3 generate icons -input appicon.png \
 - Task `common:generate:icons` in `build/Taskfile.yml` (sources: `appicon.png` only).
 - **Do not** keep product icons under `frontend/public`.
 - No `appicon.icon` composer package required for desktop (Assets.car optional/stale OK if icns present).
-- macOS Dock/Finder icon only appears on **`.app`** (`darwin:package` / `wails3 package`), not bare `bin/go-file-manager`.
+- macOS Dock/Finder icon only appears on **`.app`** (`darwin:package` / `wails3 package`), not bare `bin/double-pane`.
 
 ## macOS package vs build
 
 | Command                                  | Output                                           |
 | ---------------------------------------- | ------------------------------------------------ |
 | `wails3 build` / `darwin:build`          | Bare Mach-O → Terminal icon if double-clicked    |
-| `wails3 package` / `task package:darwin` | `bin/go-file-manager.app` (drag to Applications) |
+| `wails3 package` / `task package:darwin` | `bin/double-pane.app` (drag to Applications) |
 
-Brand metadata: `build/config.yml` + `darwin/Info.plist` (`Go File Manager`, `com.braniubojni.go-file-manager`).
+Brand metadata: `build/config.yml` + `darwin/Info.plist` (`Double Pane`, `com.braniubojni.double-pane`).
 
 ## Multi-platform local dist
 

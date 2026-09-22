@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/filesystem"
+	"github.com/erikharutyunyan/double-pane/internal/filesystem"
 	mega "github.com/t3rm1n4l/go-mega"
 )
 

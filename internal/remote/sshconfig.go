@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
 )
 
 // LoadDefaultSSHConfigHosts parses all default SSH config files (user then system).

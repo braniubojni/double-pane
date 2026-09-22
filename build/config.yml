@@ -6,11 +6,11 @@ version: "3"
 # This information is used to generate the build assets.
 info:
   companyName: "braniubojni" # The name of the company
-  productName: "Go File Manager" # The name of the application
-  productIdentifier: "com.braniubojni.go-file-manager" # The unique product identifier
+  productName: "Double Pane" # The name of the application
+  productIdentifier: "com.braniubojni.double-pane" # The unique product identifier
   description: "Dual-pane desktop file manager (Double Commander style)" # The application description
   copyright: "© 2026, braniubojni" # Copyright text
-  comments: "Go File Manager" # Comments
+  comments: "Double Pane" # Comments
   version: "0.0.1" # The application version
   # cfBundleIconName: "appicon" # The macOS icon name in Assets.car icon bundles (optional)
   #                               # Should match the name of your .icon file without the extension

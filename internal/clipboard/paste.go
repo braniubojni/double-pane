@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/filesystem"
+	"github.com/erikharutyunyan/double-pane/internal/filesystem"
 )
 
 // ErrEmpty means the clipboard has no file list and no image.

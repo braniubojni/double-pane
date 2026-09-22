@@ -1,6 +1,6 @@
 import { Events } from '@wailsio/runtime';
 import { startTransition, useCallback, useEffect, useRef, useState } from 'react';
-import { isRemotePath } from '../../../features/connections/helpers';
+import { isMEGAPath } from '../../../features/connections/helpers';
 import { FileService, SettingsService } from '../../../shared/api/bindings';
 import { errMessage } from '../../../shared/lib/format';
 import { useSnack } from '../../../shared/ui/SnackbarHost';
@@ -46,8 +46,8 @@ export const useSearchSession = (open: boolean, root: string, showHidden: boolea
   const runSearch = useCallback(async () => {
     const p = prefsRef.current;
     if (!p) return;
-    if (isRemotePath(root) && p.mode !== 'folders') {
-      show('Content search is not available on remote connections yet', 'error');
+    if (isMEGAPath(root) && p.mode !== 'folders') {
+      show('Content search is not available on MEGA connections yet', 'error');
       return;
     }
     if (p.mode === 'content' && !p.query.trim()) {

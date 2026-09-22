@@ -14,13 +14,15 @@ import (
 	"sync/atomic"
 	"unicode/utf8"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
 )
 
 const (
-	defaultContentHitLimit  = 2000
+	// DefaultContentHitLimit is the hit cap when callers pass limit <= 0.
+	DefaultContentHitLimit = 2000
+	// MaxContentFileBytes skips files larger than this for content search.
+	MaxContentFileBytes     = 2 << 20 // 2 MiB
 	maxContentSearchVisits  = 100_000
-	maxContentFileBytes     = 2 << 20 // 2 MiB
 	contentBinarySniffBytes = 8192
 )
 
@@ -56,7 +58,7 @@ func SearchContent(
 		return false, fmt.Errorf("not a directory: %s", abs)
 	}
 	if limit <= 0 {
-		limit = defaultContentHitLimit
+		limit = DefaultContentHitLimit
 	}
 
 	filter := NewPathFilter(include, exclude)
@@ -203,7 +205,7 @@ walk:
 			if !filter.Match(rel) {
 				continue
 			}
-			if info.Size() > maxContentFileBytes || info.Size() == 0 {
+			if info.Size() > MaxContentFileBytes || info.Size() == 0 {
 				continue
 			}
 
@@ -233,20 +235,33 @@ func scanFileContent(path, rel, needle string, caseSensitive bool, remaining int
 	}
 	defer func() { _ = f.Close() }()
 
-	// Sniff binary
-	head := make([]byte, contentBinarySniffBytes)
-	n, _ := io.ReadFull(f, head)
-	head = head[:n]
-	if bytes.IndexByte(head, 0) >= 0 {
+	// Bounded read — walk already skips files > MaxContentFileBytes.
+	data, err := io.ReadAll(io.LimitReader(f, MaxContentFileBytes+1))
+	if err != nil {
+		return nil, err
+	}
+	if int64(len(data)) > MaxContentFileBytes {
 		return nil, nil
 	}
-	if _, err := f.Seek(0, io.SeekStart); err != nil {
-		return nil, err
+	return ScanContentBytes(path, rel, data, needle, caseSensitive, remaining), nil
+}
+
+// ScanContentBytes finds literal text matches in data. Binary files (NUL in the
+// first sniff window) yield no hits. Shared by local and remote content search.
+func ScanContentBytes(path, rel string, data []byte, needle string, caseSensitive bool, remaining int) []domain.ContentSearchHit {
+	if remaining <= 0 || len(data) == 0 {
+		return nil
+	}
+	sniff := data
+	if len(sniff) > contentBinarySniffBytes {
+		sniff = sniff[:contentBinarySniffBytes]
+	}
+	if bytes.IndexByte(sniff, 0) >= 0 {
+		return nil
 	}
 
 	var hits []domain.ContentSearchHit
-	scanner := bufio.NewScanner(f)
-	// Allow long lines up to 1MiB
+	scanner := bufio.NewScanner(bytes.NewReader(data))
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, 1<<20)
 
@@ -255,7 +270,7 @@ func scanFileContent(path, rel, needle string, caseSensitive bool, remaining int
 		lineNo++
 		line := scanner.Text()
 		if !utf8.ValidString(line) {
-			return hits, nil // stop this file
+			return hits // stop this file
 		}
 		searchLine := line
 		if !caseSensitive {
@@ -274,7 +289,6 @@ func scanFileContent(path, rel, needle string, caseSensitive bool, remaining int
 			// we still use byte indices on the original line of equal length when possible.
 			matchStart, matchEnd := start, end
 			if !caseSensitive && len(line) != len(searchLine) {
-				// Fallback: find first occurrence only with EqualFold walk
 				matchStart, matchEnd = indexFold(line, needle, from)
 				if matchStart < 0 {
 					break
@@ -301,10 +315,8 @@ func scanFileContent(path, rel, needle string, caseSensitive bool, remaining int
 			break
 		}
 	}
-	if err := scanner.Err(); err != nil {
-		return hits, err
-	}
-	return hits, nil
+	_ = scanner.Err()
+	return hits
 }
 
 // indexFold finds needle (already lowercased) in s starting at from using EqualFold per rune span.
