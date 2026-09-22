@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/config"
-	"github.com/erikharutyunyan/go-file-manager/internal/version"
+	"github.com/erikharutyunyan/double-pane/internal/config"
+	"github.com/erikharutyunyan/double-pane/internal/version"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 const (
 	githubOwner = "braniubojni"
-	githubRepo  = "go-file-manager"
+	githubRepo  = "double-pane"
 )
 
 // UpdateService is a thin Wails-bound façade over app.Updater.
@@ -48,6 +48,22 @@ func (s *UpdateService) CheckAndInstall() error {
 		return fmt.Errorf("updater not ready")
 	}
 	return s.app.Updater.CheckAndInstall(context.Background())
+}
+
+// CheckForUpdate checks GitHub Releases without downloading or installing.
+// Returns the newer version string, or "" if already up to date.
+func (s *UpdateService) CheckForUpdate() (string, error) {
+	if s.app == nil {
+		return "", fmt.Errorf("updater not ready")
+	}
+	rel, err := s.app.Updater.Check(context.Background())
+	if err != nil {
+		return "", err
+	}
+	if rel == nil {
+		return "", nil
+	}
+	return rel.Version, nil
 }
 
 // OpenReleasesPage opens the GitHub releases page in the browser.

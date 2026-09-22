@@ -5,8 +5,8 @@ import (
 	"io"
 	"sync"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/filesystem"
-	"github.com/erikharutyunyan/go-file-manager/internal/remote"
+	"github.com/erikharutyunyan/double-pane/internal/filesystem"
+	"github.com/erikharutyunyan/double-pane/internal/remote"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 

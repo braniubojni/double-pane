@@ -40,7 +40,7 @@ const SearchResultsListInner: FC<Props> = ({
     <Box sx={listSx} data-testid="search-results" style={isStale ? { opacity: 0.85 } : undefined}>
       {remote ? (
         <Typography variant="body2" color="text.secondary" sx={{ px: 2, py: 1 }}>
-          Search is not available on remote connections yet
+          Search is not available on MEGA connections yet
         </Typography>
       ) : deferredResults.length === 0 ? (
         <Typography variant="body2" color="text.secondary" sx={{ px: 2, py: 1 }}>

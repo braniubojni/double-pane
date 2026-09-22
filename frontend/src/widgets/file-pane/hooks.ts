@@ -153,6 +153,11 @@ export const useFilePane = (id: PaneId) => {
     addTab(id, path);
   };
 
+  const onAddTabAt = (targetPath: string) => {
+    enterPaneTab(id, targetPath);
+    addTab(id, targetPath);
+  };
+
   const onCloseTab = (tabId: string) => {
     // Closing the active tab changes this pane's active directory — run the
     // same side effects navigate/selectTab do, for the tab that becomes active.
@@ -329,6 +334,7 @@ export const useFilePane = (id: PaneId) => {
     activeTabId: tabs[tabIndex]?.id ?? '',
     onSelectTab,
     onAddTab,
+    onAddTabAt,
     onCloseTab,
     selection,
     focused,

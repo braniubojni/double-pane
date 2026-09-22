@@ -6,13 +6,13 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/config"
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
-	"github.com/erikharutyunyan/go-file-manager/internal/filesystem"
-	"github.com/erikharutyunyan/go-file-manager/internal/remote"
-	"github.com/erikharutyunyan/go-file-manager/internal/service"
-	"github.com/erikharutyunyan/go-file-manager/internal/storage"
-	"github.com/erikharutyunyan/go-file-manager/internal/version"
+	"github.com/erikharutyunyan/double-pane/internal/config"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
+	"github.com/erikharutyunyan/double-pane/internal/filesystem"
+	"github.com/erikharutyunyan/double-pane/internal/remote"
+	"github.com/erikharutyunyan/double-pane/internal/service"
+	"github.com/erikharutyunyan/double-pane/internal/storage"
+	"github.com/erikharutyunyan/double-pane/internal/version"
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
 	"github.com/wailsapp/wails/v3/pkg/updater"
@@ -53,7 +53,7 @@ func main() {
 	aiUsageSvc := service.NewAIUsageService()
 
 	app := application.New(application.Options{
-		Name:        "Go File Manager",
+		Name:        "Double Pane",
 		Description: "Dual-pane file manager (Double Commander style)",
 		Services: []application.Service{
 			application.NewService(fileSvc),
@@ -80,7 +80,7 @@ func main() {
 	})
 
 	gh, err := github.New(github.Config{
-		Repository:    "braniubojni/go-file-manager",
+		Repository:    "braniubojni/double-pane",
 		ChecksumAsset: "SHA256SUMS",
 	})
 	if err != nil {
@@ -108,7 +108,7 @@ func main() {
 
 	winW, winH := loadWindowSize(settingsSvc)
 	win := app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Title:          "Go File Manager",
+		Title:          "Double Pane",
 		Width:          winW,
 		Height:         winH,
 		MinWidth:       domain.MinWindowWidth,

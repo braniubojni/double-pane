@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
-Name=go-file-manager
-Exec=go-file-manager
-Icon=go-file-manager
+Name=double-pane
+Exec=double-pane
+Icon=double-pane
 Categories=Development;
 Terminal=false
 Keywords=wails

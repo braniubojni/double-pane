@@ -3,7 +3,7 @@ package filesystem
 import (
 	"fmt"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
 )
 
 // DiskUsage reports total, used, and caller-available free bytes for the

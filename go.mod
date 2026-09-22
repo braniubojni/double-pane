@@ -1,8 +1,9 @@
-module github.com/erikharutyunyan/go-file-manager
+module github.com/erikharutyunyan/double-pane
 
 go 1.25.0
 
 require (
+	github.com/adrg/xdg v0.5.3
 	github.com/cloudsoda/go-smb2 v0.0.0-20260803221621-0b399b9d036c
 	github.com/creack/pty v1.1.24
 	github.com/mholt/archives v0.1.5
@@ -18,7 +19,6 @@ require (
 
 require (
 	github.com/STARRY-S/zip v0.2.3 // indirect
-	github.com/adrg/xdg v0.5.3 // indirect
 	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/bodgit/plumbing v1.3.0 // indirect
 	github.com/bodgit/sevenzip v1.6.1 // indirect

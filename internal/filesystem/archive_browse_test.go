@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
 )
 
 func TestSplitArchivePath(t *testing.T) {

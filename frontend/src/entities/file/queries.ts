@@ -18,6 +18,7 @@ import type {
   ThemePreference,
   PortListener,
   ProcessInfo,
+  QuickPlace,
   Volume,
 } from './types';
 import { defaultSettings } from './types';
@@ -26,6 +27,7 @@ const queryKeys = {
   dir: (path: string, showHidden: boolean) => ['dir', path, showHidden] as const,
   gitStatus: (path: string) => ['gitStatus', path] as const,
   home: ['home'] as const,
+  quickPlaces: ['quickPlaces'] as const,
   settings: ['settings'] as const,
   shortcuts: ['shortcuts'] as const,
   shortcutDefs: ['shortcutDefs'] as const,
@@ -44,6 +46,14 @@ export const useHomeDir = () => {
     queryKey: queryKeys.home,
     queryFn: () => FileService.GetHomeDir() as Promise<string>,
     staleTime: Infinity,
+  });
+};
+
+export const useQuickPlaces = () => {
+  return useQuery({
+    queryKey: queryKeys.quickPlaces,
+    queryFn: () => FileService.GetQuickPlaces() as Promise<QuickPlace[]>,
+    staleTime: Infinity, // same rationale as useHomeDir — OS folders don't move mid-session
   });
 };
 

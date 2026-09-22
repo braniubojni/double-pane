@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
-	"github.com/erikharutyunyan/go-file-manager/internal/remote"
-	"github.com/erikharutyunyan/go-file-manager/internal/storage"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
+	"github.com/erikharutyunyan/double-pane/internal/remote"
+	"github.com/erikharutyunyan/double-pane/internal/storage"
 )
 
 const kvConnections = "connections"

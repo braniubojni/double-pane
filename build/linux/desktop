@@ -1,13 +1,13 @@
 [Desktop Entry]
 Version=1.0
-Name=Go File Manager
+Name=Double Pane
 Comment=Dual-pane desktop file manager (Double Commander style)
 # The Exec line includes %u to pass the URL to the application
-Exec=/usr/local/bin/go-file-manager %u
+Exec=/usr/local/bin/double-pane %u
 Terminal=false
 Type=Application
-Icon=go-file-manager
+Icon=double-pane
 Categories=Utility;
-StartupWMClass=go-file-manager
+StartupWMClass=double-pane
 
  

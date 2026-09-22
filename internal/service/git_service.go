@@ -3,10 +3,10 @@ package service
 import (
 	"context"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
-	"github.com/erikharutyunyan/go-file-manager/internal/filesystem"
-	"github.com/erikharutyunyan/go-file-manager/internal/gitstatus"
-	"github.com/erikharutyunyan/go-file-manager/internal/remote"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
+	"github.com/erikharutyunyan/double-pane/internal/filesystem"
+	"github.com/erikharutyunyan/double-pane/internal/gitstatus"
+	"github.com/erikharutyunyan/double-pane/internal/remote"
 )
 
 // GitService exposes cheap, cached git working-tree status for the file list.

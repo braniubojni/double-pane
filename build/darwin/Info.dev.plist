@@ -3,17 +3,17 @@
 <plist version="1.0">
 	<dict>
 		<key>CFBundleExecutable</key>
-		<string>go-file-manager</string>
+		<string>double-pane</string>
 		<key>CFBundleGetInfoString</key>
-		<string>Go File Manager</string>
+		<string>Double Pane</string>
 		<key>CFBundleIconFile</key>
 		<string>icons</string>
 		<key>CFBundleIconName</key>
 		<string>appicon</string>
 		<key>CFBundleIdentifier</key>
-		<string>com.braniubojni.go-file-manager</string>
+		<string>com.braniubojni.double-pane</string>
 		<key>CFBundleName</key>
-		<string>Go File Manager</string>
+		<string>Double Pane</string>
 		<key>CFBundlePackageType</key>
 		<string>APPL</string>
 		<key>CFBundleShortVersionString</key>
@@ -27,11 +27,11 @@
 			<key>NSAllowsLocalNetworking</key>
 			<true/>
 		</dict>
-		<key>NSLocalNetworkUsageDescription</key>
-		<string>Go File Manager connects to computers and NAS devices on your network for SMB and SSH file browsing.</string>
 		<key>NSHighResolutionCapable</key>
 		<string>true</string>
 		<key>NSHumanReadableCopyright</key>
 		<string>© 2026, braniubojni</string>
+		<key>NSLocalNetworkUsageDescription</key>
+		<string>Double Pane connects to computers and NAS devices on your network for SMB and SSH file browsing.</string>
 	</dict>
 </plist>

@@ -2,7 +2,7 @@
 
 package ports
 
-import "github.com/erikharutyunyan/go-file-manager/internal/domain"
+import "github.com/erikharutyunyan/double-pane/internal/domain"
 
 func ListProcesses() ([]domain.ProcessInfo, error) {
 	return []domain.ProcessInfo{}, nil

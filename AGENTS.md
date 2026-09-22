@@ -1,4 +1,4 @@
-# go-file-manager — agent memory (root)
+# double-pane — agent memory (root)
 
 Dual-pane desktop file manager (Double Commander–style). **Wails v3 alpha** + Go + React/TS/MUI.
 
@@ -92,7 +92,7 @@ cd e2e && npx playwright test specs/bookmarks.spec.ts   # single spec
 ## Version & updates
 
 - `internal/version.Version` injected via ldflags / Task `VERSION`.
-- In-app updater: Wails `app.Updater` + GitHub provider (`braniubojni/go-file-manager`); assets match os/arch substrings; release must include `SHA256SUMS`; install = verify + helper swap + relaunch.
+- In-app updater: Wails `app.Updater` + GitHub provider (`braniubojni/double-pane`); assets match os/arch substrings; release must include `SHA256SUMS`; install = verify + helper swap + relaunch.
 - Auto-check interval ~**10 days** (`updateCheckIntervalDays`); Settings calls `UpdateService.CheckAndInstall`.
 
 ## Deferred / partial

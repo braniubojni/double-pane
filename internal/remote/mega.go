@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
 	mega "github.com/t3rm1n4l/go-mega"
 )
 

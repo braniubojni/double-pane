@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
-	"github.com/erikharutyunyan/go-file-manager/internal/imghash"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
+	"github.com/erikharutyunyan/double-pane/internal/imghash"
 )
 
 func (s *FileService) runVisualPass(

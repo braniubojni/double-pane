@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
-	"github.com/erikharutyunyan/go-file-manager/internal/ports"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
+	"github.com/erikharutyunyan/double-pane/internal/ports"
 )
 
 // PortService lists local TCP listeners and force-kills processes by PID.

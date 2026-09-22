@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
 )
 
 // Manager lists OS mounts, attaches disk images, and watches /Volumes-style dirs.

@@ -3,7 +3,7 @@ package ports
 import (
 	"sort"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
 )
 
 func sortListeners(out []domain.PortListener) {

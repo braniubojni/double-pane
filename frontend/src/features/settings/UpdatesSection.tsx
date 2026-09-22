@@ -9,6 +9,7 @@ import { useEffect, useState, type FC } from 'react';
 import type { AppSettings } from '../../entities/file/types';
 import { useUpdateActions } from '../updates/hooks/useUpdateActions';
 import { UpdateService } from '../../shared/api/bindings';
+import { hostOS } from '../../shared/lib/hostOS';
 
 type Props = {
   draft: AppSettings;
@@ -60,7 +61,9 @@ export const UpdatesSection: FC<Props> = ({ draft, onChange }) => {
       </Box>
 
       <Typography variant="caption" color="text.secondary">
-        Checks open the built-in update window (download, verify, restart to apply).
+        {hostOS() === 'darwin'
+          ? 'Checks GitHub and opens the release page in your browser — download the .dmg manually.'
+          : 'Checks open the built-in update window (download, verify, restart to apply).'}
       </Typography>
     </Stack>
   );

@@ -3,7 +3,7 @@
 #
 # The lines below are called `modelines`. See `:help modeline`
 
-name: "go-file-manager"
+name: "double-pane"
 arch: ${GOARCH}
 platform: "linux"
 version: "0.0.1"
@@ -17,12 +17,12 @@ license: "MIT"
 release: "1"
 
 contents:
-  - src: "./bin/go-file-manager"
-    dst: "/usr/local/bin/go-file-manager"
+  - src: "./bin/double-pane"
+    dst: "/usr/local/bin/double-pane"
   - src: "./build/appicon.png"
-    dst: "/usr/share/icons/hicolor/128x128/apps/go-file-manager.png"
-  - src: "./build/linux/go-file-manager.desktop"
-    dst: "/usr/share/applications/go-file-manager.desktop"
+    dst: "/usr/share/icons/hicolor/128x128/apps/double-pane.png"
+  - src: "./build/linux/double-pane.desktop"
+    dst: "/usr/share/applications/double-pane.desktop"
 
 # Default dependencies for the GTK4 + WebKitGTK 6.0 stack (Ubuntu 24.04+ / Debian 13+)
 depends:

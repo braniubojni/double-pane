@@ -61,7 +61,7 @@ tasks:
       - '{{if eq .OBFUSCATED "true"}}garble {{.GARBLE_ARGS}} build{{else}}go build{{end}} {{.BUILD_FLAGS}} -o {{.OUTPUT}}'
     vars:
       VERSION: '{{.VERSION | default ""}}'
-      VERSION_X: "{{if .VERSION}} -X github.com/erikharutyunyan/go-file-manager/internal/version.Version={{.VERSION}}{{end}}"
+      VERSION_X: "{{if .VERSION}} -X github.com/erikharutyunyan/double-pane/internal/version.Version={{.VERSION}}{{end}}"
       BUILD_FLAGS: '{{if eq .DEV "true"}}{{if or .EXTRA_TAGS (eq .OBFUSCATED "true")}}-tags {{if eq .OBFUSCATED "true"}}wails_obfuscated{{if .EXTRA_TAGS}},{{end}}{{end}}{{.EXTRA_TAGS}} {{end}}-buildvcs=false -gcflags=all="-l"{{else}}-tags production{{if eq .OBFUSCATED "true"}},wails_obfuscated{{end}}{{if .EXTRA_TAGS}},{{.EXTRA_TAGS}}{{end}} -trimpath -buildvcs=false -ldflags="-w -s{{.VERSION_X}}"{{end}}'
       DEFAULT_OUTPUT: "{{.BIN_DIR}}/{{.APP_NAME}}"
       OUTPUT: "{{ .OUTPUT | default .DEFAULT_OUTPUT }}"
@@ -123,7 +123,7 @@ tasks:
         VER="{{.VERSION}}"
         LDFLAGS="-s -w"
         if [ -n "$VER" ]; then
-          LDFLAGS="$LDFLAGS -X github.com/erikharutyunyan/go-file-manager/internal/version.Version=$VER"
+          LDFLAGS="$LDFLAGS -X github.com/erikharutyunyan/double-pane/internal/version.Version=$VER"
         fi
         # --platform keeps container CPU arch aligned with GOARCH (required for CGO/GTK).
         docker run --rm \

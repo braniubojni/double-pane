@@ -1,5 +1,5 @@
 {
-  "name": "go-file-manager",
+  "name": "double-pane",
   "private": true,
   "description": "Dual-pane desktop file manager (Wails v3 + Go + React)",
   "scripts": {

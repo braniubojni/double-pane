@@ -1,7 +1,7 @@
 version: "3"
 
 vars:
-  APP_NAME: "go-file-manager"
+  APP_NAME: "double-pane"
   BIN_DIR: "bin"
   PACKAGE_MANAGER: '{{.PACKAGE_MANAGER | default "npm"}}'
   VITE_PORT: "{{.WAILS_VITE_PORT | default 9245}}"
@@ -259,7 +259,7 @@ tasks:
   build:darwin:
     summary: Cross-build macOS binary only (Docker on Linux/Windows, native on macOS)
     desc: |
-      Emits bin/go-file-manager (raw executable — Terminal icon in Finder).
+      Emits bin/double-pane (raw executable — Terminal icon in Finder).
       For an Applications-ready .app on macOS, use: task package:darwin
     cmds:
       - task: darwin:build
@@ -272,7 +272,7 @@ tasks:
   package:darwin:
     summary: Package macOS .app bundle (icon + Info.plist; drag to Applications)
     desc: |
-      Builds then creates bin/go-file-manager.app with icons from build/appicon.png.
+      Builds then creates bin/double-pane.app with icons from build/appicon.png.
       Example: task package:darwin VERSION=0.1.0 ARCH=arm64
     cmds:
       - task: darwin:package
@@ -304,6 +304,9 @@ tasks:
       - sh: test -n "{{.VERSION}}"
         msg: "VERSION is required, e.g. task dist VERSION=0.1.0"
     cmds:
+      - task: dist:maybe-clean
+        vars:
+          PUBLISH: "{{.PUBLISH}}"
       # Registered before docker:ensure runs, not after — so it still fires
       # (and cleans up Docker Desktop) even if docker:ensure itself fails,
       # e.g. its own start-wait times out. A defer registered as a later cmd
@@ -330,6 +333,14 @@ tasks:
         vars:
           VERSION: "{{.VERSION}}"
           PUBLISH: "{{.PUBLISH}}"
+
+  dist:maybe-clean:
+    internal: true
+    status:
+      - '[ "{{.PUBLISH}}" != "true" ]'
+    cmds:
+      - rm -rf dist
+      - mkdir -p dist
 
   dist:maybe-publish:
     internal: true
@@ -362,7 +373,7 @@ tasks:
         vars:
           VERSION: "{{.VERSION}}"
           ARCH: "{{.LINUX_ARCH}}"
-          OUTPUT: "bin/go-file-manager-linux-{{.LINUX_ARCH}}"
+          OUTPUT: "bin/double-pane-linux-{{.LINUX_ARCH}}"
 
   dist:archive:
     summary: Zip/tar built artifacts into dist/ with updater-compatible names
@@ -374,43 +385,43 @@ tasks:
         D_ARCH="{{.DARWIN_ARCH}}"
         W_ARCH="{{.WINDOWS_ARCH}}"
         L_ARCH="{{.LINUX_ARCH}}"
-        LINUX_BIN="bin/go-file-manager-linux-${L_ARCH}"
+        LINUX_BIN="bin/double-pane-linux-${L_ARCH}"
         mkdir -p dist
-        rm -f "dist/go-file-manager_${VER}_darwin_${D_ARCH}.zip" \
-              "dist/go-file-manager_${VER}_darwin_${D_ARCH}.dmg" \
-              "dist/go-file-manager_${VER}_windows_${W_ARCH}.zip" \
-              "dist/go-file-manager_${VER}_linux_${L_ARCH}.tar.gz"
+        rm -f "dist/double-pane_${VER}_darwin_${D_ARCH}.zip" \
+              "dist/double-pane_${VER}_darwin_${D_ARCH}.dmg" \
+              "dist/double-pane_${VER}_windows_${W_ARCH}.zip" \
+              "dist/double-pane_${VER}_linux_${L_ARCH}.tar.gz"
 
             # 1. Darwin (macOS)
-            if [ ! -d "bin/go-file-manager.app" ]; then
-              echo "Expected bin/go-file-manager.app (darwin package failed?)" >&2
+            if [ ! -d "bin/double-pane.app" ]; then
+              echo "Expected bin/double-pane.app (darwin package failed?)" >&2
               ls -la bin/ || true
               exit 1
             fi
 
             # Create standard zip
-            (cd bin && zip -ry "../dist/go-file-manager_${VER}_darwin_${D_ARCH}.zip" go-file-manager.app)
+            (cd bin && zip -ry "../dist/double-pane_${VER}_darwin_${D_ARCH}.zip" double-pane.app)
 
             # Create DMG if on macOS and create-dmg is installed
             if [ "$(uname -s)" = "Darwin" ]; then
               if command -v create-dmg >/dev/null 2>&1; then
                 echo "=== Generating macOS DMG ==="
                 # 1. Clean up any previous DMG in bin/
-                rm -f "bin/go-file-manager.dmg"
+                rm -f "bin/double-pane.dmg"
 
                 # 2. Output the DMG directly to the bin/ folder
                 create-dmg \
-                  --volname "go-file-manager" \
+                  --volname "double-pane" \
                   --window-pos 200 120 \
                   --window-size 600 400 \
                   --icon-size 100 \
-                  --icon "go-file-manager.app" 150 190 \
+                  --icon "double-pane.app" 150 190 \
                   --app-drop-link 450 190 \
-                  "bin/go-file-manager.dmg" \
-                  "bin/go-file-manager.app"
+                  "bin/double-pane.dmg" \
+                  "bin/double-pane.app"
 
                 # 3. Copy the cleanly named bin file into dist/ with the version tags
-                cp "bin/go-file-manager.dmg" "dist/go-file-manager_${VER}_darwin_${D_ARCH}.dmg"
+                cp "bin/double-pane.dmg" "dist/double-pane_${VER}_darwin_${D_ARCH}.dmg"
               else
                 echo "Notice: 'create-dmg' is not installed. Skipping .dmg creation."
                 echo "To enable, run: brew install create-dmg"
@@ -418,12 +429,12 @@ tasks:
             fi
 
             # 2. Windows
-            if [ ! -f "bin/go-file-manager.exe" ]; then
-              echo "Expected bin/go-file-manager.exe" >&2
+            if [ ! -f "bin/double-pane.exe" ]; then
+              echo "Expected bin/double-pane.exe" >&2
               ls -la bin/ || true
               exit 1
             fi
-            (cd bin && zip -9 "../dist/go-file-manager_${VER}_windows_${W_ARCH}.zip" go-file-manager.exe)
+            (cd bin && zip -9 "../dist/double-pane_${VER}_windows_${W_ARCH}.zip" double-pane.exe)
 
             # 3. Linux
             if [ ! -f "$LINUX_BIN" ]; then
@@ -432,10 +443,10 @@ tasks:
               exit 1
             fi
 
-            # Archive member name must be go-file-manager (matches CI + updater docs).
+            # Archive member name must be double-pane (matches CI + updater docs).
             STAGE=$(mktemp -d)
-            cp "$LINUX_BIN" "$STAGE/go-file-manager"
-            tar -C "$STAGE" -czf "dist/go-file-manager_${VER}_linux_${L_ARCH}.tar.gz" go-file-manager
+            cp "$LINUX_BIN" "$STAGE/double-pane"
+            tar -C "$STAGE" -czf "dist/double-pane_${VER}_linux_${L_ARCH}.tar.gz" double-pane
             rm -rf "$STAGE"
 
             # Checksums for Wails app.Updater (ChecksumAsset: SHA256SUMS).

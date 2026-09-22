@@ -1,4 +1,4 @@
-# Go File Manager
+# Double Pane
 
 Dual-pane desktop file manager (Double Commander style) built with **Wails v3**, **Go**, **React + TypeScript**, **MUI**, and **TanStack Query/Table**.
 
@@ -60,11 +60,11 @@ This builds Go, generates bindings, runs the Vite frontend, and opens the app.
 wails3 build
 
 # macOS: Applications-ready .app (icon + Info.plist; drag to /Applications)
-# Do not double-click the bare bin/go-file-manager binary — Finder treats it as a
+# Do not double-click the bare bin/double-pane binary — Finder treats it as a
 # CLI tool (Terminal icon). Use the .app instead:
 wails3 package
 # or: wails3 task package:darwin VERSION=0.1.0
-open bin/go-file-manager.app
+open bin/double-pane.app
 
 # Cross-platform (https://v3.wails.io/guides/build/cross-platform/)
 # One-time Docker image for non-native targets (~800MB):
@@ -91,13 +91,13 @@ From macOS (Windows = native Go cross-compile; Linux = Docker):
 wails3 task setup:docker          # once, ~800MB (host arch)
 wails3 task dist VERSION=0.1.0
 # Fancy macOS dmg creation (optional) — requires create-dmg on macOS:
-create-dmg --volname "go-file-manager" --window-pos 200 120 --window-size 600 400 --icon-size 100 --icon "go-file-manager.app" 150 190 --app-drop-link 450 190 bin/go-file-manager.dmg bin/go-file-manager.app
+create-dmg --volname "double-pane" --window-pos 200 120 --window-size 600 400 --icon-size 100 --icon "double-pane.app" 150 190 --app-drop-link 450 190 bin/double-pane.dmg bin/double-pane.app
 # Mac dmg creation (optional) — requires hdiutil on macOS:
-hdiutil create -volname "go-file-manager" -srcfolder bin/go-file-manager.app -ov -format UDZO -o "$(pwd)/bin/go-file-manager.dmg"
+hdiutil create -volname "double-pane" -srcfolder bin/double-pane.app -ov -format UDZO -o "$(pwd)/bin/double-pane.dmg"
 
-# → dist/go-file-manager_0.1.0_darwin_arm64.zip   (.app inside)
-# → dist/go-file-manager_0.1.0_windows_amd64.zip
-# → dist/go-file-manager_0.1.0_linux_<host-arch>.tar.gz  (arm64 on Apple Silicon)
+# → dist/double-pane_0.1.0_darwin_arm64.zip   (.app inside)
+# → dist/double-pane_0.1.0_windows_amd64.zip
+# → dist/double-pane_0.1.0_linux_<host-arch>.tar.gz  (arm64 on Apple Silicon)
 ```
 
 Override arches if needed: `DARWIN_ARCH`, `WINDOWS_ARCH`, `LINUX_ARCH`.
@@ -130,14 +130,14 @@ Runtime version comes from `internal/version.Version` (default `0.0.0-dev`).
 Pass `VERSION=x.y.z` into Task builds; production ldflags inject:
 
 ```text
--X github.com/erikharutyunyan/go-file-manager/internal/version.Version=x.y.z
+-X github.com/erikharutyunyan/double-pane/internal/version.Version=x.y.z
 ```
 
 ## Updates (GitHub Releases)
 
 Uses **Wails v3 `app.Updater`** with the GitHub Releases provider.
 
-- **Repo:** `braniubojni/go-file-manager`
+- **Repo:** `braniubojni/double-pane`
 - Settings → **Updates**: show version, check now, auto-check every **10 days** (default on)
 - Flow: check → builtin update window → download → verify `SHA256SUMS` → **Restart & Apply** (in-place swap + relaunch)
 - Asset names must include `os` + `arch` substrings (see Releasing below)
@@ -162,9 +162,9 @@ wails3 task release:publish VERSION=0.1.0
 
 | Artifact | Typical name |
 | -------- | ------------ |
-| macOS `.app` zip | `go-file-manager_{ver}_darwin_arm64.zip` |
-| Windows zip | `go-file-manager_{ver}_windows_amd64.zip` |
-| Linux tar.gz | `go-file-manager_{ver}_linux_<host arch>.tar.gz` |
+| macOS `.app` zip | `double-pane_{ver}_darwin_arm64.zip` |
+| Windows zip | `double-pane_{ver}_windows_amd64.zip` |
+| Linux tar.gz | `double-pane_{ver}_linux_<host arch>.tar.gz` |
 | checksums | `SHA256SUMS` |
 
 Archives must have a **single top-level entry** (Wails extract rule): `.app` / one binary / one `.exe`.
@@ -183,7 +183,7 @@ Tested, does **not** work (no free fix):
 If you hit this, the app is not actually broken — Gatekeeper is blocking it outright with no in-app way around it. Workaround:
 
 ```bash
-xattr -cr /Applications/go-file-manager.app   # harmless even if this isn't the cause
+xattr -cr /Applications/double-pane.app   # harmless even if this isn't the cause
 ```
 
 then System Settings → Privacy & Security → scroll to the bottom → **Open Anyway** next to the blocked-app notice, then confirm once more when relaunching. Repeat after every update (ad-hoc signature changes each build, so Gatekeeper re-evaluates each time).
@@ -570,7 +570,7 @@ frontend/
 - `SettingsService` — settings.json / shortcuts.json + reveal/open
 - `BookmarkService` — add / list / remove (SQLite)
 
-Config dir (macOS): `~/Library/Application Support/go-file-manager/`
+Config dir (macOS): `~/Library/Application Support/double-pane/`
 
 - `settings.json` — theme, showHidden, showExtensions, leftPath, rightPath
 - `shortcuts.json` — action → binding (`Mod` = Cmd/Ctrl)

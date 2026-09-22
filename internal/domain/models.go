@@ -150,6 +150,12 @@ type Settings struct {
 }
 
 // SearchHit is one result from nested file/folder search (Go-to).
+// QuickPlace is one well-known local folder shown in the per-pane quick-places menu.
+type QuickPlace struct {
+	Name string `json:"name"`
+	Path string `json:"path"`
+}
+
 type SearchHit struct {
 	Name    string `json:"name"`
 	Path    string `json:"path"`
@@ -451,4 +457,4 @@ type RemoteRecent struct {
 }
 
 // AppName is used for config/data directories.
-const AppName = "go-file-manager"
+const AppName = "double-pane"

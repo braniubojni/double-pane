@@ -11,11 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
-	"github.com/erikharutyunyan/go-file-manager/internal/filesystem"
-	"github.com/erikharutyunyan/go-file-manager/internal/imghash"
-	"github.com/erikharutyunyan/go-file-manager/internal/ocr"
-	"github.com/erikharutyunyan/go-file-manager/internal/remote"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
+	"github.com/erikharutyunyan/double-pane/internal/filesystem"
+	"github.com/erikharutyunyan/double-pane/internal/imghash"
+	"github.com/erikharutyunyan/double-pane/internal/ocr"
+	"github.com/erikharutyunyan/double-pane/internal/remote"
 )
 
 func dupLog(jobID, msg string, args ...any) {

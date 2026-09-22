@@ -14,8 +14,8 @@ import (
 	"unicode/utf8"
 
 	"github.com/cloudsoda/go-smb2"
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
-	"github.com/erikharutyunyan/go-file-manager/internal/filesystem"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
+	"github.com/erikharutyunyan/double-pane/internal/filesystem"
 )
 
 // ListDir lists an SMB virtual path. The host root lists shares as directories.

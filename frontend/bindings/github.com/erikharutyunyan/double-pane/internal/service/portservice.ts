@@ -15,17 +15,17 @@ import { Call as $Call, CancellablePromise as $CancellablePromise } from "@wails
 import * as domain$0 from "../domain/models.js";
 
 export function Kill(pid: number): $CancellablePromise<void> {
-    return $Call.ByID(2795784817, pid);
+    return $Call.ByID(2852522758, pid);
 }
 
 export function KillAll(pids: number[] | null): $CancellablePromise<void> {
-    return $Call.ByID(640493832, pids);
+    return $Call.ByID(2435653669, pids);
 }
 
 export function List(): $CancellablePromise<domain$0.PortListener[] | null> {
-    return $Call.ByID(3736556441);
+    return $Call.ByID(2021514446);
 }
 
 export function ListProcesses(): $CancellablePromise<domain$0.ProcessInfo[] | null> {
-    return $Call.ByID(3484333438);
+    return $Call.ByID(2236140723);
 }

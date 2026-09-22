@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { usePatchSettings } from '../../../entities/file/queries';
 import { UpdateService } from '../../../shared/api/bindings';
 import { errMessage } from '../../../shared/lib/format';
+import { hostOS } from '../../../shared/lib/hostOS';
 import { useSnack } from '../../../shared/ui/SnackbarHost';
 
 /** Triggers Wails app.Updater (builtin window) and open-releases helpers. */
@@ -17,7 +18,17 @@ export const useUpdateActions = () => {
   const check = useCallback(async () => {
     setBusy(true);
     try {
-      await UpdateService.CheckAndInstall();
+      if (hostOS() === 'darwin') {
+        const version = await UpdateService.CheckForUpdate();
+        if (version) {
+          await UpdateService.OpenReleasesPage();
+          show(`Update v${version} available — opened the releases page`, 'info');
+        } else {
+          show('Already up to date', 'info');
+        }
+      } else {
+        await UpdateService.CheckAndInstall();
+      }
       markChecked();
     } catch (e) {
       show(errMessage(e), 'error');

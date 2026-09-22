@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/erikharutyunyan/go-file-manager/internal/domain"
+	"github.com/erikharutyunyan/double-pane/internal/domain"
 	"golang.org/x/sys/unix"
 )
 
