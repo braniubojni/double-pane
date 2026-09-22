@@ -50,6 +50,22 @@ func (s *UpdateService) CheckAndInstall() error {
 	return s.app.Updater.CheckAndInstall(context.Background())
 }
 
+// CheckForUpdate checks GitHub Releases without downloading or installing.
+// Returns the newer version string, or "" if already up to date.
+func (s *UpdateService) CheckForUpdate() (string, error) {
+	if s.app == nil {
+		return "", fmt.Errorf("updater not ready")
+	}
+	rel, err := s.app.Updater.Check(context.Background())
+	if err != nil {
+		return "", err
+	}
+	if rel == nil {
+		return "", nil
+	}
+	return rel.Version, nil
+}
+
 // OpenReleasesPage opens the GitHub releases page in the browser.
 func (s *UpdateService) OpenReleasesPage() error {
 	return config.OpenInOS(s.ReleasesURL())

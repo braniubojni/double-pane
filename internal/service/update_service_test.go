@@ -18,3 +18,17 @@ func TestCurrentVersionForUpdater(t *testing.T) {
 		}
 	}
 }
+
+func TestCheckForUpdate_NotReady(t *testing.T) {
+	s := NewUpdateService()
+	got, err := s.CheckForUpdate()
+	if err == nil {
+		t.Fatal("expected error when updater app is nil")
+	}
+	if got != "" {
+		t.Errorf("got version %q, want empty", got)
+	}
+	if err.Error() != "updater not ready" {
+		t.Errorf("error = %q, want %q", err.Error(), "updater not ready")
+	}
+}

@@ -304,6 +304,9 @@ tasks:
       - sh: test -n "{{.VERSION}}"
         msg: "VERSION is required, e.g. task dist VERSION=0.1.0"
     cmds:
+      - task: dist:maybe-clean
+        vars:
+          PUBLISH: "{{.PUBLISH}}"
       # Registered before docker:ensure runs, not after — so it still fires
       # (and cleans up Docker Desktop) even if docker:ensure itself fails,
       # e.g. its own start-wait times out. A defer registered as a later cmd
@@ -330,6 +333,14 @@ tasks:
         vars:
           VERSION: "{{.VERSION}}"
           PUBLISH: "{{.PUBLISH}}"
+
+  dist:maybe-clean:
+    internal: true
+    status:
+      - '[ "{{.PUBLISH}}" != "true" ]'
+    cmds:
+      - rm -rf dist
+      - mkdir -p dist
 
   dist:maybe-publish:
     internal: true
