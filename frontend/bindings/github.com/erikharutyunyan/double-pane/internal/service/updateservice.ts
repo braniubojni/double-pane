@@ -20,6 +20,14 @@ export function CheckAndInstall(): $CancellablePromise<void> {
 }
 
 /**
+ * CheckForUpdate checks GitHub Releases without downloading or installing.
+ * Returns the newer version string, or "" if already up to date.
+ */
+export function CheckForUpdate(): $CancellablePromise<string> {
+    return $Call.ByID(3516648218);
+}
+
+/**
  * GetVersion returns the build-injected app version (no leading v).
  */
 export function GetVersion(): $CancellablePromise<string> {
