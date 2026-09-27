@@ -48,3 +48,4 @@ Not commitments — ideas to triage. Check here before proposing new features (s
 - [ ] Disk usage treemap view (like WinDirStat) per folder
 - [ ] Plugin/extension points — low priority, only if long-term extensibility actually needed
 - [ ] New settings to show only in the tray or both tray and system menu
+- [ ] Password vault for local folders/files (spec: `specs/folder-vault/v1.md`) — per-file AES-256-GCM, no mount, auto-lock on leave/quit/idle. Not zip, not DMG.
