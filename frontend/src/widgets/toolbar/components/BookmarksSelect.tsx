@@ -28,7 +28,8 @@ type Option =
   | { kind: 'bookmark'; group: BookmarkGroup; label: string; id: number; path: string };
 
 export const BookmarksSelect: FC<BookmarksSelectProps> = ({ activePane, onAddCurrent }) => {
-  const { data: bookmarks = [] } = useBookmarks();
+  const { data: bookmarks = [], isError, error } = useBookmarks();
+  const listError = isError ? errMessage(error) : '';
   const ops = useFileOps();
   const show = useSnack((s) => s.show);
 
@@ -50,6 +51,7 @@ export const BookmarksSelect: FC<BookmarksSelectProps> = ({ activePane, onAddCur
     <Autocomplete<Option, false, false, false>
       data-testid="select-bookmarks"
       size="small"
+      disabled={isError}
       sx={{ minWidth: 180, ml: 0.5 }}
       options={options}
       value={null}
@@ -71,7 +73,13 @@ export const BookmarksSelect: FC<BookmarksSelectProps> = ({ activePane, onAddCur
         void ensureSessionThenNavigate(activePane, option.path);
       }}
       renderInput={(params) => (
-        <TextField {...params} placeholder="Bookmarks" data-testid="input-bookmarks" />
+        <TextField
+          {...params}
+          placeholder="Bookmarks"
+          error={isError}
+          helperText={listError || undefined}
+          data-testid="input-bookmarks"
+        />
       )}
       renderOption={(props, option) => {
         const { key, ...rest } = props;

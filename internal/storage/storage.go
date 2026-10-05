@@ -3,6 +3,7 @@ package storage
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -39,7 +40,17 @@ func Open(appName string) (*DB, error) {
 		return nil, err
 	}
 	path := filepath.Join(dir, "app.db")
-	return OpenPath(path)
+	db, err := OpenPath(path)
+	if err != nil {
+		return nil, err
+	}
+	// e2e sets GFM_CONFIG_DIR. Do not scan the real user config dir from there.
+	if os.Getenv(EnvConfigDir) == "" {
+		if err := db.importLegacyBookmarks(); err != nil {
+			log.Printf("bookmark import: %v", err)
+		}
+	}
+	return db, nil
 }
 
 // OpenPath opens a SQLite database at an explicit path (useful for tests).
@@ -75,12 +86,125 @@ func (db *DB) Dir() string {
 	return db.dir
 }
 
-// Close closes the database.
+// Close checkpoints the WAL into app.db, then closes. A second call is a no-op.
+// Restart reaches this via app.Quit → OnShutdown (Wails updater host.Quit).
 func (db *DB) Close() error {
 	if db == nil || db.sql == nil {
 		return nil
 	}
-	return db.sql.Close()
+	sqlDB := db.sql
+	db.sql = nil
+	_, _ = sqlDB.Exec(`PRAGMA wal_checkpoint(TRUNCATE)`)
+	return sqlDB.Close()
+}
+
+const kvBookmarksImportedFrom = "bookmarksImportedFrom"
+
+// importLegacyBookmarks copies bookmarks from the first existing legacy app.db
+// when the canonical table is empty. Missing files set no flag.
+func (db *DB) importLegacyBookmarks() error {
+	paths, err := legacyBookmarkDBs(db.dir)
+	if err != nil || len(paths) == 0 {
+		return err
+	}
+	return db.importBookmarksFrom(paths[0])
+}
+
+func (db *DB) importBookmarksFrom(legacyPath string) error {
+	if db == nil || db.sql == nil {
+		return fmt.Errorf("db closed")
+	}
+	imported, err := db.HasKV(kvBookmarksImportedFrom)
+	if err != nil || imported {
+		return err
+	}
+	var n int
+	if err := db.sql.QueryRow(`SELECT COUNT(1) FROM bookmarks`).Scan(&n); err != nil {
+		return err
+	}
+	if n > 0 {
+		return nil
+	}
+	if _, err := os.Stat(legacyPath); err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+	src, err := sql.Open("sqlite", sqliteReadOnlyDSN(legacyPath))
+	if err != nil {
+		return err
+	}
+	defer func() { _ = src.Close() }()
+
+	rows, err := src.Query(`SELECT id, name, path, sort_order, created_at FROM bookmarks`)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = rows.Close() }()
+
+	tx, err := db.sql.Begin()
+	if err != nil {
+		return err
+	}
+	for rows.Next() {
+		var id int64
+		var name, path, created string
+		var sortOrder int
+		if err := rows.Scan(&id, &name, &path, &sortOrder, &created); err != nil {
+			_ = tx.Rollback()
+			return err
+		}
+		if _, err := tx.Exec(`
+INSERT OR IGNORE INTO bookmarks(id, name, path, sort_order, created_at)
+VALUES(?, ?, ?, ?, ?)
+`, id, name, path, sortOrder, created); err != nil {
+			_ = tx.Rollback()
+			return err
+		}
+	}
+	if err := rows.Err(); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+	return db.SetKV(kvBookmarksImportedFrom, []byte(legacyPath))
+}
+
+func sqliteReadOnlyDSN(path string) string {
+	return "file:" + filepath.ToSlash(path) + "?mode=ro&_pragma=busy_timeout(5000)"
+}
+
+// legacyBookmarkDBs returns the first places an older build may have written
+// app.db, skipping the canonical directory. Only files that exist are returned.
+func legacyBookmarkDBs(canonicalDir string) ([]string, error) {
+	cfg, err := os.UserConfigDir()
+	if err != nil {
+		return nil, err
+	}
+	candidates := []string{filepath.Join(cfg, "Double Pane", "app.db")}
+	if exe, err := os.Executable(); err == nil {
+		dir := filepath.Dir(exe)
+		candidates = append(candidates, filepath.Join(dir, "app.db"))
+		if filepath.Base(dir) == "MacOS" && filepath.Base(filepath.Dir(dir)) == "Contents" {
+			candidates = append(candidates, filepath.Join(filepath.Dir(dir), "Resources", "app.db"))
+		}
+	}
+	canon := filepath.Clean(canonicalDir)
+	var out []string
+	for _, p := range candidates {
+		if filepath.Clean(filepath.Dir(p)) == canon {
+			continue
+		}
+		st, err := os.Stat(p)
+		if err != nil || st.IsDir() {
+			continue
+		}
+		out = append(out, p)
+	}
+	return out, nil
 }
 
 func (db *DB) migrate() error {
