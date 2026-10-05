@@ -34,6 +34,125 @@ func TestBookmarks(t *testing.T) {
 	}
 }
 
+func TestBookmarksReopen(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "app.db")
+	db, err := OpenPath(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.AddBookmark("A", "/a"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.AddBookmark("B", "/b"); err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatal(err)
+	}
+	db2, err := OpenPath(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = db2.Close() })
+	list, err := db2.ListBookmarks()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(list) != 2 || list[0].Path != "/a" || list[1].Path != "/b" {
+		t.Fatalf("got %+v", list)
+	}
+}
+
+func TestImportBookmarks(t *testing.T) {
+	legacyDir := t.TempDir()
+	legacy, err := OpenPath(filepath.Join(legacyDir, "app.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := legacy.AddBookmark("A", "/a"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := legacy.AddBookmark("B", "/b"); err != nil {
+		t.Fatal(err)
+	}
+	if err := legacy.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	canon, err := OpenPath(filepath.Join(t.TempDir(), "app.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = canon.Close() })
+	legacyPath := filepath.Join(legacyDir, "app.db")
+	if err := canon.importBookmarksFrom(legacyPath); err != nil {
+		t.Fatal(err)
+	}
+	if err := canon.importBookmarksFrom(legacyPath); err != nil {
+		t.Fatal(err)
+	}
+	list, err := canon.ListBookmarks()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(list) != 2 || list[0].Path != "/a" || list[1].Path != "/b" {
+		t.Fatalf("got %+v", list)
+	}
+	if _, err := os.Stat(legacyPath); err != nil {
+		t.Fatalf("legacy file: %v", err)
+	}
+}
+
+func TestImportBookmarksSkipsExistingPath(t *testing.T) {
+	legacyDir := t.TempDir()
+	legacy, err := OpenPath(filepath.Join(legacyDir, "app.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := legacy.AddBookmark("A", "/a"); err != nil {
+		t.Fatal(err)
+	}
+	if err := legacy.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	canon, err := OpenPath(filepath.Join(t.TempDir(), "app.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = canon.Close() })
+	if _, err := canon.AddBookmark("Keep", "/a"); err != nil {
+		t.Fatal(err)
+	}
+	if err := canon.importBookmarksFrom(filepath.Join(legacyDir, "app.db")); err != nil {
+		t.Fatal(err)
+	}
+	list, err := canon.ListBookmarks()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(list) != 1 || list[0].Path != "/a" || list[0].Name != "Keep" {
+		t.Fatalf("got %+v", list)
+	}
+}
+
+func TestCloseNilAndTwice(t *testing.T) {
+	var db *DB
+	if err := db.Close(); err != nil {
+		t.Fatal(err)
+	}
+	opened, err := OpenPath(filepath.Join(t.TempDir(), "app.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := opened.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if err := opened.Close(); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestEncryptedKV(t *testing.T) {
 	dir := t.TempDir()
 	db, err := OpenPath(filepath.Join(dir, "app.db"))

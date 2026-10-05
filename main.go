@@ -33,6 +33,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Printf("config dir: %s", db.Dir())
 
 	remoteMgr := service.NewRemoteManager(db)
 	smbMgr := remote.NewSMBManager()
