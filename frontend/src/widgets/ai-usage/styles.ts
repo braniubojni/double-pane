@@ -3,10 +3,10 @@ import type { SxProps, Theme } from '@mui/material/styles';
 export const paperSx: SxProps<Theme> = {
   width: 340,
   maxWidth: 'calc(100vw - 32px)',
-  maxHeight: 'min(560px, calc(100vh - 48px))',
-  display: 'flex',
-  flexDirection: 'column',
-  overflow: 'hidden',
+  height: 'auto',
+  // MUI Popover paper defaults to maxHeight + overflowY auto.
+  maxHeight: 'none',
+  overflow: 'visible',
   mt: 0.5,
   borderRadius: 1.5,
   boxShadow: 8,
@@ -14,17 +14,10 @@ export const paperSx: SxProps<Theme> = {
 
 export const contentSx: SxProps<Theme> = {
   p: 0,
-  display: 'flex',
-  flexDirection: 'column',
-  overflow: 'hidden',
-  flex: '1 1 auto',
-  minHeight: 0,
 };
 
 export const listSx: SxProps<Theme> = {
-  flex: '1 1 auto',
-  minHeight: 0,
-  overflow: 'auto',
+  overflow: 'visible',
   py: 0.5,
 };
 

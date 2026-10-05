@@ -36,7 +36,7 @@ export const AIUsagePanel: FC<Props> = ({ open }) => {
         AI usage
       </Box>
       {isPending ? (
-        <Box sx={listSx}>
+        <Box sx={listSx} data-testid="ai-usage-list">
           {[0, 1, 2].map((i) => (
             <Box key={i} sx={skeletonRowSx}>
               <Skeleton variant="rounded" height={36} />
@@ -46,7 +46,7 @@ export const AIUsagePanel: FC<Props> = ({ open }) => {
       ) : error ? (
         <Typography sx={errorSx}>{errMessage(error)}</Typography>
       ) : (
-        <Box sx={listSx}>
+        <Box sx={listSx} data-testid="ai-usage-list">
           {(data ?? []).map((row) => (
             <AIUsageRow
               key={row.id}
