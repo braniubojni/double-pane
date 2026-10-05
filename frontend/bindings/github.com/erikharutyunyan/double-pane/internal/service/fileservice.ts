@@ -311,6 +311,7 @@ export function OpenWithPicker(path: string): $CancellablePromise<void> {
 
 /**
  * PasteClipboard copies OS clipboard files into dest, or writes a PNG image.
+ * A remote dest uploads local clipboard files (or a temp PNG) as one transfer job.
  */
 export function PasteClipboard(dest: string): $CancellablePromise<void> {
     return $Call.ByID(1459197228, dest);
