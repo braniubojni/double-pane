@@ -25,6 +25,12 @@ export const usePaneJobStore = create<PaneJobState>((set, get) => ({
     set({ [key]: null });
   },
 
+  updateLabel: (jobId, label) => {
+    const { left, right } = get();
+    if (left?.id === jobId) set({ left: { ...left, label } });
+    else if (right?.id === jobId) set({ right: { ...right, label } });
+  },
+
   swap: () => set((s) => ({ left: s.right, right: s.left })),
 }));
 

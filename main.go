@@ -12,6 +12,7 @@ import (
 	"github.com/erikharutyunyan/double-pane/internal/remote"
 	"github.com/erikharutyunyan/double-pane/internal/service"
 	"github.com/erikharutyunyan/double-pane/internal/storage"
+	"github.com/erikharutyunyan/double-pane/internal/vault"
 	"github.com/erikharutyunyan/double-pane/internal/version"
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
@@ -44,6 +45,10 @@ func main() {
 		log.Printf("purge dup-cache: %v", err)
 	}
 	settingsSvc := service.NewSettingsService(db, cfgStore)
+	if initial, err := settingsSvc.GetSettings(); err == nil {
+		vault.SetIdleLockMinutes(initial.VaultIdleLockMinutes)
+	}
+	service.StartVaultIdleTicker()
 	bookmarkSvc := service.NewBookmarkService(db)
 	termSvc := service.NewTerminalService(remoteMgr)
 	connSvc := service.NewConnectionService(db, remoteMgr, smbMgr, megaMgr)
@@ -98,6 +103,7 @@ func main() {
 	service.AttachUpdateApp(updateSvc, app)
 
 	app.OnShutdown(func() {
+		vault.LockAll()
 		_ = termSvc.Stop("left")
 		_ = termSvc.Stop("right")
 		remoteMgr.CloseAll()

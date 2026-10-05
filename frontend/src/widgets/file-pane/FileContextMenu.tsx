@@ -8,6 +8,9 @@ import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutli
 import EditIcon from '@mui/icons-material/Edit';
 import FilterNoneIcon from '@mui/icons-material/FilterNone';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
+import LockIcon from '@mui/icons-material/Lock';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
+import NoEncryptionIcon from '@mui/icons-material/NoEncryption';
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import TerminalIcon from '@mui/icons-material/Terminal';
@@ -18,6 +21,7 @@ import ListItemText from '@mui/material/ListItemText';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import type { FC, ReactNode } from 'react';
+import { useLockVault, useUnlockedVaults } from '../../entities/file/queries';
 import { isRemotePath, isSMBPath, parentOfVirtualPath } from '../../features/connections/helpers';
 import { isTrashPath } from '../../shared/lib/trash';
 import { useDuplicatesStore } from '../../features/duplicates/duplicatesStore';
@@ -25,8 +29,11 @@ import { isLocalArchivePath } from '../../features/duplicates/helpers';
 import { useContextMenuStore } from '../../features/file-ops/contextMenuStore';
 import { useFileOpsStore } from '../../features/file-ops/fileOpsStore';
 import type { FileOpsAction } from '../../features/file-ops/types';
+import { usePaneJobStore } from '../../features/jobs/paneJobStore';
 import { usePaneStore } from '../../features/pane/paneStore';
 import { useTerminalStore } from '../../features/terminal/terminalStore';
+import { vaultMenuState } from '../../features/vault/helpers';
+import { useVaultDialogStore } from '../../features/vault/vaultDialogStore';
 import { enterPaneTab } from './helpers';
 import { getPaneGrid } from '../../pages/file-manager/helpers';
 import { SettingsService } from '../../shared/api/bindings';
@@ -66,8 +73,15 @@ export const FileContextMenu: FC = () => {
   const dupRunning = useDuplicatesStore((s) => s.phase === 'running');
   const otherPane = usePaneStore((s) => s.otherPane);
   const navigate = usePaneStore((s) => s.navigate);
+  const selection = usePaneStore((s) => (paneId === 'left' ? s.leftSelection : s.rightSelection));
   const setTerminalOpen = useTerminalStore((s) => s.setOpen);
   const show = useSnack((s) => s.show);
+  const { data: unlockedVaults } = useUnlockedVaults();
+  const paneJob = usePaneJobStore((s) => s.getJob(paneId));
+  const lockVault = useLockVault();
+  const openLockDialog = useVaultDialogStore((s) => s.openLock);
+  const openUnlockDialog = useVaultDialogStore((s) => s.openUnlock);
+  const openRemoveDialog = useVaultDialogStore((s) => s.openRemove);
 
   const remote = isRemotePath(entry?.path ?? panePath);
   // The path heuristic alone can misfire on a real directory literally named
@@ -88,6 +102,15 @@ export const FileContextMenu: FC = () => {
   };
   const op = (action: FileOpsAction) => act(() => trigger(action));
   const inTrash = isTrashPath(panePath);
+
+  const vaultTarget = entry?.path ?? panePath;
+  const vaultBusy = paneJob?.kind === 'vault' && paneJob.path === vaultTarget;
+  const vaultState = vaultMenuState(
+    entry,
+    panePath,
+    selection.length || (entry ? 1 : 0),
+    (unlockedVaults ?? []).map((v) => v.root),
+  );
 
   const items: Item[] = [];
 
@@ -243,6 +266,45 @@ export const FileContextMenu: FC = () => {
       label: 'New file',
       icon: <NoteAddIcon fontSize="small" />,
       run: op('mkfile'),
+    });
+  }
+
+  if (!inTrash) {
+    items.push({
+      key: 'vault-lock',
+      label: 'Lock with password…',
+      icon: <LockIcon fontSize="small" />,
+      run: act(() => {
+        if (entry) openLockDialog(entry.path, paneId, !entry.isDir);
+      }),
+      disabled: !vaultState.lock || vaultBusy,
+      dividerBefore: items.length > 0,
+    });
+    items.push({
+      key: 'vault-unlock',
+      label: 'Unlock…',
+      icon: <LockOpenIcon fontSize="small" />,
+      run: act(() => openUnlockDialog(vaultTarget, paneId, Boolean(entry && !entry.isDir))),
+      disabled: !vaultState.unlock || vaultBusy,
+    });
+    items.push({
+      key: 'vault-lock-now',
+      label: 'Lock now',
+      icon: <LockIcon fontSize="small" />,
+      run: act(() => {
+        lockVault.mutate(vaultTarget, {
+          onSuccess: () => show('Locked', 'success'),
+          onError: (e) => show(errMessage(e), 'error'),
+        });
+      }),
+      disabled: !vaultState.lockNow || vaultBusy,
+    });
+    items.push({
+      key: 'vault-remove',
+      label: 'Remove password…',
+      icon: <NoEncryptionIcon fontSize="small" />,
+      run: act(() => openRemoveDialog(vaultTarget, paneId)),
+      disabled: !vaultState.removePassword || vaultBusy,
     });
   }
 

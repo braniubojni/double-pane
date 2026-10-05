@@ -1,3 +1,5 @@
+import LockIcon from '@mui/icons-material/Lock';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
 import type { GridColDef } from '@mui/x-data-grid/models';
 import { FileEntry } from '../../entities/file/types';
 import { orderColumns } from '../../features/ui/gridPrefsStore';
@@ -53,8 +55,20 @@ export const getColumns = (
                 lineHeight: 1.2,
                 width: '100%',
                 color: isSelected ? 'error.main' : 'inherit',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
               }}
             >
+              {e.isVault ? (
+                <Tooltip title={e.vaultLocked ? 'Locked vault' : 'Unlocked vault (this session)'}>
+                  {e.vaultLocked ? (
+                    <LockIcon fontSize="inherit" color="warning" sx={{ flexShrink: 0 }} />
+                  ) : (
+                    <LockOpenIcon fontSize="inherit" color="success" sx={{ flexShrink: 0 }} />
+                  )}
+                </Tooltip>
+              ) : null}
               {e.displayName}
               {e.isSymlink ? ' ↗' : ''}
             </Typography>

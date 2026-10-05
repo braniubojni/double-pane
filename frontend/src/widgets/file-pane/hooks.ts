@@ -35,6 +35,7 @@ import { useColumnStore } from '../../features/ui/columnStore';
 import { useGridPrefsStore } from '../../features/ui/gridPrefsStore';
 import { useDmgPasswordStore } from '../../features/dmg/dmgPasswordStore';
 import { startAttachDmg } from '../../features/dmg/startAttach';
+import { useVaultDialogStore } from '../../features/vault/vaultDialogStore';
 import { isBrowsableArchive } from '../../shared/lib/archives';
 import { isTrashPath } from '../../shared/lib/trash';
 import { errMessage } from '../../shared/lib/format';
@@ -187,6 +188,10 @@ export const useFilePane = (id: PaneId) => {
   const openWorkspace = useEditorStore((s) => s.openWorkspace);
 
   const openEntry = (entry: FileEntry) => {
+    if (entry.isVault && entry.vaultLocked) {
+      useVaultDialogStore.getState().openUnlock(entry.path, id, !entry.isDir);
+      return;
+    }
     if (entry.isDir) {
       if (isTrashPath(path) && entry.name !== '..') return;
       navigate(entry.path);

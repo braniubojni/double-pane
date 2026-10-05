@@ -32,6 +32,7 @@ export type {
     Settings,
     ShortcutDef,
     TabState,
+    VaultInfo,
     Volume,
     WindowState
 } from "./models.js";

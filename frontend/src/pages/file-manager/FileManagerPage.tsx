@@ -10,6 +10,8 @@ import { useFileOpsStore } from '../../features/file-ops/fileOpsStore';
 import { useTransferEvents } from '../../features/transfers/useTransferEvents';
 import { useDialogStore } from '../../features/ui/dialogStore';
 import { useAutoUpdateCheck } from '../../features/updates/hooks/useAutoUpdateCheck';
+import { useVaultDialogStore } from '../../features/vault/vaultDialogStore';
+import { useVaultEvents } from '../../features/vault/useVaultEvents';
 import { useVolumeEvents } from '../../features/volumes/useVolumeEvents';
 import { CommandPaletteHost } from '../../widgets/command-palette/CommandPaletteHost';
 import { DuplicatesHost } from '../../widgets/duplicates/DuplicatesHost';
@@ -24,12 +26,22 @@ import { useFileManagerKeyboard } from './hooks/useFileManagerKeyboard';
 import { useInitGridPrefs } from './hooks/useInitGridPrefs';
 import { useInitPaneTabs } from './hooks/useInitPaneTabs';
 import { useMouseNavButtons } from './hooks/useMouseNavButtons';
+import { useNotifyPanePaths } from './hooks/useNotifyPanePaths';
 import { usePersistGridPrefs } from './hooks/usePersistGridPrefs';
 import { usePersistPaneTabs } from './hooks/usePersistPaneTabs';
 import { loadingSx, pageRootSx, panesRowSx } from './styles';
 
 const SettingsDialog = lazy(() => import('../../features/settings/SettingsDialog'));
 const ShortcutsDialog = lazy(() => import('../../features/shortcuts/ShortcutsDialog'));
+const LockDialog = lazy(() =>
+  import('../../widgets/vault/LockDialog').then((m) => ({ default: m.LockDialog })),
+);
+const UnlockDialog = lazy(() =>
+  import('../../widgets/vault/UnlockDialog').then((m) => ({ default: m.UnlockDialog })),
+);
+const RemoveDialog = lazy(() =>
+  import('../../widgets/vault/RemoveDialog').then((m) => ({ default: m.RemoveDialog })),
+);
 const EditorWorkspace = lazy(() =>
   import('../../widgets/editor/EditorWorkspace').then((m) => ({ default: m.EditorWorkspace })),
 );
@@ -47,11 +59,14 @@ export const FileManagerPage: FC = () => {
   useTransferEvents();
   useDuplicateEvents();
   useVolumeEvents();
+  useVaultEvents();
+  useNotifyPanePaths(ready);
 
   const settingsOpen = useDialogStore((s) => s.settingsOpen);
   const shortcutsOpen = useDialogStore((s) => s.shortcutsOpen);
   const closeSettings = useDialogStore((s) => s.closeSettings);
   const closeShortcuts = useDialogStore((s) => s.closeShortcuts);
+  const vaultDialogMode = useVaultDialogStore((s) => s.mode);
   const trigger = useFileOpsStore((s) => s.trigger);
   const editorOpen = useEditorStore((s) => s.open);
 
@@ -104,6 +119,9 @@ export const FileManagerPage: FC = () => {
       <Suspense fallback={null}>
         {settingsOpen && <SettingsDialog open={settingsOpen} onClose={closeSettings} />}
         {shortcutsOpen && <ShortcutsDialog open={shortcutsOpen} onClose={closeShortcuts} />}
+        {vaultDialogMode === 'lock' && <LockDialog />}
+        {vaultDialogMode === 'unlock' && <UnlockDialog />}
+        {vaultDialogMode === 'remove' && <RemoveDialog />}
       </Suspense>
     </Box>
   );

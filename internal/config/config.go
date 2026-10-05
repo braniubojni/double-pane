@@ -73,6 +73,7 @@ func DefaultSettings() domain.Settings {
 		SkippedUpdateVersion:    "",
 		LeftPath:                "",
 		RightPath:               "",
+		VaultIdleLockMinutes:    5,
 	}
 }
 
@@ -207,6 +208,7 @@ func normalizeSettings(in domain.Settings) domain.Settings {
 	// If file was empty object, ShowExtensions false is wrong — handle via pointer load.
 	out.LeftPath = in.LeftPath
 	out.RightPath = in.RightPath
+	out.VaultIdleLockMinutes = in.VaultIdleLockMinutes
 	return out
 }
 
@@ -259,6 +261,9 @@ func (s *Store) LoadSettingsStrict() (domain.Settings, error) {
 	}
 	if v, ok := m["rightPath"].(string); ok {
 		out.RightPath = v
+	}
+	if v, ok := m["vaultIdleLockMinutes"].(float64); ok {
+		out.VaultIdleLockMinutes = int(v)
 	}
 	return out, nil
 }

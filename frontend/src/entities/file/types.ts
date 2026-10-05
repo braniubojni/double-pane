@@ -14,6 +14,35 @@ export interface FileEntry {
   access: string;
   /** Put Back path for trash:// rows. */
   origin?: string;
+  /** Folder-vault root (locked or unlocked) or a .dpenc file. */
+  isVault?: boolean;
+  /** True when isVault is true and no session is unlocked for it. */
+  vaultLocked?: boolean;
+  /** Single-file vault (.dpenc) rather than a folder vault. */
+  vaultFile?: boolean;
+}
+
+/** One folder/file password vault (see internal/vault, spec: folder-vault/v1). */
+export interface VaultInfo {
+  root: string;
+  locked: boolean;
+  isFile: boolean;
+  hint?: string;
+  version: number;
+}
+
+/** Streamed while a create/create-file/remove vault job runs (see "vault:progress"). */
+export interface VaultJobEvent {
+  jobId: string;
+  kind: 'create' | 'create-file' | 'remove';
+  path: string;
+  filesDone: number;
+  filesTotal: number;
+  bytesDone: number;
+  bytesTotal: number;
+  current: string;
+  err?: string;
+  done: boolean;
 }
 
 export interface PortListener {
@@ -97,6 +126,8 @@ export interface AppSettings {
   skippedUpdateVersion: string;
   leftPath: string;
   rightPath: string;
+  /** Auto-lock unlocked vaults after this many idle minutes. 0 disables it. */
+  vaultIdleLockMinutes: number;
 }
 
 export interface GitDirStatus {
@@ -123,4 +154,5 @@ export const defaultSettings: AppSettings = {
   skippedUpdateVersion: '',
   leftPath: '',
   rightPath: '',
+  vaultIdleLockMinutes: 5,
 };

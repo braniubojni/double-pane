@@ -4,6 +4,10 @@ Not commitments — ideas to triage. Check here before proposing new features (s
 
 ## Bugs
 
+- [ ] After each update we are loosing user's bookmarket paths. We can save this info inside of user folder in so that after each update data persisted
+- [ ] Seems like we lost having pointer within our app, I do not know is it related to latest macos 27 update.
+- [ ] In AI usage dialog let's not have scrolls at all
+
 ## Core file-manager gaps (Double Commander parity)
 
 - [ ] Quick view panel (F3-style preview: images, text, PDF) without opening editor
@@ -42,6 +46,9 @@ Not commitments — ideas to triage. Check here before proposing new features (s
 
 - [x] Duplicate finder (exact SHA-256, similar images, optional OCR; setup → progress → review → merge; background + status bar). Local, SSH/SFTP, SMB, MEGA.
 - [ ] Duplicate finder on native Google Drive / iCloud APIs (today those connections are local OS mounts only)
+- [ ] Add new option into duplicate finder, handle apple's/ios live videos, like if user wishes to delete them as well. I belive there should be connection between photo(meta info) and a short(1-3 seconds) video. Because when you watch this photos in ios there is no seperate photo and video, they are attached to each other. RESEARCH first.
+  - [ ] Add also option to remove this videos itself
+- [ ] Duplicate finder new option for image diff. Maybe if we see some similiarites between date, name and some other options we can also check via image diff this photos in order to select them to remove.
 - [x] Local trash/recycle bin (OS trash, in-app `trash://` restore, empty, Shift+Delete)
 - [x] Cursor usage in the AI usage toolbar popover (personal Pro quota via local Cursor session; not a status-bar chip)
 - [ ] SSH/SMB soft-delete/restore (MEGA already uses MEGA trash)
@@ -49,3 +56,4 @@ Not commitments — ideas to triage. Check here before proposing new features (s
 - [ ] Plugin/extension points — low priority, only if long-term extensibility actually needed
 - [ ] New settings to show only in the tray or both tray and system menu
 - [ ] Password vault for local folders/files (spec: `specs/folder-vault/v1.md`) — per-file AES-256-GCM, no mount, auto-lock on leave/quit/idle. Not zip, not DMG.
+- [ ] Research and add another option into find duplicates. Ability to search apple's live video(about two second video that goes with photo) and remove it if needed.

@@ -19,6 +19,7 @@ import type {
   PortListener,
   ProcessInfo,
   QuickPlace,
+  VaultInfo,
   Volume,
 } from './types';
 import { defaultSettings } from './types';
@@ -39,6 +40,8 @@ const queryKeys = {
   processes: ['processes'] as const,
   diskUsage: (path: string) => ['diskUsage', path] as const,
   aiUsage: ['aiUsage'] as const,
+  unlockedVaults: ['unlockedVaults'] as const,
+  vaultInfo: (path: string) => ['vaultInfo', path] as const,
 };
 
 export const useHomeDir = () => {
@@ -83,12 +86,14 @@ const normalizeSettings = (
         skippedUpdateVersion?: string;
         leftPath?: string;
         rightPath?: string;
+        vaultIdleLockMinutes?: number;
       }
     | null
     | undefined,
 ): AppSettings => {
   const theme = s?.theme;
   const interval = s?.updateCheckIntervalDays;
+  const idleMinutes = s?.vaultIdleLockMinutes;
   return {
     theme:
       theme === 'dark' || theme === 'light' || theme === 'system' ? theme : defaultSettings.theme,
@@ -105,6 +110,10 @@ const normalizeSettings = (
     skippedUpdateVersion: s?.skippedUpdateVersion ?? '',
     leftPath: s?.leftPath ?? '',
     rightPath: s?.rightPath ?? '',
+    vaultIdleLockMinutes:
+      typeof idleMinutes === 'number' && idleMinutes >= 0
+        ? idleMinutes
+        : defaultSettings.vaultIdleLockMinutes,
   };
 };
 
@@ -120,6 +129,7 @@ const settingsPayload = (settings: AppSettings) => ({
   skippedUpdateVersion: settings.skippedUpdateVersion,
   leftPath: settings.leftPath,
   rightPath: settings.rightPath,
+  vaultIdleLockMinutes: settings.vaultIdleLockMinutes,
 });
 
 export const useSaveSettings = () => {
@@ -414,6 +424,81 @@ export const useFileOps = () => {
   });
 
   return { del, delPermanent, rename, mkdir, mkfile, addBookmark, removeBookmark };
+};
+
+/** Every currently-unlocked vault session, for the "Vault · N open" chip and menu enablement. */
+export const useUnlockedVaults = () => {
+  return useQuery({
+    queryKey: queryKeys.unlockedVaults,
+    queryFn: async () => ((await FileService.ListUnlockedVaults()) ?? []) as VaultInfo[],
+    staleTime: 2_000,
+  });
+};
+
+/** Detects a folder/.dpenc vault at path (hint + locked state) — used by UnlockDialog. */
+export const useDetectVault = (path: string | undefined, enabled: boolean) => {
+  return useQuery({
+    queryKey: queryKeys.vaultInfo(path ?? ''),
+    queryFn: () => FileService.DetectVault(path!) as Promise<VaultInfo>,
+    enabled: Boolean(enabled && path),
+    retry: 0,
+    staleTime: 0,
+  });
+};
+
+const useInvalidateVaultViews = () => {
+  const qc = useQueryClient();
+  return (path: string) => {
+    void qc.invalidateQueries({ queryKey: queryKeys.unlockedVaults });
+    void qc.invalidateQueries({ queryKey: queryKeys.vaultInfo(path) });
+    void qc.invalidateQueries({ queryKey: ['dir'] });
+  };
+};
+
+export const useUnlockVault = () => {
+  const invalidate = useInvalidateVaultViews();
+  return useMutation({
+    mutationFn: ({ path, password }: { path: string; password: string }) =>
+      FileService.UnlockVault(path, password),
+    onSuccess: (_d, v) => invalidate(v.path),
+  });
+};
+
+export const useLockVault = () => {
+  const invalidate = useInvalidateVaultViews();
+  return useMutation({
+    mutationFn: (path: string) => FileService.LockVault(path),
+    onSuccess: (_d, path) => invalidate(path),
+  });
+};
+
+export const useStartCreateVault = () => {
+  return useMutation({
+    mutationFn: ({ path, password, hint }: { path: string; password: string; hint: string }) =>
+      FileService.StartCreateVault(path, password, hint) as Promise<string>,
+  });
+};
+
+export const useStartCreateFileVault = () => {
+  return useMutation({
+    mutationFn: ({ path, password, hint }: { path: string; password: string; hint: string }) =>
+      FileService.StartCreateFileVault(path, password, hint) as Promise<string>,
+  });
+};
+
+export const useStartRemoveVault = () => {
+  return useMutation({
+    mutationFn: ({ path, password }: { path: string; password: string }) =>
+      FileService.StartRemoveVault(path, password) as Promise<string>,
+  });
+};
+
+/** Fire-and-forget: lets the backend auto-lock any vault neither pane is inside anymore. */
+export const useNotifyPanePaths = () => {
+  return useMutation({
+    mutationFn: ({ left, right }: { left: string; right: string }) =>
+      FileService.NotifyPanePaths(left, right),
+  });
 };
 
 const parentDirs = (paths: string[]): string[] => {

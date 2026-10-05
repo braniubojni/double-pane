@@ -8,6 +8,7 @@ import (
 	"github.com/erikharutyunyan/double-pane/internal/config"
 	"github.com/erikharutyunyan/double-pane/internal/domain"
 	"github.com/erikharutyunyan/double-pane/internal/storage"
+	"github.com/erikharutyunyan/double-pane/internal/vault"
 )
 
 const (
@@ -43,13 +44,17 @@ func (s *SettingsService) GetSettings() (domain.Settings, error) {
 		if err := s.SaveSettings(def); err != nil {
 			return domain.Settings{}, err
 		}
+		vault.SetIdleLockMinutes(def.VaultIdleLockMinutes)
 		return def, nil
 	}
-	return parseSettingsJSON(raw), nil
+	out := parseSettingsJSON(raw)
+	vault.SetIdleLockMinutes(out.VaultIdleLockMinutes)
+	return out, nil
 }
 
 func (s *SettingsService) SaveSettings(settings domain.Settings) error {
 	settings = normalizeSettingsForSave(settings)
+	vault.SetIdleLockMinutes(settings.VaultIdleLockMinutes)
 	data, err := json.Marshal(settings)
 	if err != nil {
 		return err
@@ -448,6 +453,9 @@ func parseSettingsJSON(data []byte) domain.Settings {
 	}
 	if v, ok := m["rightPath"].(string); ok {
 		out.RightPath = v
+	}
+	if v, ok := m["vaultIdleLockMinutes"].(float64); ok {
+		out.VaultIdleLockMinutes = int(v)
 	}
 	return out
 }

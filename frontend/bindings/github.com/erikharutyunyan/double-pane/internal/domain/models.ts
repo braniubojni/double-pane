@@ -210,6 +210,21 @@ export interface FileEntry {
      * Origin is the Put Back path for trash:// listings. Empty elsewhere.
      */
     "origin"?: string;
+
+    /**
+     * IsVault marks a folder-vault root (locked or unlocked) or a .dpenc file.
+     */
+    "isVault"?: boolean;
+
+    /**
+     * VaultLocked is true when IsVault is true and no session is unlocked for it.
+     */
+    "vaultLocked"?: boolean;
+
+    /**
+     * VaultFile marks a single-file vault (.dpenc) rather than a folder vault.
+     */
+    "vaultFile"?: boolean;
 }
 
 /**
@@ -468,6 +483,12 @@ export interface Settings {
     "skippedUpdateVersion": string;
     "leftPath": string;
     "rightPath": string;
+
+    /**
+     * VaultIdleLockMinutes auto-locks unlocked folder/file vaults after this
+     * many minutes of no vault I/O/list/path-change activity. 0 disables it.
+     */
+    "vaultIdleLockMinutes": number;
 }
 
 /**
@@ -485,6 +506,21 @@ export interface ShortcutDef {
  */
 export interface TabState {
     "path": string;
+}
+
+/**
+ * VaultInfo describes one folder/file password vault (see internal/vault).
+ */
+export interface VaultInfo {
+    "root": string;
+    "locked": boolean;
+
+    /**
+     * .dpenc single-file vault
+     */
+    "isFile": boolean;
+    "hint"?: string;
+    "version": number;
 }
 
 /**
