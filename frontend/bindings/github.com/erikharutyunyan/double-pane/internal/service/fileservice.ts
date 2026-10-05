@@ -90,6 +90,13 @@ export function DeletePermanent(paths: string[] | null): $CancellablePromise<voi
 }
 
 /**
+ * DetectVault reports whether path is a folder or file (.dpenc) vault.
+ */
+export function DetectVault(path: string): $CancellablePromise<domain$0.VaultInfo> {
+    return $Call.ByID(2422758076, path);
+}
+
+/**
  * DirChildSizes returns recursive sizes for immediate child directories, plus
  * the children that could not be fully read (permission denied).
  * jobID from NewJobID enables CancelJob; empty jobID is non-cancellable.
@@ -212,8 +219,23 @@ export function ListPathCompletions(partial: string): $CancellablePromise<string
     return $Call.ByID(853867543, partial);
 }
 
+/**
+ * ListUnlockedVaults lists every currently unlocked vault session, for the
+ * status-bar "Vault · N open" chip.
+ */
+export function ListUnlockedVaults(): $CancellablePromise<domain$0.VaultInfo[] | null> {
+    return $Call.ByID(3677074099);
+}
+
 export function ListVolumes(): $CancellablePromise<domain$0.Volume[] | null> {
     return $Call.ByID(3072351718);
+}
+
+/**
+ * LockVault drops the session for the vault that owns path.
+ */
+export function LockVault(path: string): $CancellablePromise<void> {
+    return $Call.ByID(3152491708, path);
 }
 
 export function Mkdir(parent: string, name: string): $CancellablePromise<string> {
@@ -233,6 +255,16 @@ export function Move(jobID: string, sources: string[] | null, destDir: string): 
  */
 export function NewJobID(): $CancellablePromise<string> {
     return $Call.ByID(4058420667);
+}
+
+/**
+ * NotifyPanePaths checks unlocked vault sessions against both current pane
+ * paths and locks any vault neither pane is inside anymore. Not yet called
+ * by the frontend (that wiring is a follow-up task) — exposed now so the
+ * auto-lock-on-navigate behavior only needs a call site added later.
+ */
+export function NotifyPanePaths(leftPath: string, rightPath: string): $CancellablePromise<string[] | null> {
+    return $Call.ByID(849294032, leftPath, rightPath);
 }
 
 /**
@@ -347,10 +379,34 @@ export function SetArchivePassword(archivePath: string, password: string): $Canc
 }
 
 /**
+ * StartCreateFileVault locks a single file into a sibling <name>.dpenc.
+ */
+export function StartCreateFileVault(path: string, password: string, hint: string): $CancellablePromise<string> {
+    return $Call.ByID(4255447789, path, password, hint);
+}
+
+/**
+ * StartCreateVault locks folder in place under password. Progress/Done
+ * stream on the "vault:progress" event (domain.VaultJobEvent, Kind="create").
+ */
+export function StartCreateVault(path: string, password: string, hint: string): $CancellablePromise<string> {
+    return $Call.ByID(2042055959, path, password, hint);
+}
+
+/**
  * StartDuplicateScan runs a cancellable SHA-256 duplicate scan in the background.
  */
 export function StartDuplicateScan(jobID: string, root: string, includeHidden: boolean, minSize: number, exclude: string, similarImages: boolean, similarityPct: number, ocrOn: boolean): $CancellablePromise<void> {
     return $Call.ByID(3471566083, jobID, root, includeHidden, minSize, exclude, similarImages, similarityPct, ocrOn);
+}
+
+/**
+ * StartRemoveVault decrypts everything back to plaintext and deletes the
+ * vault metadata. password is required even if already unlocked (matches
+ * vault.RemoveProtection's self-contained contract).
+ */
+export function StartRemoveVault(path: string, password: string): $CancellablePromise<string> {
+    return $Call.ByID(4161756087, path, password);
 }
 
 /**
@@ -360,6 +416,14 @@ export function StartDuplicateScan(jobID: string, root: string, includeHidden: b
  */
 export function StartSearch(jobID: string, root: string, query: string, mode: string, include: string, exclude: string, caseSensitive: boolean, showHidden: boolean, limit: number): $CancellablePromise<void> {
     return $Call.ByID(2305281369, jobID, root, query, mode, include, exclude, caseSensitive, showHidden, limit);
+}
+
+/**
+ * UnlockVault opens a process-memory session for path. password never
+ * touches disk, settings, or the emitted log line.
+ */
+export function UnlockVault(path: string, password: string): $CancellablePromise<void> {
+    return $Call.ByID(3892278817, path, password);
 }
 
 export function UnmountVolume(path: string): $CancellablePromise<void> {
