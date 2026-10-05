@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	gopath "path"
 	"path/filepath"
@@ -14,7 +13,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/erikharutyunyan/double-pane/internal/clipboard"
 	"github.com/erikharutyunyan/double-pane/internal/config"
 	"github.com/erikharutyunyan/double-pane/internal/domain"
 	"github.com/erikharutyunyan/double-pane/internal/filesystem"
@@ -51,6 +49,8 @@ type FileService struct {
 	dhashFile    func(context.Context, string) (uint64, error)
 	ocrFile      func(context.Context, string) (string, error)
 	listDup      listDirFunc
+	// pasteUpload replaces remote UploadCtx inside PasteClipboard. Tests set it.
+	pasteUpload func(ctx context.Context, sources []string, destDir string, onProgress filesystem.ProgressFunc) error
 }
 
 type remoteBackend interface {
@@ -875,25 +875,6 @@ func (s *FileService) CreateFile(parent, name string) (string, error) {
 		return p, be.WriteTextFile(p, "")
 	}
 	return filesystem.CreateFile(parent, name)
-}
-
-// PasteClipboard copies OS clipboard files into dest, or writes a PNG image.
-func (s *FileService) PasteClipboard(dest string) error {
-	if err := rejectArchiveWrite(dest); err != nil {
-		return err
-	}
-	if err := s.rejectTrashDest(dest); err != nil {
-		return err
-	}
-	if remote.IsRemote(dest) {
-		return fmt.Errorf("paste is not available on remote connections")
-	}
-	log.Printf("PasteClipboard dest=%s", dest)
-	err := clipboard.PasteInto(dest)
-	if err != nil {
-		log.Printf("PasteClipboard: %v", err)
-	}
-	return err
 }
 
 // ReadTextFile reads a text file for the built-in editor (local or remote).

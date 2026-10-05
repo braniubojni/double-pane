@@ -36,7 +36,7 @@ Not commitments — ideas to triage. Check here before proposing new features (s
 - [ ] SSH key auth UI (not just password) — pick key file, agent forwarding
 - [ ] Remote tab reconnect on drop, connection status indicator per pane
 - [ ] Parallel transfer progress + pause/resume/cancel for large SFTP copies (spec: `specs/sftp-transfer-control/v1.md`)
-- [ ] Paste should work with remote files as well (spec: `specs/remote-paste/v1.md`)
+- [x] Paste should work with remote files as well (spec: `specs/remote-paste/v1.md`)
 
 ## UI/UX polish
 

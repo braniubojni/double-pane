@@ -81,7 +81,7 @@ export const useFileOpDialogs = ({
 
   const onPaste = () => {
     if (rejectTrashEdit()) return;
-    if (isRemotePath(activePath) || isArchivePanePath(activePath)) {
+    if (isArchivePanePath(activePath)) {
       return show('Paste is not available here', 'warning');
     }
     void FileService.PasteClipboard(activePath)
