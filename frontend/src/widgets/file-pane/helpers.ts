@@ -1,4 +1,5 @@
 import ArchiveIcon from '@mui/icons-material/Archive';
+import LockIcon from '@mui/icons-material/Lock';
 import StorageIcon from '@mui/icons-material/Storage';
 import UnarchiveIcon from '@mui/icons-material/Unarchive';
 import type { GridSortModel } from '@mui/x-data-grid';
@@ -55,6 +56,8 @@ export const jobKindIcon = (kind: PaneJobKind): ReactElement => {
       return createElement(ArchiveIcon, props);
     case 'extract':
       return createElement(UnarchiveIcon, props);
+    case 'vault':
+      return createElement(LockIcon, props);
     case 'sizes':
     default:
       return createElement(StorageIcon, props);

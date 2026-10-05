@@ -9,6 +9,7 @@ import { formatSize } from '../../shared/lib/format';
 import { formatSelectionCaption, selectedEntryPaths } from './helpers';
 import { DuplicateStatusChip } from './DuplicateStatusChip';
 import { TransferStatusSegment } from './TransferStatusSegment';
+import { VaultStatusChip } from './VaultStatusChip';
 
 export const StatusBar: FC = () => {
   const activePane = usePaneStore((s) => s.activePane);
@@ -53,6 +54,7 @@ export const StatusBar: FC = () => {
         {path}
       </Typography>
       <DuplicateStatusChip />
+      <VaultStatusChip />
       <TransferStatusSegment />
       <Typography data-testid="status-items" variant="caption" color="text.secondary">
         Items: {count}

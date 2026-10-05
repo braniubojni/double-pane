@@ -16,6 +16,36 @@ type FileEntry struct {
 	Access string `json:"access"`
 	// Origin is the Put Back path for trash:// listings. Empty elsewhere.
 	Origin string `json:"origin,omitempty"`
+	// IsVault marks a folder-vault root (locked or unlocked) or a .dpenc file.
+	IsVault bool `json:"isVault,omitempty"`
+	// VaultLocked is true when IsVault is true and no session is unlocked for it.
+	VaultLocked bool `json:"vaultLocked,omitempty"`
+	// VaultFile marks a single-file vault (.dpenc) rather than a folder vault.
+	VaultFile bool `json:"vaultFile,omitempty"`
+}
+
+// VaultInfo describes one folder/file password vault (see internal/vault).
+type VaultInfo struct {
+	Root    string `json:"root"`
+	Locked  bool   `json:"locked"`
+	IsFile  bool   `json:"isFile"` // .dpenc single-file vault
+	Hint    string `json:"hint,omitempty"`
+	Version int    `json:"version"`
+}
+
+// VaultJobEvent is emitted while a create/create-file/remove vault job runs,
+// and once more with Done=true when it finishes (Err set on failure).
+type VaultJobEvent struct {
+	JobID      string `json:"jobId"`
+	Kind       string `json:"kind"` // create | create-file | remove
+	Path       string `json:"path"`
+	FilesDone  int    `json:"filesDone"`
+	FilesTotal int    `json:"filesTotal"`
+	BytesDone  int64  `json:"bytesDone"`
+	BytesTotal int64  `json:"bytesTotal"`
+	Current    string `json:"current"`
+	Err        string `json:"err,omitempty"`
+	Done       bool   `json:"done"`
 }
 
 // OpenWithApp is one OS application that can open a local file.
@@ -147,6 +177,9 @@ type Settings struct {
 	SkippedUpdateVersion    string `json:"skippedUpdateVersion"` // remote version user skipped
 	LeftPath                string `json:"leftPath"`
 	RightPath               string `json:"rightPath"`
+	// VaultIdleLockMinutes auto-locks unlocked folder/file vaults after this
+	// many minutes of no vault I/O/list/path-change activity. 0 disables it.
+	VaultIdleLockMinutes int `json:"vaultIdleLockMinutes"`
 }
 
 // SearchHit is one result from nested file/folder search (Go-to).

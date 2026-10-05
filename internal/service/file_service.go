@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	gopath "path"
 	"path/filepath"
 	"strings"
@@ -18,6 +19,7 @@ import (
 	"github.com/erikharutyunyan/double-pane/internal/domain"
 	"github.com/erikharutyunyan/double-pane/internal/filesystem"
 	"github.com/erikharutyunyan/double-pane/internal/remote"
+	"github.com/erikharutyunyan/double-pane/internal/vault"
 	"github.com/erikharutyunyan/double-pane/internal/volumes"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -261,10 +263,14 @@ func (s *FileService) ListDir(path string, showHidden bool) ([]domain.FileEntry,
 	if a, inner, ok := filesystem.SplitArchivePath(path); ok {
 		return filesystem.ListArchiveDir(a, inner, showHidden)
 	}
+	if entries, handled, err := s.listVaultDir(path); handled {
+		return entries, err
+	}
 	entries, err := filesystem.ListDir(path, showHidden)
 	if err != nil {
 		return nil, err
 	}
+	s.annotateVaultFlags(entries)
 	s.rewriteDMGParent(path, entries)
 	return entries, nil
 }
@@ -380,6 +386,9 @@ func (s *FileService) runTransfer(jobID, kind string, sources []string, destDir 
 	}
 	if err := s.rejectTrashDest(destDir); err != nil {
 		return err
+	}
+	if vaultTransferInvolved(sources, destDir) {
+		return s.runVaultTransfer(ctx, sources, destDir, isMove, onProgress)
 	}
 	if n := countInsideArchive(sources); n > 0 {
 		if n != len(sources) {
@@ -591,6 +600,11 @@ func (s *FileService) Delete(paths []string) (string, error) {
 	if err := rejectTrashWrite(paths...); err != nil {
 		return "", err
 	}
+	// Vault items never go to Trash (no plaintext residue on disk): hard
+	// delete only, matching the spec's V1 choice for the Delete row.
+	if handled, err := deleteVaultPaths(paths); handled {
+		return "", err
+	}
 	if anyRemote(paths) {
 		if !allRemote(paths) {
 			return "", fmt.Errorf("mixed local/remote delete not supported")
@@ -637,6 +651,9 @@ func (s *FileService) DeletePermanent(paths []string) error {
 		return err
 	}
 	if err := rejectTrashWrite(paths...); err != nil {
+		return err
+	}
+	if handled, err := deleteVaultPaths(paths); handled {
 		return err
 	}
 	if anyRemote(paths) {
@@ -799,6 +816,9 @@ func (s *FileService) Rename(oldPath, newName string) (string, error) {
 	if err := s.rejectTrashDest(oldPath); err != nil {
 		return "", err
 	}
+	if newPath, handled, err := renameVaultPath(oldPath, newName); handled {
+		return newPath, err
+	}
 	if remote.IsRemote(oldPath) {
 		be, err := s.backendFor(oldPath)
 		if err != nil {
@@ -815,6 +835,9 @@ func (s *FileService) Mkdir(parent, name string) (string, error) {
 	}
 	if err := s.rejectTrashDest(parent); err != nil {
 		return "", err
+	}
+	if newPath, handled, err := mkdirVaultPath(parent, name); handled {
+		return newPath, err
 	}
 	if remote.IsRemote(parent) {
 		be, err := s.backendFor(parent)
@@ -885,12 +908,18 @@ func (s *FileService) ReadTextFile(path string) (string, error) {
 	if a, inner, ok := filesystem.SplitArchivePath(path); ok && inner != "" {
 		return filesystem.ReadArchiveTextFile(a, inner, s.archivePassword(a))
 	}
+	if content, handled, err := readVaultTextFile(path); handled {
+		return content, err
+	}
 	return filesystem.ReadTextFile(path)
 }
 
 // WriteTextFile writes a text file from the built-in editor (local or remote).
 func (s *FileService) WriteTextFile(path, content string) error {
 	if err := rejectInsideArchive(path); err != nil {
+		return err
+	}
+	if handled, err := writeVaultTextFile(path, content); handled {
 		return err
 	}
 	if remote.IsRemote(path) {
@@ -1107,7 +1136,33 @@ func (s *FileService) Open(path string) error {
 	if filesystem.IsInsideArchive(path) {
 		return filesystem.ErrArchiveReadOnly
 	}
+	if err := rejectVaultOpenWith(path); err != nil {
+		return err
+	}
 	return config.OpenInOS(path)
+}
+
+// rejectVaultOpenWith disables OS "open with default app" for anything
+// inside a vault — V1 only supports the built-in editor there (decrypting a
+// temp file for an arbitrary OS app is out of scope, see spec V2).
+func rejectVaultOpenWith(path string) error {
+	abs, err := filesystem.Resolve(path)
+	if err != nil {
+		return nil
+	}
+	if _, ok := vault.RootFor(abs); ok {
+		return fmt.Errorf("unlock and copy out, or use the built-in editor")
+	}
+	// Only a directory or a .dpenc file can possibly be a vault — skip the
+	// Detect probe (a header read) for every other, far more common, file.
+	isDpenc := strings.HasSuffix(abs, ".dpenc")
+	if info, statErr := os.Stat(abs); statErr == nil && !info.IsDir() && !isDpenc {
+		return nil
+	}
+	if _, ok := vault.Detect(abs); ok {
+		return fmt.Errorf("unlock and copy out, or use the built-in editor")
+	}
+	return nil
 }
 
 func rejectRemoteOpenWith(path string) error {
@@ -1117,7 +1172,7 @@ func rejectRemoteOpenWith(path string) error {
 	if filesystem.IsInsideArchive(path) {
 		return filesystem.ErrArchiveReadOnly
 	}
-	return nil
+	return rejectVaultOpenWith(path)
 }
 
 // ListOpenWithApps returns applications that can open a local file.
