@@ -528,19 +528,21 @@ export const useFileTable = ({
   );
 
   // Type-ahead: bare letters move the cursor (highlight only, never selection).
-  const typeAhead = useRef({ buffer: '', timer: 0 });
-  useEffect(() => () => window.clearTimeout(typeAhead.current.timer), []);
+  const typeAhead = useRef<{ buffer: string; timer?: ReturnType<typeof setTimeout> }>({
+    buffer: '',
+  });
+  useEffect(() => () => clearTimeout(typeAhead.current.timer), []);
 
   const typeAheadJump = useCallback(
     (key: string) => {
       const ta = typeAhead.current;
-      window.clearTimeout(ta.timer);
+      clearTimeout(ta.timer);
       const ch = key.toLowerCase();
       // Same letter again while buffer is that single char → cycle matches
       // (Double Commander / Explorer style). Otherwise append for multi-char prefix.
       const cycling = ta.buffer === ch;
       if (!cycling) ta.buffer += ch;
-      ta.timer = window.setTimeout(() => {
+      ta.timer = setTimeout(() => {
         ta.buffer = '';
       }, TYPE_AHEAD_RESET_MS);
       const path = findTypeAheadPath(rows, ta.buffer, cycling ? focused : null);

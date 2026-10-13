@@ -90,9 +90,9 @@ export const useSearchSession = (open: boolean, root: string, showHidden: boolea
 
     // Coalesce rapid search:hit events so React is not re-rendering per hit.
     let pending: SearchResult[] = [];
-    let flushTimer = 0;
+    let flushTimer: ReturnType<typeof setTimeout> | undefined;
     const flushHits = () => {
-      flushTimer = 0;
+      flushTimer = undefined;
       if (pending.length === 0) return;
       const batch = pending;
       pending = [];
@@ -103,7 +103,7 @@ export const useSearchSession = (open: boolean, root: string, showHidden: boolea
     const enqueueHit = (hit: SearchResult) => {
       pending.push(hit);
       if (!flushTimer) {
-        flushTimer = window.setTimeout(flushHits, 32);
+        flushTimer = setTimeout(flushHits, 32);
       }
     };
 
@@ -127,7 +127,7 @@ export const useSearchSession = (open: boolean, root: string, showHidden: boolea
       const payload = (ev?.data ?? ev) as DonePayload;
       if (!payload?.jobId || payload.jobId !== jobIdRef.current) return;
       if (flushTimer) {
-        window.clearTimeout(flushTimer);
+        clearTimeout(flushTimer);
         flushHits();
       }
       setSearching(false);
@@ -138,7 +138,7 @@ export const useSearchSession = (open: boolean, root: string, showHidden: boolea
       const payload = (ev?.data ?? ev) as ErrorPayload;
       if (!payload?.jobId || payload.jobId !== jobIdRef.current) return;
       if (flushTimer) {
-        window.clearTimeout(flushTimer);
+        clearTimeout(flushTimer);
         flushHits();
       }
       setSearching(false);
@@ -147,7 +147,7 @@ export const useSearchSession = (open: boolean, root: string, showHidden: boolea
     });
 
     return () => {
-      if (flushTimer) window.clearTimeout(flushTimer);
+      if (flushTimer) clearTimeout(flushTimer);
       if (typeof unsubHit === 'function') unsubHit();
       if (typeof unsubDenied === 'function') unsubDenied();
       if (typeof unsubDone === 'function') unsubDone();
