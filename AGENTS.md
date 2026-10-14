@@ -44,6 +44,7 @@ scripts/ci-go-docker.sh # local Linux Go CI mirror
 ## Hard rules (all agents)
 
 - **Questions ≠ work:** If the user asks a **question** (research, “do we have…?”, “will X work?”, “how does…?”), **only research and answer**. Do **not** edit, implement, refactor, commit, or run write-side actions. Start implementation **only** when they explicitly ask you to **do** something (e.g. “add”, “fix”, “implement”, “change”).
+- **Spec ≠ implementation:** “Create a spec”, “write a spec”, or “new spec” is **read-only** plus one new file under `specs/`. Read the code first. Do **not** edit source, tests, config, Taskfiles, CI, lockfiles, AGENTS, or README in that turn. Do **not** install or generate anything. “Do it” / “it is time” in that request means write the spec, not the feature. Implementation starts only when they explicitly ask to **implement** that spec.
 - **Do not invent features** without user ask; check `todo.features.md`.
 - **gofmt** / **oxfmt** on push (`task check`); husky pre-commit is compile-only (`task check:build`).
 - Frontend components **~100–150 lines**; styles/helpers **colocated**.

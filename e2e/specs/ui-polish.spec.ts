@@ -87,6 +87,20 @@ test.describe("ui polish", () => {
     await expect(page.getByTestId("ctx-open-with")).toBeVisible();
   });
 
+  test("Open with closes on Escape and the row accepts the next click", async ({ page }) => {
+    const grid = page.getByTestId("file-grid-left");
+    const row = grid.locator(".MuiDataGrid-row").filter({ hasText: /\bnote\b/ }).first();
+    await row.click({ button: "right" });
+    await expect(page.getByTestId("file-context-menu")).toBeVisible();
+    await page.getByTestId("ctx-open-with").click();
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("file-context-menu")).toBeHidden();
+    await expect(page.locator(".MuiModal-root")).toHaveCount(0);
+    await row.click();
+    await expect(page.getByTestId("file-context-menu")).toBeHidden();
+    await expect(row).toHaveClass(/row-selected/);
+  });
+
   test("command palette opens with Mod+K and runs delete", async ({ page }) => {
     await selectRow(page, "left", "note.txt");
     const palette = page.getByTestId("dialog-command-palette");

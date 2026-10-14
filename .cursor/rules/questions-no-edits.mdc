@@ -1,0 +1,12 @@
+---
+description: Questions are research only. Do not edit files until the user approves the change.
+alwaysApply: true
+---
+
+# Questions do not edit files
+
+If the user asks a question — research, “do we have…?”, “will X work?”, “how does…?”, “did you…?” — answer from the repo and stop.
+
+Do not edit, create, delete, rename, format, or revert files. Do not run commands that write (installs, generators, formatters, git commits).
+
+Start editing only after they approve that change in a later message (“do it”, “implement”, “go ahead”, “fix it”). A question in the same thread is not approval. An earlier “implement” does not approve a new question.
