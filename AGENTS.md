@@ -86,7 +86,7 @@ cd e2e && npx playwright test specs/bookmarks.spec.ts   # single spec
 
 1. `//go:embed all:frontend/dist` → CI stubs `frontend/dist/index.html` before `go vet`.
 2. Linux `go vet ./...` needs **libgtk-4-dev** + **libwebkitgtk-6.0-dev** (Wails CGO).
-3. **golangci-lint ≥ v2.4** (use **v2.12.2**); binary Go version must be ≥ `go.mod` (1.25).
+3. **golangci-lint ≥ v2.4** (use **v2.12.2**); binary Go version must be ≥ `go.mod` (1.25). `task lint` sets `GOTOOLCHAIN` from `go.mod` so a newer host Go (1.27 generic methods) does not break that binary.
 4. Cross-Linux on macOS via `wails-cross`: GTK **4.8** → **`gtk3` tag** (not full GTK4).
 5. Details: `.github/AGENTS.md`, `build/AGENTS.md`.
 

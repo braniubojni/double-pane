@@ -21,6 +21,7 @@ Releases are **local only** (`task dist` / `task release:local`) — no GitHub A
 5. `go test ./internal/...`
 6. **golangci-lint-action@v9**, version **`v2.12.2`**, timeout 3m
    - Must be built with Go ≥ **1.25** (go.mod). v2.1.x fails with go1.24 binary.
+   - v2.12.2 cannot parse Go 1.27 stdlib (generic methods). Local `task lint` pins `GOTOOLCHAIN` to the `go.mod` version. CI already installs Go from `go.mod`.
 
 ## Frontend job
 
