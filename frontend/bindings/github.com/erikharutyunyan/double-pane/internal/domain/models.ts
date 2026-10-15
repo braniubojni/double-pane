@@ -339,6 +339,17 @@ export interface PortListener {
 }
 
 /**
+ * Preview is a read-only quick-view payload. Kind is image, text, pdf, or none.
+ */
+export interface Preview {
+    "kind": string;
+    "mime"?: string;
+    "text"?: string;
+    "data"?: string | null;
+    "message"?: string;
+}
+
+/**
  * ProcessInfo is a user-owned OS process (port killer Processes tab).
  */
 export interface ProcessInfo {

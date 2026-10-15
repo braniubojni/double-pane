@@ -325,6 +325,14 @@ export function PurgeTrash(): $CancellablePromise<void> {
 }
 
 /**
+ * ReadPreview returns a local quick-view payload. Unsupported paths come back
+ * as kind none. It does not download, decrypt, or write.
+ */
+export function ReadPreview(path: string): $CancellablePromise<domain$0.Preview> {
+    return $Call.ByID(3317440309, path);
+}
+
+/**
  * ReadTextFile reads a text file for the built-in editor (local or remote).
  */
 export function ReadTextFile(path: string): $CancellablePromise<string> {

@@ -20,6 +20,7 @@ export type {
     PaneGridPrefs,
     PaneTabs,
     PortListener,
+    Preview,
     ProcessInfo,
     QuickPlace,
     RemoteRecent,
