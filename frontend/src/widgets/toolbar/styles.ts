@@ -35,4 +35,9 @@ export const bookmarkListboxSx: SxProps<Theme> = {
 
 export const bookmarkAddIconSx: SxProps<Theme> = { mr: 0.75, fontSize: 16 };
 
+export const bookmarkLabelSx: SxProps<Theme> = { flex: 1, minWidth: 0 };
+
+/** Full path sits above the label. A right-placed tip covers the remove button. */
+export const bookmarkTooltipSx: SxProps<Theme> = { maxWidth: 360 };
+
 export const bookmarkRemoveBtnSx: SxProps<Theme> = { p: 0.25, ml: 'auto', flexShrink: 0 };

@@ -576,7 +576,11 @@ tasks:
           printf '%s\n' '<!doctype html><title>ci-stub</title>' > frontend/dist/index.html
         fi
       - go vet ./...
-      - golangci-lint run --timeout=3m
+      # golangci-lint v2.12.2 cannot parse Go 1.27 generic methods in the
+      # stdlib. Pin the toolchain it loads to the go.mod version (same as CI).
+      - |
+        ver=$(awk '/^go / { print $2; exit }' go.mod)
+        GOTOOLCHAIN="go${ver}" golangci-lint run --timeout=3m
       - task: frontend:lint
 
   frontend:lint:

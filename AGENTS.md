@@ -44,6 +44,7 @@ scripts/ci-go-docker.sh # local Linux Go CI mirror
 ## Hard rules (all agents)
 
 - **Questions ≠ work:** If the user asks a **question** (research, “do we have…?”, “will X work?”, “how does…?”), **only research and answer**. Do **not** edit, implement, refactor, commit, or run write-side actions. Start implementation **only** when they explicitly ask you to **do** something (e.g. “add”, “fix”, “implement”, “change”).
+- **Spec ≠ implementation:** “Create a spec”, “write a spec”, or “new spec” is **read-only** plus one new file under `specs/`. Read the code first. Do **not** edit source, tests, config, Taskfiles, CI, lockfiles, AGENTS, or README in that turn. Do **not** install or generate anything. “Do it” / “it is time” in that request means write the spec, not the feature. Implementation starts only when they explicitly ask to **implement** that spec.
 - **Do not invent features** without user ask; check `todo.features.md`.
 - **gofmt** / **oxfmt** on push (`task check`); husky pre-commit is compile-only (`task check:build`).
 - Frontend components **~100–150 lines**; styles/helpers **colocated**.
@@ -85,7 +86,7 @@ cd e2e && npx playwright test specs/bookmarks.spec.ts   # single spec
 
 1. `//go:embed all:frontend/dist` → CI stubs `frontend/dist/index.html` before `go vet`.
 2. Linux `go vet ./...` needs **libgtk-4-dev** + **libwebkitgtk-6.0-dev** (Wails CGO).
-3. **golangci-lint ≥ v2.4** (use **v2.12.2**); binary Go version must be ≥ `go.mod` (1.25).
+3. **golangci-lint ≥ v2.4** (use **v2.12.2**); binary Go version must be ≥ `go.mod` (1.25). `task lint` sets `GOTOOLCHAIN` from `go.mod` so a newer host Go (1.27 generic methods) does not break that binary.
 4. Cross-Linux on macOS via `wails-cross`: GTK **4.8** → **`gtk3` tag** (not full GTK4).
 5. Details: `.github/AGENTS.md`, `build/AGENTS.md`.
 

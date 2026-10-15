@@ -1,0 +1,16 @@
+---
+description: A request to create a spec is read-only. The only write is the spec file.
+alwaysApply: true
+---
+
+# Spec requests write only the spec
+
+"Create a spec", "write a spec", or "new spec" is not permission to change the product.
+
+1. Read the code and docs the spec depends on. Do not edit them.
+2. Write only the spec file under `specs/`.
+3. Stop.
+
+Do not edit source, tests, config, Taskfiles, CI, lockfiles, AGENTS, README, or other specs. Do not install packages, run formatters, or generate lockfiles.
+
+"Do it" or "it is time" in that request means write the spec. Implementation starts only when the user explicitly asks to implement that spec.

@@ -355,7 +355,7 @@ export const FileContextMenu: FC = () => {
           />
         </MenuItem>,
         it.key === 'open' && entry && !isDir && !remote && !canBrowse && !inArchive ? (
-          <OpenWithMenu key="open-with" path={entry.path} onDone={close} />
+          <OpenWithMenu key="open-with" path={entry.path} parentOpen={open} onDone={close} />
         ) : null,
       ])}
     </Menu>

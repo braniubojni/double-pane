@@ -15,9 +15,11 @@ import { useSnack } from '../../../shared/ui/SnackbarHost';
 import { shortenPath } from '../../file-pane/helpers';
 import {
   bookmarkAddIconSx,
+  bookmarkLabelSx,
   bookmarkListboxSx,
   bookmarkPaperSx,
   bookmarkRemoveBtnSx,
+  bookmarkTooltipSx,
 } from '../styles';
 import type { BookmarksSelectProps } from '../types';
 
@@ -95,8 +97,12 @@ export const BookmarksSelect: FC<BookmarksSelectProps> = ({ activePane, onAddCur
         }
         return (
           <Box component="li" key={key} {...rest}>
-            <Tooltip title={option.path} placement="right">
-              <Typography variant="body2" noWrap sx={{ flex: 1, minWidth: 0 }}>
+            <Tooltip
+              title={option.path}
+              placement="top"
+              slotProps={{ tooltip: { sx: bookmarkTooltipSx } }}
+            >
+              <Typography variant="body2" noWrap sx={bookmarkLabelSx}>
                 {option.label}
                 <Typography
                   component="span"

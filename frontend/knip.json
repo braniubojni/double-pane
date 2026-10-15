@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": ["index.html!"],
+  "entry": ["index.html!", "src/**/*.test.ts", "src/**/*.test.tsx"],
   "project": ["src/**/*.{ts,tsx}", "bindings/**/*.ts"],
   "ignore": ["bindings/**"],
   "vite": true

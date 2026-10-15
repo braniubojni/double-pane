@@ -100,10 +100,10 @@ export const SearchDialog: FC<Props> = ({ open, onClose }) => {
 
   useEffect(() => {
     if (!open || !loaded) return;
-    const t = window.setTimeout(() => {
+    const t = setTimeout(() => {
       void SettingsService.SaveSearchPrefs(prefs).catch(() => undefined);
     }, 400);
-    return () => window.clearTimeout(t);
+    return () => clearTimeout(t);
   }, [prefs, open, loaded]);
 
   useEffect(() => {
@@ -112,10 +112,10 @@ export const SearchDialog: FC<Props> = ({ open, onClose }) => {
       setResults([]);
       return;
     }
-    const t = window.setTimeout(() => {
+    const t = setTimeout(() => {
       void runSearch();
     }, 320);
-    return () => window.clearTimeout(t);
+    return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- field-driven debounce
   }, [
     prefs.query,

@@ -5,8 +5,10 @@ Not commitments — ideas to triage. Check here before proposing new features (s
 ## Bugs
 
 - [x] After each update we are loosing user's bookmarket paths. We can save this info inside of user folder in so that after each update data persisted (spec: `specs/bookmarks-persist/v1.md`)
-- [ ] Seems like we lost having pointer within our app, I do not know is it related to latest macos 27 update. (spec: `specs/macos-cursor/v1.md`)
-- [ ] In AI usage dialog let's not have scrolls at all (spec: `specs/ai-usage-popover/v1.md`)
+- [x] Seems like we lost having pointer within our app, I do not know is it related to latest macos 27 update. (spec: `specs/macos-cursor/v1.md`)
+- [ ] Remove `document` / `window` from React code (spec: `specs/no-dom-globals/v1.md`)
+- [x] App hung ups on left click menu open, then open with. After that menu does not want to close (spec: `specs/context-menu-open-with/v1.md`)
+- [x] Tooltip in the saved path dropdown overflowing the `X` icon (spec: `specs/bookmark-tooltip/v1.md`)
 
 ## Core file-manager gaps (Double Commander parity)
 
@@ -39,6 +41,9 @@ Not commitments — ideas to triage. Check here before proposing new features (s
 - [x] Paste should work with remote files as well (spec: `specs/remote-paste/v1.md`)
 
 ## UI/UX polish
+
+## Terminal
+- [ ] As we have in iterm2 zsh, when I press on opt+arrow(left or right) the cursor starts to move word by word. The same happens in case of autocomplete, when opt is pressed and we click arrow I should see autocomplete word by word. Research about this and add this behaviour into our terminal as well.
 
 ## Editor/terminal
 

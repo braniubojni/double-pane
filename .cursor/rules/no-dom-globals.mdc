@@ -1,0 +1,24 @@
+---
+description: React code must not touch the document or window globals.
+globs: frontend/**/*.{ts,tsx}
+alwaysApply: true
+---
+
+# No document or window in React
+
+Components, hooks, and helpers under `frontend/src` do not reference `document` or `window`. That includes `document.body`, `document.querySelector`, `document.activeElement`, `window.setTimeout`, `window.matchMedia`, `window.confirm`, `window.getSelection`, `window.location`, and `addEventListener` on either global.
+
+Menus, focus, hover, and keyboard behavior go through React and MUI props (`ref`, `onKeyDown`, `onMouseEnter`, `Menu` / `NestedMenuItem`). A parent menu already closes on Escape and an outside click. Do not subscribe to the document to do it again.
+
+```tsx
+// ❌ BAD — component reaches past React into the page
+document.addEventListener('pointerdown', onDown, true);
+window.setTimeout(() => setOpen(false), 120);
+
+// ✅ GOOD — nested menu owns its anchor; the parent Menu closes the tree
+<NestedMenuItem item={item} parentOpen={open} onCloseAll={close} />
+```
+
+`frontend/src/main.tsx` may call `document.getElementById('root')` to mount the tree. Nowhere else.
+
+Timers that are the actual behavior (a debounce) call the global functions `setTimeout` / `clearTimeout`, not `window.setTimeout`. Do not add a timer to move focus or to guess that the pointer entered a portaled node.

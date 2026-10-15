@@ -29,6 +29,7 @@ public/          # usually empty; no brand icons here
 | Derive in render / event handlers   | `useEffect` for UI state |
 | CodeMirror 6 editor                 | Monaco / workers       |
 | `useShallow` for array/object zustand selectors | Bare selector returning `.filter/.map/[x]/[]` |
+| React/MUI props for menus, focus, keys | `document` / `window` (see `.cursor/rules/no-dom-globals.mdc`) |
 
 - Zustand selector returning a new array/object each call (e.g. `s.getActionPaths(id)`, `.filter(...)`, `[x]`) breaks React's snapshot equality check → infinite re-render loop ("getSnapshot should be cached"). Wrap in `useShallow` from `zustand/react/shallow`, or select primitives and derive with `useMemo`. Primitive selectors (string/number/bool/stable ref) are fine as-is.
 

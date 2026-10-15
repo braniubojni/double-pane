@@ -14,10 +14,10 @@ export const useAutoUpdateCheck = (ready: boolean) => {
     if (!isUpdateCheckDue(settings)) return;
     ran.current = true;
 
-    const t = window.setTimeout(() => {
+    const t = setTimeout(() => {
       void check();
     }, 2500);
 
-    return () => window.clearTimeout(t);
+    return () => clearTimeout(t);
   }, [ready, settings, check]);
 };

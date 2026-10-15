@@ -70,8 +70,8 @@ export const GoToDialog: FC<Props> = ({ open, onClose }) => {
       setIndex(0);
       return;
     }
-    const t = window.setTimeout(() => setDebounced(query), 180);
-    return () => window.clearTimeout(t);
+    const t = setTimeout(() => setDebounced(query), 180);
+    return () => clearTimeout(t);
   }, [query, open]);
 
   useEffect(() => {
