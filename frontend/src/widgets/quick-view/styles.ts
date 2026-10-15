@@ -1,23 +1,17 @@
 import type { SxProps, Theme } from '@mui/material/styles';
 
-export const paneBodyPreviewSx: SxProps<Theme> = {
-  flex: 1,
-  minWidth: 0,
-  minHeight: 0,
-  display: 'flex',
-  flexDirection: 'row',
-};
-
-export const panelSx: SxProps<Theme> = {
-  width: '40%',
-  minWidth: 280,
-  flexShrink: 0,
-  minHeight: 0,
+export const dialogPaperSx: SxProps<Theme> = {
+  height: '70vh',
   display: 'flex',
   flexDirection: 'column',
-  borderLeft: 1,
-  borderColor: 'divider',
-  bgcolor: 'background.paper',
+};
+
+export const dialogContentSx: SxProps<Theme> = {
+  display: 'flex',
+  flexDirection: 'column',
+  flex: 1,
+  minHeight: 0,
+  p: 0,
   overflow: 'hidden',
 };
 
@@ -37,12 +31,29 @@ export const imageSx: SxProps<Theme> = {
   objectFit: 'contain',
 };
 
-export const textSx: SxProps<Theme> = {
-  m: 0,
-  whiteSpace: 'pre-wrap',
-  wordBreak: 'break-word',
-  fontFamily: 'monospace',
-  fontSize: 13,
+export const textHostSx: SxProps<Theme> = {
+  // height: 0 + flex gives this box a real height. Otherwise CodeMirror
+  // grows with the file, the dialog clips it, and the wheel has nothing to scroll.
+  flex: 1,
+  height: 0,
+  minHeight: 0,
+  display: 'flex',
+  flexDirection: 'column',
+  '& > div': {
+    flex: 1,
+    minHeight: 0,
+    height: '100%',
+  },
+  '& .cm-editor': { height: '100%' },
+  '& .cm-scroller': {
+    overflow: 'scroll !important',
+    '&::-webkit-scrollbar': { width: 10, height: 10 },
+    '&::-webkit-scrollbar-thumb': {
+      backgroundColor: 'rgba(127, 127, 127, 0.55)',
+      borderRadius: 8,
+    },
+    '&::-webkit-scrollbar-track': { backgroundColor: 'transparent' },
+  },
 };
 
 export const pdfFrameSx: SxProps<Theme> = {

@@ -49,6 +49,7 @@ Not commitments — ideas to triage. Check here before proposing new features (s
 
 ## Other
 
+- [ ] Migrate root, frontend, and e2e from npm to Bun (later; spec: `specs/bun/v1.md`)
 - [x] Duplicate finder (exact SHA-256, similar images, optional OCR; setup → progress → review → merge; background + status bar). Local, SSH/SFTP, SMB, MEGA.
 - [ ] Duplicate finder on native Google Drive / iCloud APIs (today those connections are local OS mounts only)
 - [ ] Add new option into duplicate finder, handle apple's/ios live videos, like if user wishes to delete them as well. I belive there should be connection between photo(meta info) and a short(1-3 seconds) video. Because when you watch this photos in ios there is no seperate photo and video, they are attached to each other. RESEARCH first. (spec: `specs/duplicate-finder/v3-live-photo.md`)

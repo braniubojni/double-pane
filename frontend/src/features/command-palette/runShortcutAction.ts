@@ -6,6 +6,7 @@ import type { FileOpsAction } from '../file-ops/types';
 import { useGoToStore } from '../go-to/goToStore';
 import { usePaneStore } from '../pane/paneStore';
 import { useSearchStore } from '../search/searchStore';
+import { useQuickViewStore } from '../quick-view/quickViewStore';
 import { useTerminalStore } from '../terminal/terminalStore';
 import { useDialogStore } from '../ui/dialogStore';
 import { useCommandPaletteStore } from './commandPaletteStore';
@@ -103,6 +104,10 @@ export const runShortcutAction = (id: string, toggles?: ShortcutToggleFns): void
   }
   if (id === 'toggleTerminal') {
     useTerminalStore.getState().toggleActive(usePaneStore.getState().activePane);
+    return;
+  }
+  if (id === 'quickView') {
+    useQuickViewStore.getState().toggle();
     return;
   }
   if (id === 'switchPane') {

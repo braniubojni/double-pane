@@ -142,6 +142,16 @@ export interface SearchHit {
   relPath: string;
 }
 
+/** Read-only quick-view payload from FileService.ReadPreview. */
+export interface Preview {
+  kind: 'image' | 'text' | 'pdf' | 'none';
+  mime?: string;
+  text?: string;
+  /** Image or PDF bytes. Wails sends []byte as base64, or as a number array. */
+  data?: string | number[];
+  message?: string;
+}
+
 export const defaultSettings: AppSettings = {
   theme: 'system',
   showHidden: false,

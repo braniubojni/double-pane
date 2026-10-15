@@ -4,14 +4,16 @@ import Typography from '@mui/material/Typography';
 import { useEffect, useState, type FC } from 'react';
 import type { Preview } from '../../entities/file/types';
 import { previewBytes, showOpenAction } from './helpers';
-import { bodySx, imageSx, pdfFrameSx, textSx } from './styles';
+import { QuickViewText } from './QuickViewText';
+import { bodySx, imageSx, pdfFrameSx } from './styles';
 
 type Props = {
+  path: string;
   preview: Preview;
   onOpen: () => void;
 };
 
-export const QuickViewBody: FC<Props> = ({ preview, onOpen }) => {
+export const QuickViewBody: FC<Props> = ({ path, preview, onOpen }) => {
   const url = useObjectUrl(preview);
   if ((preview.kind === 'image' || preview.kind === 'pdf') && !url) {
     return <Box sx={bodySx} />;
@@ -24,13 +26,7 @@ export const QuickViewBody: FC<Props> = ({ preview, onOpen }) => {
     );
   }
   if (preview.kind === 'text') {
-    return (
-      <Box sx={bodySx}>
-        <Box component="pre" data-testid="quick-view-text" sx={textSx}>
-          {preview.text ?? ''}
-        </Box>
-      </Box>
-    );
+    return <QuickViewText path={path} text={preview.text ?? ''} />;
   }
   if (preview.kind === 'pdf' && url) {
     return (
