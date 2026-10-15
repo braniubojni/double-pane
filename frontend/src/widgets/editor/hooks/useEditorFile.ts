@@ -24,12 +24,13 @@ export const useEditorFile = () => {
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
+  if (!filePath && (content !== '' || loadError !== null)) {
+    setContent('');
+    setLoadError(null);
+  }
+
   useEffect(() => {
-    if (!filePath) {
-      setContent('');
-      setLoadError(null);
-      return;
-    }
+    if (!filePath) return;
     let cancelled = false;
     const load = () => {
       setLoading(true);

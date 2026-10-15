@@ -155,13 +155,14 @@ export const useSearchSession = (open: boolean, root: string, showHidden: boolea
     };
   }, [open, show]);
 
+  if (!open && (results.length > 0 || searching || denied.length > 0)) {
+    setResults([]);
+    setSearching(false);
+    setDenied([]);
+  }
+
   useEffect(() => {
-    if (!open) {
-      cancelJob();
-      setResults([]);
-      setSearching(false);
-      setDenied([]);
-    }
+    if (!open) cancelJob();
   }, [open, cancelJob]);
 
   return {

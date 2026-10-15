@@ -3,7 +3,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { useEffect, useMemo, useState, type FC, type KeyboardEvent } from 'react';
+import { useMemo, useState, type FC, type KeyboardEvent } from 'react';
 import { usePatchSettings, useSettings, useShortcutDefs } from '../../entities/file/queries';
 import {
   runShortcutAction,
@@ -44,16 +44,16 @@ export const CommandPalette: FC<Props> = ({ open, onClose }) => {
     }
   };
 
-  useEffect(() => {
-    if (!open) {
-      setQuery('');
-      setIndex(0);
-    }
-  }, [open]);
-
-  useEffect(() => {
+  if (!open && (query !== '' || index !== 0)) {
+    setQuery('');
     setIndex(0);
-  }, [query]);
+  }
+
+  const [prevQuery, setPrevQuery] = useState(query);
+  if (query !== prevQuery) {
+    setPrevQuery(query);
+    setIndex(0);
+  }
 
   return (
     <Dialog

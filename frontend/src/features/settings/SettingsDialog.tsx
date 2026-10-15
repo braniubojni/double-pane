@@ -15,7 +15,7 @@ import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
-import { useEffect, useState, type FC } from 'react';
+import { useState, type FC } from 'react';
 import { useSaveSettings, useSettings } from '../../entities/file/queries';
 import type { AppSettings } from '../../entities/file/types';
 import { SettingsService } from '../../shared/api/bindings';
@@ -33,10 +33,11 @@ const SettingsDialog: FC<Props> = ({ open, onClose }) => {
   const save = useSaveSettings();
   const show = useSnack((s) => s.show);
   const [draft, setDraft] = useState<AppSettings | null>(null);
-
-  useEffect(() => {
+  const [synced, setSynced] = useState<{ open: boolean; data?: AppSettings }>({ open: false });
+  if (synced.open !== open || synced.data !== data) {
+    setSynced({ open, data });
     if (open && data) setDraft({ ...data });
-  }, [open, data]);
+  }
 
   if (!draft) return null;
 

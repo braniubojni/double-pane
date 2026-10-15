@@ -21,7 +21,7 @@ export const defaultPaneGridPrefs = (): PaneGridPrefs => ({
   order: [],
 });
 
-export type PaneGridPrefsInput = {
+type PaneGridPrefsInput = {
   sortField?: string;
   sortDir?: string;
   hidden?: string[] | null;

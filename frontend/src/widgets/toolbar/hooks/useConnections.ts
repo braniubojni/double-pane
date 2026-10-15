@@ -305,20 +305,23 @@ export const useConnections = () => {
    */
   const pendingConnect = useConnectRequestStore((s) => s.request);
   const pendingNonce = useConnectRequestStore((s) => s.nonce);
-  useEffect(() => {
-    if (!pendingConnect) return;
-    setAnchor(null);
-    dispatch({
-      type: 'open_password',
-      profileId: pendingConnect.profileId ?? '',
-      label: pendingConnect.label,
-      mega:
-        pendingConnect.spec?.startsWith('mega:') ||
-        isMEGAPath(pendingConnect.targetPath) ||
-        pendingConnect.spec?.startsWith('mega://'),
-    });
-    // nonce re-opens the dialog even for a repeat of the same request
-  }, [pendingConnect, pendingNonce]);
+  // nonce re-opens the dialog even for a repeat of the same request
+  const [seen, setSeen] = useState<{ request?: ConnectRequest | null; nonce?: number }>({});
+  if (seen.request !== pendingConnect || seen.nonce !== pendingNonce) {
+    setSeen({ request: pendingConnect, nonce: pendingNonce });
+    if (pendingConnect) {
+      setAnchor(null);
+      dispatch({
+        type: 'open_password',
+        profileId: pendingConnect.profileId ?? '',
+        label: pendingConnect.label,
+        mega:
+          pendingConnect.spec?.startsWith('mega:') ||
+          isMEGAPath(pendingConnect.targetPath) ||
+          pendingConnect.spec?.startsWith('mega://'),
+      });
+    }
+  }
 
   // Drop the pending request when the password dialog goes away (cancel or
   // success), so a later unrelated password prompt can't inherit it.

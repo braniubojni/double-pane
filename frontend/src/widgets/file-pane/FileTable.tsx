@@ -14,11 +14,11 @@ import { dataGridSx, getBoxWrapperSx } from './styles';
 import type { FileTableProps } from './types';
 
 export const FileTable: FC<FileTableProps> = (props) => {
-  const t = useFileTable(props);
+  const { apiRef, setWrapRef, ...t } = useFileTable(props);
 
   return (
     <Box
-      ref={t.setWrapRef}
+      ref={setWrapRef}
       tabIndex={0}
       id={`file-drop-pane-${t.paneId}`}
       data-testid={`file-grid-${t.paneId}`}
@@ -57,7 +57,7 @@ export const FileTable: FC<FileTableProps> = (props) => {
           }}
         >
           <DataGrid
-            apiRef={t.apiRef}
+            apiRef={apiRef}
             rows={t.rows}
             columns={t.columns}
             density="compact"

@@ -79,3 +79,57 @@ describe('GoToDialog query debounce', () => {
     expect(search).toHaveBeenCalledWith('/work', '', false, false);
   });
 });
+
+const hit = (name: string) => ({ path: `/work/${name}`, name, relPath: name, isDir: true });
+const rootHits = [hit('a'), hit('b'), hit('c')];
+const xHits = [hit('x1'), hit('x2')];
+
+describe('GoToDialog selection index', () => {
+  beforeEach(() => {
+    search.mockImplementation((_r, query) => ({
+      data: (query === 'x' ? xHits : rootHits) as never[],
+      isFetching: false,
+    }));
+  });
+
+  const enter = (onClose = vi.fn()) => {
+    fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Enter' });
+    expect(onClose).toHaveBeenCalled();
+    return usePaneStore.getState().getPath('left');
+  };
+
+  it('arrows move selection, clamped to the list, Enter opens it', () => {
+    const onClose = vi.fn();
+    render(<GoToDialog open onClose={onClose} />);
+    const field = screen.getByRole('textbox');
+    fireEvent.keyDown(field, { key: 'ArrowUp' });
+    for (let i = 0; i < 5; i++) fireEvent.keyDown(field, { key: 'ArrowDown' });
+    expect(enter(onClose)).toBe('/work/c');
+  });
+
+  it('resets selection to first row when debounced query changes hits', () => {
+    const onClose = vi.fn();
+    render(<GoToDialog open onClose={onClose} />);
+    const field = screen.getByRole('textbox');
+    fireEvent.keyDown(field, { key: 'ArrowDown' });
+    fireEvent.change(field, { target: { value: 'x' } });
+    act(() => {
+      vi.advanceTimersByTime(180);
+    });
+    expect(enter(onClose)).toBe('/work/x1');
+  });
+
+  it('reopening starts with empty query and first row selected', () => {
+    const onClose = vi.fn();
+    const view = render(<GoToDialog open onClose={onClose} />);
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'x' } });
+    act(() => {
+      vi.advanceTimersByTime(180);
+    });
+    fireEvent.keyDown(screen.getByRole('textbox'), { key: 'ArrowDown' });
+    view.rerender(<GoToDialog open={false} onClose={onClose} />);
+    view.rerender(<GoToDialog open onClose={onClose} />);
+    expect((screen.getByRole('textbox') as HTMLInputElement).value).toBe('');
+    expect(enter(onClose)).toBe('/work/a');
+  });
+});

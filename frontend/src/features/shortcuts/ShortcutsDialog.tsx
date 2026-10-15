@@ -13,7 +13,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { useEffect, useState, type FC } from 'react';
+import { useState, type FC } from 'react';
 import { useSaveShortcuts, useShortcutDefs } from '../../entities/file/queries';
 import { SettingsService } from '../../shared/api/bindings';
 import { errMessage } from '../../shared/lib/format';
@@ -30,13 +30,15 @@ const ShortcutsDialog: FC<Props> = ({ open, onClose }) => {
   const show = useSnack((s) => s.show);
   const [bindings, setBindings] = useState<Record<string, string>>({});
 
-  useEffect(() => {
+  const [synced, setSynced] = useState<{ open: boolean; data?: typeof data }>({ open: false });
+  if (synced.open !== open || synced.data !== data) {
+    setSynced({ open, data });
     if (open && data) {
       const map: Record<string, string> = {};
       for (const d of data) map[d.id] = d.binding;
       setBindings(map);
     }
-  }, [open, data]);
+  }
 
   const onSave = () => {
     save.mutate(bindings, {
