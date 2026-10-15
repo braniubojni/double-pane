@@ -62,6 +62,15 @@ type DirSizes struct {
 	Denied []string         `json:"denied"`
 }
 
+// Preview is a read-only quick-view payload. Kind is image, text, pdf, or none.
+type Preview struct {
+	Kind    string `json:"kind"`
+	MIME    string `json:"mime,omitempty"`
+	Text    string `json:"text,omitempty"`
+	Data    []byte `json:"data,omitempty"`
+	Message string `json:"message,omitempty"`
+}
+
 // DiskUsage is capacity of the volume that contains Path.
 type DiskUsage struct {
 	Path  string `json:"path"`

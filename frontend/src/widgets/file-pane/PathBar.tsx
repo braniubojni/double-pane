@@ -7,7 +7,7 @@ import IconButton from '@mui/material/IconButton';
 import ListItem from '@mui/material/ListItem';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
-import { useEffect, useRef, useState, type FC } from 'react';
+import { useRef, useState, type FC } from 'react';
 import { usePathCompletions } from '../../entities/file/queries';
 import { copyText } from '../../shared/lib/clipboard';
 import { errMessage } from '../../shared/lib/format';
@@ -45,10 +45,12 @@ export const PathBar: FC<PathBarProps> = ({
   const completions = usePathCompletions(draft, open || draft !== path);
   const options = completions.data ?? [];
 
-  useEffect(() => {
+  const [prevPath, setPrevPath] = useState(path);
+  if (path !== prevPath) {
+    setPrevPath(path);
     setDraft(path);
     setEditing(false);
-  }, [path]);
+  }
 
   const beginEdit = () => {
     setEditing(true);

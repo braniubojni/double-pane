@@ -79,6 +79,21 @@ func TestCommandPaletteShortcut(t *testing.T) {
 	t.Fatal("ShortcutCatalog missing commandPalette")
 }
 
+func TestQuickViewShortcut(t *testing.T) {
+	if got := DefaultShortcuts()["quickView"]; got != "F3" {
+		t.Fatalf("quickView default=%q", got)
+	}
+	if got := DefaultShortcuts()["editFile"]; got != "F4" {
+		t.Fatalf("editFile default=%q", got)
+	}
+	for _, d := range ShortcutCatalog() {
+		if d.ID == "quickView" {
+			return
+		}
+	}
+	t.Fatal("ShortcutCatalog missing quickView")
+}
+
 func TestSelectAllShortcut(t *testing.T) {
 	if got := DefaultShortcuts()["selectAll"]; got != "Mod+A" {
 		t.Fatalf("selectAll default=%q", got)

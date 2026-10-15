@@ -12,6 +12,7 @@ import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArro
 import NoteAddIcon from '@mui/icons-material/NoteAdd';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
@@ -24,6 +25,7 @@ import IconButton from '@mui/material/IconButton';
 import MuiToolbar from '@mui/material/Toolbar';
 import Tooltip from '@mui/material/Tooltip';
 import type { ThemePreference } from '../../../entities/file/types';
+import { useQuickViewStore } from '../../../features/quick-view/quickViewStore';
 import { AIUsageMenu } from '../../ai-usage/AIUsageMenu';
 import { PortKillerMenu } from '../../port-killer/PortKillerMenu';
 import type { ToolbarBarProps } from '../types';
@@ -41,6 +43,9 @@ const themeIcon = (theme: ThemePreference) => {
 };
 
 export const ToolbarBar: FC<ToolbarBarProps> = (p) => {
+  const quickOpen = useQuickViewStore((s) => s.open);
+  const toggleQuickView = useQuickViewStore((s) => s.toggle);
+
   return (
     <AppBar
       position="static"
@@ -119,6 +124,16 @@ export const ToolbarBar: FC<ToolbarBarProps> = (p) => {
         <Button data-testid="btn-edit" startIcon={<EditIcon />} onClick={p.onEditFile}>
           Edit
         </Button>
+        <Tooltip title="Quick view (F3)">
+          <IconButton
+            data-testid="btn-quick-view"
+            aria-pressed={quickOpen}
+            color={quickOpen ? 'primary' : 'default'}
+            onClick={toggleQuickView}
+          >
+            <VisibilityIcon />
+          </IconButton>
+        </Tooltip>
         <Tooltip title="Git diff (HEAD vs working tree)">
           <Button data-testid="btn-git-diff" startIcon={<DifferenceIcon />} onClick={p.onGitDiff}>
             Diff

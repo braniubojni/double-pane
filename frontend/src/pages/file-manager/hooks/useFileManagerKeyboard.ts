@@ -67,6 +67,13 @@ export const useFileManagerKeyboard = () => {
         }
       }
 
+      // F3 toggles quick view even when the dialog (or CodeMirror) has focus.
+      if (!editorOpen && matched === 'quickView') {
+        e.preventDefault();
+        runShortcutAction('quickView', toggles);
+        return;
+      }
+
       // While editor open, only allow a few globals (settings/shortcuts/search)
       if (editorOpen) {
         if (isEditableTarget(e.target)) return;

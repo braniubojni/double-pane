@@ -181,6 +181,40 @@ describe('useSearchSession hit batching', () => {
   });
 });
 
+describe('useSearchSession close reset', () => {
+  it('clears results, denied paths and searching state when the dialog closes', async () => {
+    const { result, rerender } = renderHook(({ open }) => useSearchSession(open, '/work', false), {
+      initialProps: { open: true },
+    });
+    act(() => result.current.setPrefsRef(prefs()));
+    await act(async () => {
+      await result.current.runSearch();
+    });
+    emit('search:hit', { jobId: 'job-1', content: content('/a.ts') });
+    act(() => {
+      vi.advanceTimersByTime(32);
+    });
+    emit('search:denied', { jobId: 'job-1', path: '/secret' });
+    expect(result.current.results).toHaveLength(1);
+    expect(result.current.denied).toEqual(['/secret']);
+    expect(result.current.searching).toBe(true);
+
+    rerender({ open: false });
+    expect(result.current.results).toEqual([]);
+    expect(result.current.denied).toEqual([]);
+    expect(result.current.searching).toBe(false);
+    expect(FileService.CancelJob).toHaveBeenCalledWith('job-1');
+  });
+
+  it('does not cancel anything when closing with no job running', () => {
+    const { rerender } = renderHook(({ open }) => useSearchSession(open, '/work', false), {
+      initialProps: { open: true },
+    });
+    rerender({ open: false });
+    expect(FileService.CancelJob).not.toHaveBeenCalled();
+  });
+});
+
 describe('useSearchSession runSearch', () => {
   it('does not start a content search with an empty query', async () => {
     const { result } = renderHook(() => useSearchSession(true, '/work', false));

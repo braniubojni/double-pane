@@ -19,6 +19,7 @@ import type {
   PortListener,
   ProcessInfo,
   QuickPlace,
+  Preview,
   VaultInfo,
   Volume,
 } from './types';
@@ -490,6 +491,15 @@ export const useStartRemoveVault = () => {
   return useMutation({
     mutationFn: ({ path, password }: { path: string; password: string }) =>
       FileService.StartRemoveVault(path, password) as Promise<string>,
+  });
+};
+
+/** Local quick view. Disabled until the panel is open on a previewable path. */
+export const usePreview = (path: string, enabled: boolean) => {
+  return useQuery({
+    queryKey: ['preview', path],
+    enabled,
+    queryFn: () => FileService.ReadPreview(path) as Promise<Preview>,
   });
 };
 

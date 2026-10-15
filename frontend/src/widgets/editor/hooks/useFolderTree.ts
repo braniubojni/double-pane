@@ -26,11 +26,17 @@ export const useFolderTree = (rootPath: string) => {
     [showHidden, show],
   );
 
-  useEffect(() => {
-    if (!rootPath) return;
+  const [synced, setSynced] = useState<{ rootPath: string; loadDir?: typeof loadDir }>({
+    rootPath: '',
+  });
+  if (rootPath && (synced.rootPath !== rootPath || synced.loadDir !== loadDir)) {
+    setSynced({ rootPath, loadDir });
     setChildren({});
     setExpanded({ [rootPath]: true });
-    loadDir(rootPath);
+  }
+
+  useEffect(() => {
+    if (rootPath) loadDir(rootPath);
   }, [rootPath, loadDir]);
 
   const toggle = (dir: string) => {

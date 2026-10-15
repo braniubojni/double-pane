@@ -63,20 +63,24 @@ export const GoToDialog: FC<Props> = ({ open, onClose }) => {
     }
   };
 
-  useEffect(() => {
-    if (!open) {
-      setQuery('');
-      setDebounced('');
-      setIndex(0);
-      return;
-    }
-    const t = setTimeout(() => setDebounced(query), 180);
-    return () => clearTimeout(t);
-  }, [query, open]);
+  if (!open && (query !== '' || debounced !== '' || index !== 0)) {
+    setQuery('');
+    setDebounced('');
+    setIndex(0);
+  }
+
+  const hitsKey = `${debounced}\0${hits.length}`;
+  const [prevHitsKey, setPrevHitsKey] = useState(hitsKey);
+  if (hitsKey !== prevHitsKey) {
+    setPrevHitsKey(hitsKey);
+    setIndex(0);
+  }
 
   useEffect(() => {
-    setIndex(0);
-  }, [debounced, hits.length]);
+    if (!open) return;
+    const t = setTimeout(setDebounced, 180, query);
+    return () => clearTimeout(t);
+  }, [query, open]);
 
   return (
     <Dialog
