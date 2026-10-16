@@ -377,7 +377,7 @@ func defaultSearchPrefs() domain.SearchPrefs {
 
 func normalizeSearchPrefs(p domain.SearchPrefs) domain.SearchPrefs {
 	switch p.Mode {
-	case domain.SearchModeContent, domain.SearchModeFolders:
+	case domain.SearchModeContent, domain.SearchModeFolders, domain.SearchModeFiles:
 	default:
 		p.Mode = domain.SearchModeContent
 	}

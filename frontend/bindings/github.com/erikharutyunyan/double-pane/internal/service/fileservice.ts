@@ -419,9 +419,9 @@ export function StartRemoveVault(path: string, password: string): $CancellablePr
 }
 
 /**
- * StartSearch runs a cancellable content or folder-name search and streams
+ * StartSearch runs a cancellable content, file-name, or folder-name search and streams
  * events: search:hit, search:denied, search:done, search:error.
- * jobID should come from NewJobID. Mode is domain.SearchModeContent or SearchModeFolders.
+ * jobID should come from NewJobID. Mode is domain.SearchModeContent, SearchModeFiles, or SearchModeFolders.
  */
 export function StartSearch(jobID: string, root: string, query: string, mode: string, include: string, exclude: string, caseSensitive: boolean, showHidden: boolean, limit: number): $CancellablePromise<void> {
     return $Call.ByID(2305281369, jobID, root, query, mode, include, exclude, caseSensitive, showHidden, limit);

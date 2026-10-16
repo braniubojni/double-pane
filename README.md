@@ -208,13 +208,13 @@ GitHub Actions (`.github/workflows/ci.yml`) runs these on PRs and `main`.
 
 ### Git hooks (Husky)
 
-Root `npm install` installs [Husky](https://typicode.github.io/husky/). After that:
+Root `bun install` installs [Husky](https://typicode.github.io/husky/). After that:
 
 - **commit** (`pre-commit`) → `task check:build` (frontend + Go compile only)
 - **push** (`pre-push`) → `task check` (gofmt, vet, golangci-lint, Go tests, tsc/oxlint, knip, oxfmt)
 
 ```bash
-npm install   # once (runs prepare → husky)
+bun install   # once (runs prepare → husky)
 task check    # run the push gate without pushing
 ```
 
@@ -238,8 +238,8 @@ go vet ./...
 
 # Frontend
 cd frontend
-npm run lint                   # Oxlint
-npm run knip                   # Unused code detection
+bun run lint                   # Oxlint
+bun run knip                   # Unused code detection
 ```
 
 **Configured linters:**
@@ -317,7 +317,7 @@ export const FileManager: FC = () => {
 - ✅ **Deliberate choices:** React 18, MUI 9, Zustand, TanStack Query
 - ✅ **CodeMirror 6** over Monaco (lighter, no workers)
 - ✅ **MUI path imports** (`@mui/material/Button`) — no barrel imports
-- ✅ **Avoid bloat:** no unused features, regular `npm run knip`
+- ✅ **Avoid bloat:** no unused features, regular `bun run knip`
 
 Current bundle: **~150KB gzipped** (production)
 
@@ -653,18 +653,18 @@ func TestCopy(t *testing.T) {
 
 ```bash
 # One-time setup
-cd e2e && npm install && npx playwright install chromium
+cd e2e && bun install && bunx playwright install chromium
 
 # Run all specs
-cd e2e && npm test
+cd e2e && bun run test
 # or from root
 wails3 task test:e2e
 
 # Specific spec
-cd e2e && npx playwright test file-operations.spec.ts
+cd e2e && bunx playwright test file-operations.spec.ts
 
 # Debug mode
-cd e2e && npx playwright test --debug
+cd e2e && bunx playwright test --debug
 ```
 
 **Test isolation:**
@@ -694,7 +694,7 @@ cd e2e && npx playwright test --debug
 wails3 task test:all
 # Runs:
 #  1. go test ./internal/...     (unit tests)
-#  2. cd e2e && npm test          (E2E tests)
+#  2. cd e2e && bun run test      (E2E tests)
 #  3. wails3 build                (production build)
 ```
 
@@ -749,7 +749,7 @@ wails3 task test:all
 | Mod+Shift+C / X           | Copy / Move                            |
 | Alt+ArrowUp               | Parent folder                          |
 | Mod+, / Mod+/             | Settings / Shortcuts                   |
-| Mod+Shift+F               | Find in files (content / folder names) |
+| Mod+Shift+F               | Find in files (content / file names / folder names) |
 | Ctrl+`                    | Toggle terminal under active pane      |
 | Mod+T                     | New tab (active pane)                  |
 | Mod+W                     | Close tab (active pane)                |

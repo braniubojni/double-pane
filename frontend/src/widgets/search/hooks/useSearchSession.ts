@@ -46,7 +46,7 @@ export const useSearchSession = (open: boolean, root: string, showHidden: boolea
   const runSearch = useCallback(async () => {
     const p = prefsRef.current;
     if (!p) return;
-    if (isMEGAPath(root) && p.mode !== 'folders') {
+    if (isMEGAPath(root) && p.mode === 'content') {
       show('Content search is not available on MEGA connections yet', 'error');
       return;
     }
@@ -77,7 +77,7 @@ export const useSearchSession = (open: boolean, root: string, showHidden: boolea
         p.exclude,
         p.caseSensitive,
         showHidden,
-        p.mode === 'folders' ? 500 : 2000,
+        p.mode === 'content' ? 2000 : 500,
       );
     } catch (e) {
       setSearching(false);
@@ -110,7 +110,7 @@ export const useSearchSession = (open: boolean, root: string, showHidden: boolea
     const unsubHit = Events.On('search:hit', (ev: { data?: HitPayload }) => {
       const payload = (ev?.data ?? ev) as HitPayload;
       if (!payload?.jobId || payload.jobId !== jobIdRef.current) return;
-      if (payload.mode === 'folders' && payload.folder) {
+      if ((payload.mode === 'folders' || payload.mode === 'files') && payload.folder) {
         enqueueHit({ kind: 'folder', hit: payload.folder });
       } else if (payload.content) {
         enqueueHit({ kind: 'content', hit: payload.content as ContentHit });

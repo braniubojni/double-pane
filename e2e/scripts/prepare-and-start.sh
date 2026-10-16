@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$ROOT/e2e"
 
 # Prepare sandbox + build (idempotent; safe if already done by globalSetup)
-npx --yes tsx ./global-setup.ts
+bun ./global-setup.ts
 
 BIN="$ROOT/bin/gfm-e2e"
 if [[ ! -x "$BIN" ]]; then

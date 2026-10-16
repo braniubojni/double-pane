@@ -111,6 +111,36 @@ describe('useSearchSession hit batching', () => {
     expect(result.current.results).toEqual([{ kind: 'folder', hit: folder }]);
   });
 
+  it('searches file names with the folder limit and records the hit', async () => {
+    const { result } = renderHook(() => useSearchSession(true, '/work', false));
+    act(() => result.current.setPrefsRef(prefs({ mode: 'files', query: 'readme' })));
+    await act(async () => {
+      await result.current.runSearch();
+    });
+    expect(FileService.StartSearch).toHaveBeenCalledWith(
+      'job-1',
+      '/work',
+      'readme',
+      'files',
+      '*.ts',
+      'dist',
+      true,
+      false,
+      500,
+    );
+    const file = {
+      name: 'readme.md',
+      path: '/work/a/readme.md',
+      isDir: false,
+      relPath: 'a/readme.md',
+    };
+    emit('search:hit', { jobId: 'job-1', mode: 'files', folder: file });
+    act(() => {
+      vi.advanceTimersByTime(32);
+    });
+    expect(result.current.results).toEqual([{ kind: 'folder', hit: file }]);
+  });
+
   it('flushes a pending batch immediately when the job finishes or fails', async () => {
     const { result } = renderHook(() => useSearchSession(true, '/work', false));
     act(() => result.current.setPrefsRef(prefs()));
@@ -240,6 +270,13 @@ describe('useSearchSession runSearch', () => {
     );
 
     act(() => result.current.setPrefsRef(prefs({ mode: 'folders' })));
+    await act(async () => {
+      await result.current.runSearch();
+    });
+    expect(FileService.StartSearch).toHaveBeenCalled();
+
+    vi.mocked(FileService.StartSearch).mockClear();
+    act(() => result.current.setPrefsRef(prefs({ mode: 'files', query: 'readme' })));
     await act(async () => {
       await result.current.runSearch();
     });

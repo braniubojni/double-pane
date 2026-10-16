@@ -150,6 +150,19 @@ describe('SearchDialog timers', () => {
   });
 });
 
+describe('SearchDialog file names', () => {
+  it('shows the file-name mode and keeps replace disabled', async () => {
+    vi.mocked(SettingsService.GetSearchPrefs).mockResolvedValue(
+      prefs({ mode: 'files', replaceOpen: true }),
+    );
+    await open();
+    expect((screen.getByLabelText('File names') as HTMLInputElement).checked).toBe(true);
+    expect(screen.getByTestId('input-search-query').getAttribute('placeholder')).toBe('File name…');
+    expect((screen.getByTestId('search-toggle-replace') as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.queryByTestId('input-search-replace')).toBeNull();
+  });
+});
+
 describe('SearchDialog replace all', () => {
   it('asks before replacing more than 50 matches and skips the call when declined', async () => {
     session.results = Array.from({ length: 51 }, (_, i) => hit(i < 40 ? '/a.ts' : '/b.ts', i + 1));

@@ -18,7 +18,7 @@ e2e/
 
 ```bash
 task test:e2e
-# or: cd e2e && npm test
+# or: cd e2e && bun run test
 ```
 
 Separate `package.json` / lockfile from frontend. Own `node_modules`.

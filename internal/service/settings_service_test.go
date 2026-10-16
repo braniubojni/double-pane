@@ -282,6 +282,28 @@ func TestSearchPrefsAndHistory(t *testing.T) {
 	if got.Query != "needle" || got.Mode != domain.SearchModeFolders || !got.ReplaceOpen {
 		t.Fatalf("got %+v", got)
 	}
+	prefs.Mode = domain.SearchModeFiles
+	if err := svc.SaveSearchPrefs(prefs); err != nil {
+		t.Fatal(err)
+	}
+	got, err = svc.GetSearchPrefs()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Mode != domain.SearchModeFiles {
+		t.Fatalf("files mode: %+v", got)
+	}
+	prefs.Mode = "nope"
+	if err := svc.SaveSearchPrefs(prefs); err != nil {
+		t.Fatal(err)
+	}
+	got, err = svc.GetSearchPrefs()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Mode != domain.SearchModeContent {
+		t.Fatalf("unknown mode should fall back to content, got %+v", got)
+	}
 
 	if err := svc.AddSearchHistory("query", "needle"); err != nil {
 		t.Fatal(err)

@@ -75,11 +75,11 @@ go test ./internal/filesystem/... -run TestName -v   # single package/test
 go vet ./...   # Linux needs GTK4 + frontend/dist stub — see .github/AGENTS.md
 golangci-lint run --timeout=3m   # v2.12.2; same linters as CI (not tsc/oxlint)
 task ci:go     # Docker: Ubuntu 24.04 mirror of Go CI job
-cd frontend && npm run lint && npm run knip && npm run format:check
+cd frontend && bun run lint && bun run knip && bun run format:check
 
 # E2E
 task test:e2e
-cd e2e && npx playwright test specs/bookmarks.spec.ts   # single spec
+cd e2e && bunx playwright test specs/bookmarks.spec.ts   # single spec
 ```
 
 ## CI traps (summary)

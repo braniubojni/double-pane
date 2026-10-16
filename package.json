@@ -1,13 +1,14 @@
 {
   "name": "double-pane",
   "private": true,
+  "packageManager": "bun@1.4.2",
   "description": "Dual-pane desktop file manager (Wails v3 + Go + React)",
   "scripts": {
     "prepare": "husky",
     "precommit": "lint-staged",
     "check": "wails3 task check",
     "check:build": "wails3 task check:build",
-    "knip": "npm run knip --prefix frontend"
+    "knip": "bun --cwd=frontend run knip"
   },
   "devDependencies": {
     "husky": "^9.1.7",
@@ -15,7 +16,7 @@
   },
   "lint-staged": {
     "*.go": "gofmt -w",
-    "frontend/src/**/*.{js,jsx,ts,tsx,mjs,cjs}": "npm run lint --prefix frontend",
-    "frontend/src/**/*.{ts,tsx,css,json}": "npm run format --prefix frontend"
+    "frontend/src/**/*.{js,jsx,ts,tsx,mjs,cjs}": "bun --cwd=frontend run lint",
+    "frontend/src/**/*.{ts,tsx,css,json}": "bun --cwd=frontend run format"
   }
 }

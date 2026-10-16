@@ -3,7 +3,7 @@ version: "3"
 vars:
   APP_NAME: "double-pane"
   BIN_DIR: "bin"
-  PACKAGE_MANAGER: '{{.PACKAGE_MANAGER | default "npm"}}'
+  PACKAGE_MANAGER: '{{.PACKAGE_MANAGER | default "bun"}}'
   VITE_PORT: "{{.WAILS_VITE_PORT | default 9245}}"
   # Target OS for build/package/run. Defaults to the host OS, and is overridden
   # by `wails3 build GOOS=...` (or the GOOS env var) for cross-compilation. The
@@ -586,9 +586,9 @@ tasks:
   frontend:lint:
     dir: frontend
     cmds:
-      - npm run lint
-      - npm run knip
-      - npm run format:check
+      - bun run lint
+      - bun run knip
+      - bun run format:check
 
   check:
     summary: Full quality gate — lint, knip, Go tests (husky pre-push)
@@ -605,14 +605,14 @@ tasks:
       Verifies TypeScript/Vite and the Wails Go binary compile. Does not generate
       bindings, tidy modules, or run lint/tests. Used by .husky/pre-commit.
     cmds:
-      - npm run build --prefix frontend
+      - bun --cwd=frontend run build
       - CGO_ENABLED=1 go build -tags production -o "{{.BIN_DIR}}/{{.APP_NAME}}"
 
   test:e2e:
     summary: Playwright e2e against Wails server mode
     dir: e2e
     cmds:
-      - npm test
+      - bun run test
 
   test:all:
     summary: Full gate — unit + e2e + production build (run after big changes)

@@ -124,6 +124,51 @@ func (s *FileService) searchFoldersRemote(
 	return truncated, nil
 }
 
+// searchFilesRemote streams file-name hits from a remote tree. Same walk and
+// include/exclude globs as searchFoldersRemote, but only files match, and only
+// on the basename. An empty query emits nothing. File bytes are not read.
+func (s *FileService) searchFilesRemote(
+	ctx context.Context,
+	be remoteBackend,
+	root, query, include, exclude string,
+	showHidden bool,
+	limit int,
+	onHit func(domain.SearchHit),
+	onDenied func(path string, err error),
+) (truncated bool, err error) {
+	if limit <= 0 {
+		limit = 500
+	}
+	q := strings.ToLower(strings.TrimSpace(query))
+	if q == "" {
+		return false, nil
+	}
+	filter := filesystem.NewPathFilter(include, exclude)
+	hits := 0
+	walkErr := walkRemote(ctx, be, root, showHidden, func(e domain.FileEntry, rel string, _ int) (descend, stop bool) {
+		if e.IsDir {
+			if !filter.MatchDir(rel) {
+				return false, false
+			}
+			return true, false
+		}
+		if filter.Match(rel) && strings.Contains(strings.ToLower(e.Name), q) {
+			onHit(domain.SearchHit{Name: e.Name, Path: e.Path, IsDir: false, RelPath: rel})
+			hits++
+			if hits >= limit {
+				truncated = true
+				return false, true
+			}
+		}
+		return false, false
+	})
+	if walkErr != nil {
+		return truncated, walkErr
+	}
+	_ = onDenied // remote ListDir errors are skipped silently by walkRemote, not surfaced per-dir
+	return truncated, nil
+}
+
 // searchContentRemote streams content matches from a remote tree (SSH/SMB).
 // Sequential OpenRead — no worker pool (shared remote session). Files over
 // MaxContentFileBytes are skipped without opening.
