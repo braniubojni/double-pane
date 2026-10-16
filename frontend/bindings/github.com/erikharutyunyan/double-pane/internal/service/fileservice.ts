@@ -428,6 +428,14 @@ export function StartSearch(jobID: string, root: string, query: string, mode: st
 }
 
 /**
+ * TreeUsage walks a local folder and emits usage:progress and one usage:done.
+ * jobID comes from NewJobID. The call returns once the walk is scheduled.
+ */
+export function TreeUsage(jobID: string, root: string, maxDepth: number): $CancellablePromise<void> {
+    return $Call.ByID(2711355714, jobID, root, maxDepth);
+}
+
+/**
  * UnlockVault opens a process-memory session for path. password never
  * touches disk, settings, or the emitted log line.
  */
