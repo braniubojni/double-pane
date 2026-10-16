@@ -136,6 +136,7 @@ func ShortcutCatalog() []domain.ShortcutDef {
 		{"mkfile", "New file", "Create an empty file in the active pane"},
 		{"editFile", "Edit file", "Open the selected file in the built-in editor"},
 		{"quickView", "Quick view", "Preview the focused file without opening the editor (F3)"},
+		{"treeUsage", "Disk usage map", "Show a squarified disk usage map of the active folder"},
 		{"gitDiff", "Git diff", "Side-by-side HEAD vs working tree in the built-in editor"},
 		{"goTo", "Go to file/folder", "Quick open nested files and folders in the active pane (Mod+P)"},
 		{"openSearch", "Find in files", "Search file contents, file names, or folder names under the active pane (Mod+Shift+F)"},
