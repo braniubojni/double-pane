@@ -66,6 +66,8 @@ const useObjectUrl = (preview: Preview): string => {
     if (!bytes) return;
     const type = mime || (kind === 'pdf' ? 'application/pdf' : 'application/octet-stream');
     const next = URL.createObjectURL(new Blob([bytes as BlobPart], { type }));
+    // Blob URL is an external resource created here; state mirrors it so render stays pure.
+    // oxlint-disable-next-line react/set-state-in-effect
     setUrl(next);
     return () => URL.revokeObjectURL(next);
   }, [kind, mime, data]);
