@@ -6,6 +6,7 @@ import { DmgPasswordDialog } from '../../features/dmg/DmgPasswordDialog';
 import { useExternalFileDrop } from '../../features/dnd/useExternalFileDrop';
 import { useDuplicateEvents } from '../../features/duplicates/useDuplicateEvents';
 import { useEditorStore } from '../../features/editor/editorStore';
+import { useTreemapStore } from '../../features/disk-treemap/treemapStore';
 import { useQuickViewStore } from '../../features/quick-view/quickViewStore';
 import { useFileOpsStore } from '../../features/file-ops/fileOpsStore';
 import { useTransferEvents } from '../../features/transfers/useTransferEvents';
@@ -49,6 +50,9 @@ const EditorWorkspace = lazy(() =>
 const QuickViewDialog = lazy(() =>
   import('../../widgets/quick-view/QuickViewDialog').then((m) => ({ default: m.QuickViewDialog })),
 );
+const TreemapDialog = lazy(() =>
+  import('../../widgets/disk-treemap/TreemapDialog').then((m) => ({ default: m.TreemapDialog })),
+);
 
 export const FileManagerPage: FC = () => {
   const tabsReady = useInitPaneTabs();
@@ -74,6 +78,7 @@ export const FileManagerPage: FC = () => {
   const trigger = useFileOpsStore((s) => s.trigger);
   const editorOpen = useEditorStore((s) => s.open);
   const quickOpen = useQuickViewStore((s) => s.open);
+  const treemapOpen = useTreemapStore((s) => s.open);
 
   if (!ready) {
     return (
@@ -128,6 +133,7 @@ export const FileManagerPage: FC = () => {
         {vaultDialogMode === 'unlock' && <UnlockDialog />}
         {vaultDialogMode === 'remove' && <RemoveDialog />}
         {quickOpen && !editorOpen && <QuickViewDialog />}
+        {treemapOpen && !editorOpen && <TreemapDialog />}
       </Suspense>
     </Box>
   );

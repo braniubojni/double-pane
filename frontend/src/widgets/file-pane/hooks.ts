@@ -533,6 +533,19 @@ export const useFileTable = ({
   });
   useEffect(() => () => clearTimeout(typeAhead.current.timer), []);
 
+  const scrolledFocus = useRef('');
+  useEffect(() => {
+    if (!focused || focused === scrolledFocus.current) return;
+    const idx = rows.findIndex((r) => r.path === focused);
+    if (idx < 0) return;
+    scrolledFocus.current = focused;
+    try {
+      apiRef.current?.scrollToIndexes?.({ rowIndex: idx });
+    } catch {
+      /* ignore */
+    }
+  }, [focused, rows, apiRef]);
+
   const typeAheadJump = useCallback(
     (key: string) => {
       const ta = typeAhead.current;

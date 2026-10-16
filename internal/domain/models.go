@@ -257,6 +257,36 @@ type SearchDeniedPayload struct {
 	Error string `json:"error"`
 }
 
+// UsageNode is one rectangle in a disk-usage treemap. Kids is empty on a leaf.
+type UsageNode struct {
+	Name  string      `json:"name"`
+	Path  string      `json:"path"`
+	Size  int64       `json:"size"`
+	IsDir bool        `json:"isDir"`
+	Kids  []UsageNode `json:"kids,omitempty"`
+}
+
+// UsageProgress is emitted at most every 100ms while a treemap walk runs.
+type UsageProgress struct {
+	JobID   string `json:"jobId"`
+	Current string `json:"current"`
+	Files   int    `json:"files"`
+	Bytes   int64  `json:"bytes"`
+}
+
+// UsageDone is emitted once when a treemap walk finishes, is canceled, or fails.
+type UsageDone struct {
+	JobID       string     `json:"jobId"`
+	Root        string     `json:"root"`
+	Total       int64      `json:"total"`
+	Files       int        `json:"files"`
+	Truncated   bool       `json:"truncated"`
+	Denied      []string   `json:"denied"`
+	DeniedCount int        `json:"deniedCount"`
+	Error       string     `json:"error,omitempty"`
+	Tree        *UsageNode `json:"tree,omitempty"`
+}
+
 // ScanEstimate is a pre-hash count for the duplicate-finder setup dialog.
 type ScanEstimate struct {
 	FileCount         int64  `json:"fileCount"`

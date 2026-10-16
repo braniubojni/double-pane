@@ -7,6 +7,7 @@ import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove';
 import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DifferenceIcon from '@mui/icons-material/Difference';
+import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
 import TuneIcon from '@mui/icons-material/Tune';
 import Button from '@mui/material/Button';
 import ListItemIcon from '@mui/material/ListItemIcon';
@@ -14,9 +15,12 @@ import ListItemText from '@mui/material/ListItemText';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import { useState, type FC, type ReactNode } from 'react';
+import { isRemotePath } from '../../../features/connections/helpers';
+import { useTreemapStore } from '../../../features/disk-treemap/treemapStore';
 import { useDuplicatesStore } from '../../../features/duplicates/duplicatesStore';
 import { isLocalArchivePath } from '../../../features/duplicates/helpers';
 import { usePaneStore } from '../../../features/pane/paneStore';
+import { isTrashPath } from '../../../shared/lib/trash';
 import type { FileActionsMenuProps } from '../types';
 
 type Item = {
@@ -33,6 +37,15 @@ export const FileActionsMenu: FC<FileActionsMenuProps> = (p) => {
   const cwd = usePaneStore((s) => s.getPath(s.activePane));
   const openDuplicates = useDuplicatesStore((s) => s.openDialog);
   const dupRunning = useDuplicatesStore((s) => s.phase === 'running');
+  const openTreemap = useTreemapStore((s) => s.openDialog);
+  const treemapDisabled = !cwd || isRemotePath(cwd) || isTrashPath(cwd) || isLocalArchivePath(cwd);
+  const treemapItem: Item = {
+    testId: 'btn-treemap',
+    label: 'Disk usage map',
+    icon: <AnalyticsOutlinedIcon fontSize="small" />,
+    run: () => openTreemap(cwd),
+    disabled: treemapDisabled,
+  };
 
   const items: Item[] = p.inTrash
     ? [
@@ -56,6 +69,7 @@ export const FileActionsMenu: FC<FileActionsMenuProps> = (p) => {
           run: p.onEmptyTrash,
           danger: true,
         },
+        treemapItem,
       ]
     : [
         {
@@ -97,6 +111,7 @@ export const FileActionsMenu: FC<FileActionsMenuProps> = (p) => {
           run: () => openDuplicates(cwd),
           disabled: dupRunning || isLocalArchivePath(cwd),
         },
+        treemapItem,
       ];
 
   return (

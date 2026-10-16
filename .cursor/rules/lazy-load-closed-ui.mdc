@@ -1,0 +1,27 @@
+---
+description: Lazy-load dialogs and heavy widgets that are closed on the main screen
+globs: frontend/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Lazy-load closed UI
+
+A dialog, chart, or other widget the user opens only sometimes stays out of the file-manager startup chunk.
+
+- Load it with `lazy(() => import(...))` from the shell (`FileManagerPage`).
+- Render it only while its open flag is true, inside `<Suspense fallback={null}>`.
+- Skip it while the editor workspace is open, unless it belongs to the editor.
+- A heavy library (a chart, a treemap, CodeMirror) is imported from that dialog file, so opening the dialog is what downloads it. Do not import it from a store, the toolbar, the command palette, or the page module.
+- The menu or shortcut only sets the open flag.
+
+```tsx
+const TreemapDialog = lazy(() =>
+  import('../../widgets/disk-treemap/TreemapDialog').then((m) => ({ default: m.TreemapDialog })),
+);
+
+{treemapOpen && !editorOpen && (
+  <Suspense fallback={null}>
+    <TreemapDialog />
+  </Suspense>
+)}
+```

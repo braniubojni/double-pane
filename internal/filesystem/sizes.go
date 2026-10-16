@@ -81,24 +81,6 @@ func DirChildSizesCtx(ctx context.Context, dir string) (domain.DirSizes, error) 
 // dirSizeCtx sums a tree. Unreadable subtrees are skipped and reported via
 // denied rather than aborting the walk.
 func dirSizeCtx(ctx context.Context, root string) (total int64, denied bool, err error) {
-	err = filepath.Walk(root, func(path string, info os.FileInfo, walkErr error) error {
-		if err := ctx.Err(); err != nil {
-			return err
-		}
-		if walkErr != nil {
-			denied = true
-			if os.IsPermission(walkErr) {
-				return filepath.SkipDir
-			}
-			return nil
-		}
-		if info.Mode()&os.ModeSymlink != 0 {
-			return nil
-		}
-		if !info.IsDir() {
-			total += info.Size()
-		}
-		return nil
-	})
-	return total, denied, err
+	total, _, paths, err := measureTree(ctx, root, nil)
+	return total, len(paths) > 0, err
 }

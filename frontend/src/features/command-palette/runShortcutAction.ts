@@ -6,6 +6,7 @@ import type { FileOpsAction } from '../file-ops/types';
 import { useGoToStore } from '../go-to/goToStore';
 import { usePaneStore } from '../pane/paneStore';
 import { useSearchStore } from '../search/searchStore';
+import { useTreemapStore } from '../disk-treemap/treemapStore';
 import { useQuickViewStore } from '../quick-view/quickViewStore';
 import { useTerminalStore } from '../terminal/terminalStore';
 import { useDialogStore } from '../ui/dialogStore';
@@ -108,6 +109,11 @@ export const runShortcutAction = (id: string, toggles?: ShortcutToggleFns): void
   }
   if (id === 'quickView') {
     useQuickViewStore.getState().toggle();
+    return;
+  }
+  if (id === 'treeUsage') {
+    const pane = usePaneStore.getState();
+    useTreemapStore.getState().openDialog(pane.getPath(pane.activePane));
     return;
   }
   if (id === 'switchPane') {
