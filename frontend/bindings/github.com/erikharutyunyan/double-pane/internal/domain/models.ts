@@ -464,7 +464,7 @@ export interface SearchPrefs {
     "exclude": string;
 
     /**
-     * content | folders
+     * content | folders | files
      */
     "mode": string;
     "replaceOpen": boolean;
