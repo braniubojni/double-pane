@@ -138,7 +138,7 @@ func ShortcutCatalog() []domain.ShortcutDef {
 		{"quickView", "Quick view", "Preview the focused file without opening the editor (F3)"},
 		{"gitDiff", "Git diff", "Side-by-side HEAD vs working tree in the built-in editor"},
 		{"goTo", "Go to file/folder", "Quick open nested files and folders in the active pane (Mod+P)"},
-		{"openSearch", "Find in files", "Search file contents or folder names under the active pane (Mod+Shift+F)"},
+		{"openSearch", "Find in files", "Search file contents, file names, or folder names under the active pane (Mod+Shift+F)"},
 		{"goParent", "Parent folder", "Go to the parent of the active pane"},
 		{"goHome", "Home", "Go to the home directory in the active pane"},
 		{"goBack", "Back", "Navigate back in the active pane history (also mouse back button)"},

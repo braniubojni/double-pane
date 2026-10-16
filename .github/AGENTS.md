@@ -25,8 +25,8 @@ Releases are **local only** (`task dist` / `task release:local`) — no GitHub A
 
 ## Frontend job
 
-- Node **24**, `setup-node@v6`, `checkout@v5`.
-- `npm ci` then: lint, **knip**, format:check, build.
+- Bun **1.4.2**, `oven-sh/setup-bun@v2`, `checkout@v5`.
+- `bun install --frozen-lockfile`, then lint, **knip**, format:check, build.
 - Working directory: `frontend/`.
 
 ## Local mirror (preferred over raw wails-cross for CI)
@@ -45,7 +45,7 @@ task ci:go
 
 - `actions/checkout@v5`
 - `actions/setup-go@v6`
-- `actions/setup-node@v6`
+- `oven-sh/setup-bun@v2`
 - `golangci/golangci-lint-action@v9`
 
 ## When editing CI

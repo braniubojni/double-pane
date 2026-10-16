@@ -40,7 +40,7 @@ const SearchFormInner: FC<Props> = ({
         onClick={() => patch({ replaceOpen: !prefs.replaceOpen })}
         data-testid="search-toggle-replace"
         aria-label={prefs.replaceOpen ? 'Collapse replace' : 'Expand replace'}
-        disabled={prefs.mode === 'folders'}
+        disabled={prefs.mode !== 'content'}
       >
         {prefs.replaceOpen && prefs.mode === 'content' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
       </IconButton>
@@ -49,7 +49,13 @@ const SearchFormInner: FC<Props> = ({
         value={prefs.query}
         onChange={(v) => patch({ query: v })}
         onEnter={onSearch}
-        placeholder={prefs.mode === 'folders' ? 'Folder name…' : 'Search…'}
+        placeholder={
+          prefs.mode === 'folders'
+            ? 'Folder name…'
+            : prefs.mode === 'files'
+              ? 'File name…'
+              : 'Search…'
+        }
         autoFocus
         testId="input-search-query"
       />
@@ -118,6 +124,7 @@ const SearchFormInner: FC<Props> = ({
           disabled={contentSearchDisabled}
           title={contentSearchDisabled ? 'Not available on MEGA connections yet' : undefined}
         />
+        <FormControlLabel value="files" control={<Radio size="small" />} label="File names" />
         <FormControlLabel value="folders" control={<Radio size="small" />} label="Folder names" />
       </RadioGroup>
     </Box>

@@ -72,7 +72,7 @@ export const SearchDialog: FC<Props> = ({ open, onClose }) => {
           replace: p.replace ?? '',
           include,
           exclude: p.exclude ?? '',
-          mode: p.mode === 'folders' ? 'folders' : 'content',
+          mode: p.mode === 'folders' || p.mode === 'files' ? p.mode : 'content',
           replaceOpen: Boolean(p.replaceOpen),
           caseSensitive: Boolean(p.caseSensitive),
         });
@@ -136,7 +136,7 @@ export const SearchDialog: FC<Props> = ({ open, onClose }) => {
     (i: number) => {
       const r = results[i];
       if (!r) return;
-      if (r.kind === 'folder') {
+      if (r.kind === 'folder' && r.hit.isDir) {
         onClose();
         enterPaneTab(activePane, r.hit.path);
         navigate(activePane, r.hit.path);
@@ -232,7 +232,7 @@ export const SearchDialog: FC<Props> = ({ open, onClose }) => {
           ) : null}
         </Box>
         <SearchResultsList
-          remote={isMEGAPath(root) && prefs.mode !== 'folders'}
+          remote={isMEGAPath(root) && prefs.mode === 'content'}
           searching={searching}
           results={results}
           index={index}

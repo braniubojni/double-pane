@@ -57,10 +57,11 @@ public/          # usually empty; no brand icons here
 
 ```bash
 cd frontend
-npm run lint          # eslint src
-npm run knip          # knip.json ignores bindings/**
-npm run format        # oxfmt src
-npm run build
+bun install
+bun run lint          # tsc --noEmit && oxlint
+bun run knip          # knip.json ignores bindings/**
+bun run format        # oxfmt src
+bun run build
 ```
 
 - Vite: production minify default (do **not** force esbuild — not installed by default).

@@ -209,6 +209,7 @@ type SearchHit struct {
 const (
 	SearchModeContent = "content"
 	SearchModeFolders = "folders"
+	SearchModeFiles   = "files"
 )
 
 // ContentSearchHit is one text match inside a file.
@@ -228,7 +229,7 @@ type SearchPrefs struct {
 	Replace       string `json:"replace"`
 	Include       string `json:"include"`
 	Exclude       string `json:"exclude"`
-	Mode          string `json:"mode"` // content | folders
+	Mode          string `json:"mode"` // content | folders | files
 	ReplaceOpen   bool   `json:"replaceOpen"`
 	CaseSensitive bool   `json:"caseSensitive"`
 }
@@ -244,7 +245,7 @@ type SearchDonePayload struct {
 // SearchHitPayload wraps a streaming search hit for the UI.
 type SearchHitPayload struct {
 	JobID   string            `json:"jobId"`
-	Mode    string            `json:"mode"` // content | folders
+	Mode    string            `json:"mode"` // content | folders | files
 	Content *ContentSearchHit `json:"content,omitempty"`
 	Folder  *SearchHit        `json:"folder,omitempty"`
 }

@@ -1,4 +1,4 @@
-export type SearchMode = 'content' | 'folders';
+export type SearchMode = 'content' | 'folders' | 'files';
 
 export type ContentHit = {
   path: string;

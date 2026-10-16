@@ -2,6 +2,7 @@
   "name": "double-pane-e2e",
   "version": "0.0.0",
   "private": true,
+  "packageManager": "bun@1.4.2",
   "scripts": {
     "test": "playwright test",
     "test:headed": "playwright test --headed",

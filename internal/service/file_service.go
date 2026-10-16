@@ -956,9 +956,9 @@ func (s *FileService) searchTreeRemote(be remoteBackend, root, query string, sho
 	return filesystem.RankSearchHits(hits, q, limit), nil
 }
 
-// StartSearch runs a cancellable content or folder-name search and streams
+// StartSearch runs a cancellable content, file-name, or folder-name search and streams
 // events: search:hit, search:denied, search:done, search:error.
-// jobID should come from NewJobID. Mode is domain.SearchModeContent or SearchModeFolders.
+// jobID should come from NewJobID. Mode is domain.SearchModeContent, SearchModeFiles, or SearchModeFolders.
 func (s *FileService) StartSearch(
 	jobID, root, query, mode, include, exclude string,
 	caseSensitive, showHidden bool,
@@ -967,7 +967,7 @@ func (s *FileService) StartSearch(
 	if filesystem.IsTrashPath(root) {
 		return fmt.Errorf("search is not available in trash")
 	}
-	if mode != domain.SearchModeFolders && remote.IsMEGA(root) {
+	if remote.IsMEGA(root) && mode != domain.SearchModeFolders && mode != domain.SearchModeFiles {
 		return fmt.Errorf("content search is not available on MEGA connections yet")
 	}
 	if filesystem.IsArchivePath(root) {
@@ -1032,6 +1032,28 @@ func (s *FileService) runSearch(
 			break
 		}
 		truncated, err = filesystem.SearchFolders(ctx, root, query, include, exclude, showHidden, limit, filesystem.FolderSearchCallbacks{
+			OnHit:    onHit,
+			OnDenied: onDenied,
+		})
+	case domain.SearchModeFiles:
+		onHit := func(h domain.SearchHit) {
+			hitCount++
+			cp := h
+			s.emit("search:hit", domain.SearchHitPayload{
+				JobID:  jobID,
+				Mode:   domain.SearchModeFiles,
+				Folder: &cp,
+			})
+		}
+		if remote.IsRemote(root) {
+			var be remoteBackend
+			be, err = s.backendFor(root)
+			if err == nil {
+				truncated, err = s.searchFilesRemote(ctx, be, root, query, include, exclude, showHidden, limit, onHit, onDenied)
+			}
+			break
+		}
+		truncated, err = filesystem.SearchFiles(ctx, root, query, include, exclude, showHidden, limit, filesystem.FolderSearchCallbacks{
 			OnHit:    onHit,
 			OnDenied: onDenied,
 		})

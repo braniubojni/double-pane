@@ -57,7 +57,7 @@ export function prepareSandbox() {
 export function buildApp() {
   // Always rebuild so e2e picks up latest FE/BE changes (dist/bin caches go stale).
   console.log("[e2e] Building frontend…");
-  execSync("npm run build", {
+  execSync("bun run build", {
     cwd: path.join(REPO_ROOT, "frontend"),
     stdio: "inherit",
   });
@@ -80,7 +80,7 @@ export default async function globalSetup() {
   console.log("[e2e] Ready");
 }
 
-if (require.main === module) {
+if (process.argv[1]?.endsWith("global-setup.ts")) {
   globalSetup().catch((err) => {
     console.error(err);
     process.exit(1);

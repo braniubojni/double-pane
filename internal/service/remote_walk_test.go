@@ -140,6 +140,66 @@ func TestSearchFoldersRemotePrunesExcluded(t *testing.T) {
 	}
 }
 
+func TestSearchFilesRemoteBasenameOnly(t *testing.T) {
+	s := &FileService{}
+	be := newFakeTree()
+	be.tree["ssh://h/root"] = append(be.tree["ssh://h/root"], domain.FileEntry{
+		Name: "src", Path: "ssh://h/root/src", IsDir: true,
+	})
+	be.tree["ssh://h/root/src"] = []domain.FileEntry{
+		{Name: "main.go", Path: "ssh://h/root/src/main.go"},
+	}
+
+	var hits []domain.SearchHit
+	_, err := s.searchFilesRemote(context.Background(), be, "ssh://h/root", "txt", "", "", false, 10,
+		func(h domain.SearchHit) { hits = append(hits, h) },
+		func(string, error) {},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	names := map[string]bool{}
+	for _, h := range hits {
+		if h.IsDir {
+			t.Fatalf("file mode returned a directory: %+v", h)
+		}
+		names[h.Name] = true
+	}
+	if !names["a.txt"] || !names["b.txt"] {
+		t.Fatalf("expected a.txt and b.txt, got %+v", hits)
+	}
+	if names["main.go"] || names["sub"] {
+		t.Fatalf("unexpected hit: %+v", hits)
+	}
+	if be.openReads != 0 {
+		t.Fatalf("file-name search read %d files", be.openReads)
+	}
+
+	hits = nil
+	_, err = s.searchFilesRemote(context.Background(), be, "ssh://h/root", "src", "", "", false, 10,
+		func(h domain.SearchHit) { hits = append(hits, h) },
+		func(string, error) {},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(hits) != 0 {
+		t.Fatalf("query src must not hit src/main.go, got %+v", hits)
+	}
+
+	hits = nil
+	_, err = s.searchFilesRemote(context.Background(), be, "ssh://h/root", "", "", "*.txt", false, 10,
+		func(h domain.SearchHit) { hits = append(hits, h) },
+		func(string, error) {},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(hits) != 0 {
+		t.Fatalf("empty query should emit nothing, got %+v", hits)
+	}
+}
+
 func TestSearchContentRemoteFindsMatch(t *testing.T) {
 	s := &FileService{}
 	be := newContentFake()
@@ -286,5 +346,29 @@ func TestStartSearchMEGAContentBlocked(t *testing.T) {
 	err := s.StartSearch("job1", "mega://u@h/path", "hello", domain.SearchModeContent, "", "", false, false, 10)
 	if err == nil || !strings.Contains(err.Error(), "MEGA") {
 		t.Fatalf("want MEGA error, got %v", err)
+	}
+}
+
+func TestStartSearchMEGAFileNamesAllowed(t *testing.T) {
+	done := make(chan string, 1)
+	s := &FileService{onEvent: func(name string, _ any) {
+		if name == "search:error" || name == "search:done" {
+			select {
+			case done <- name:
+			default:
+			}
+		}
+	}}
+	err := s.StartSearch("job1", "mega://u@h/path", "readme", domain.SearchModeFiles, "", "", false, false, 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case name := <-done:
+		if name != "search:error" {
+			t.Fatalf("mega backend missing should error the job, got %s", name)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("file-name search on MEGA did not finish")
 	}
 }

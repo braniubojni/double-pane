@@ -6,7 +6,7 @@ Not commitments — ideas to triage. Check here before proposing new features (s
 
 - [x] After each update we are loosing user's bookmarket paths. We can save this info inside of user folder in so that after each update data persisted (spec: `specs/bookmarks-persist/v1.md`)
 - [x] Seems like we lost having pointer within our app, I do not know is it related to latest macos 27 update. (spec: `specs/macos-cursor/v1.md`)
-- [ ] Remove `document` / `window` from React code (spec: `specs/no-dom-globals/v1.md`)
+- [x] Remove `document` / `window` from React code (spec: `specs/no-dom-globals/v1.md`)
 - [x] App hung ups on left click menu open, then open with. After that menu does not want to close (spec: `specs/context-menu-open-with/v1.md`)
 - [x] Tooltip in the saved path dropdown overflowing the `X` icon (spec: `specs/bookmark-tooltip/v1.md`)
 
@@ -23,7 +23,7 @@ Not commitments — ideas to triage. Check here before proposing new features (s
 - [ ] Filter results by size/date/type
 - [ ] Save search as smart folder
 - [ ] Search inside archives
-- [ ] Option to search by filename(currently implemented only by folder name and file content)
+- [x] Option to search by filename(currently implemented only by folder name and file content)
 
 ## Remote/SFTP
 
@@ -43,18 +43,20 @@ Not commitments — ideas to triage. Check here before proposing new features (s
 ## UI/UX polish
 
 ## Terminal
+
 - [ ] As we have in iterm2 zsh, when I press on opt+arrow(left or right) the cursor starts to move word by word. The same happens in case of autocomplete, when opt is pressed and we click arrow I should see autocomplete word by word. Research about this and add this behaviour into our terminal as well.
 
 ## Editor/terminal
 
 ## Other
 
-- [ ] Migrate root, frontend, and e2e from npm to Bun (later; spec: `specs/bun/v1.md`)
+- [x] Migrate root, frontend, and e2e from npm to Bun (later; spec: `specs/bun/v1.md`)
 - [x] Duplicate finder (exact SHA-256, similar images, optional OCR; setup → progress → review → merge; background + status bar). Local, SSH/SFTP, SMB, MEGA.
 - [ ] Duplicate finder on native Google Drive / iCloud APIs (today those connections are local OS mounts only)
 - [ ] Add new option into duplicate finder, handle apple's/ios live videos, like if user wishes to delete them as well. I belive there should be connection between photo(meta info) and a short(1-3 seconds) video. Because when you watch this photos in ios there is no seperate photo and video, they are attached to each other. RESEARCH first. (spec: `specs/duplicate-finder/v3-live-photo.md`)
   - [ ] Add also option to remove this videos itself (same spec)
 - [ ] Duplicate finder new option for image diff. Maybe if we see some similiarites between date, name and some other options we can also check via image diff this photos in order to select them to remove. (spec: `specs/duplicate-finder/v3-image-diff.md`)
+- [ ] Research and add another option into find duplicates. Ability to search apple's live video(about two second video that goes with photo) and remove it if needed. (same work as `specs/duplicate-finder/v3-live-photo.md` — do not implement twice)
 - [x] Local trash/recycle bin (OS trash, in-app `trash://` restore, empty, Shift+Delete)
 - [x] Cursor usage in the AI usage toolbar popover (personal Pro quota via local Cursor session; not a status-bar chip)
 - [ ] SSH/SMB soft-delete/restore (MEGA already uses MEGA trash)
@@ -62,4 +64,3 @@ Not commitments — ideas to triage. Check here before proposing new features (s
 - [ ] Plugin/extension points — low priority, only if long-term extensibility actually needed
 - [ ] New settings to show only in the tray or both tray and system menu
 - [ ] Password vault for local folders/files (spec: `specs/folder-vault/v1.md`) — per-file AES-256-GCM, no mount, auto-lock on leave/quit/idle. Not zip, not DMG.
-- [ ] Research and add another option into find duplicates. Ability to search apple's live video(about two second video that goes with photo) and remove it if needed. (same work as `specs/duplicate-finder/v3-live-photo.md` — do not implement twice)
