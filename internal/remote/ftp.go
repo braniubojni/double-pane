@@ -117,9 +117,9 @@ func (s *ftpSession) login(password string) error {
 	if err != nil {
 		return err
 	}
-	switch {
-	case userRep.code == 230:
-	case userRep.code == 331 || userRep.code == 332:
+	switch userRep.code {
+	case 230:
+	case 331, 332:
 		line := "PASS"
 		if password != "" {
 			line = "PASS " + password
