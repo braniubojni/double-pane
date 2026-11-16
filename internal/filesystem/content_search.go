@@ -38,6 +38,7 @@ func SearchContent(
 	root, query, include, exclude string,
 	showHidden, caseSensitive bool,
 	limit int,
+	hitFilter domain.SearchFilter,
 	cb ContentSearchCallbacks,
 ) (truncated bool, err error) {
 	if strings.TrimSpace(query) == "" {
@@ -205,6 +206,9 @@ walk:
 			if !filter.Match(rel) {
 				continue
 			}
+			if !SearchCandidateAllowed(hitFilter, name, false, info.Size(), info.ModTime().UnixMilli()) {
+				continue
+			}
 			if info.Size() > MaxContentFileBytes || info.Size() == 0 {
 				continue
 			}
@@ -252,11 +256,7 @@ func ScanContentBytes(path, rel string, data []byte, needle string, caseSensitiv
 	if remaining <= 0 || len(data) == 0 {
 		return nil
 	}
-	sniff := data
-	if len(sniff) > contentBinarySniffBytes {
-		sniff = sniff[:contentBinarySniffBytes]
-	}
-	if bytes.IndexByte(sniff, 0) >= 0 {
+	if prefixIsBinary(data) {
 		return nil
 	}
 

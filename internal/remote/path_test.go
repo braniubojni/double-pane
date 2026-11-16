@@ -171,6 +171,44 @@ func TestSMBJoinPathIPv6(t *testing.T) {
 	}
 }
 
+func TestParseFTPSpecAndLocation(t *testing.T) {
+	t.Parallel()
+	loc, err := ParseLocation("ftp://a@h:21/x")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loc.User != "a" || loc.Host != "h" || loc.Port != 21 || loc.RemotePath != "/x" {
+		t.Fatalf("%+v", loc)
+	}
+	if !IsRemote(loc.JoinPath(loc.RemotePath)) || SchemeOf("ftp://a@h:21/x") != "ftp" || !IsFTP("ftp://a@h:21/x") {
+		t.Fatal("scheme helpers")
+	}
+	if loc.SessionKey() != "ftp:a@h:21" {
+		t.Fatalf("key %s", loc.SessionKey())
+	}
+	anon, err := ParseSpec("ftp anonymous@files.example")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !anon.IsFTP() || anon.User != "anonymous" || anon.Host != "files.example" || anon.Port != 21 {
+		t.Fatalf("%+v", anon)
+	}
+	if _, err := ParseLocation("ftp://host/no-user"); err == nil {
+		t.Fatal("expected missing user")
+	}
+	def, err := ParseLocation("ftp://anonymous@host/pub")
+	if err != nil || def.Port != 21 || def.RemotePath != "/pub" {
+		t.Fatalf("%+v %v", def, err)
+	}
+	v6, err := ParseSpec("ftp://alice@[::1]:2121/")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if v6.Host != "::1" || v6.Port != 2121 || v6.RootPath() != "ftp://alice@[::1]:2121/" {
+		t.Fatalf("%+v root %s", v6, v6.RootPath())
+	}
+}
+
 func TestParseMEGASpecAndLocation(t *testing.T) {
 	t.Parallel()
 	s, err := ParseSpec("mega://alice@gmail.com/")

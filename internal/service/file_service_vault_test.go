@@ -53,7 +53,7 @@ func TestFileServiceVaultLifecycle(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	events := vaultEventChan(s)
 	defer vault.LockAll()
 
@@ -201,7 +201,7 @@ func TestFileServiceCreateFileVaultAndRemove(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	events := vaultEventChan(s)
 	defer vault.LockAll()
 

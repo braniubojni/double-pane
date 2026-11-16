@@ -114,7 +114,7 @@ func TestPasteMode(t *testing.T) {
 
 func TestPasteRemoteUploadsLocalFiles(t *testing.T) {
 	t.Parallel()
-	s := NewFileService(nil, nil, nil, t.TempDir())
+	s := NewFileService(nil, nil, nil, nil, t.TempDir())
 	src := filepath.Join(t.TempDir(), "a.txt")
 	if err := os.WriteFile(src, []byte("hi"), 0o644); err != nil {
 		t.Fatal(err)
@@ -143,7 +143,7 @@ func TestPasteRemoteUploadsLocalFiles(t *testing.T) {
 
 func TestPasteRemoteUsesUploadNotCopy(t *testing.T) {
 	t.Parallel()
-	s := NewFileService(nil, nil, nil, t.TempDir())
+	s := NewFileService(nil, nil, nil, nil, t.TempDir())
 	src := filepath.Join(t.TempDir(), "a.txt")
 	if err := os.WriteFile(src, []byte("hi"), 0o644); err != nil {
 		t.Fatal(err)
@@ -165,7 +165,7 @@ func TestPasteRemotePNGCleanup(t *testing.T) {
 
 	t.Run("error", func(t *testing.T) {
 		t.Parallel()
-		s := NewFileService(nil, nil, nil, t.TempDir())
+		s := NewFileService(nil, nil, nil, nil, t.TempDir())
 		var temp string
 		s.pasteUpload = func(_ context.Context, sources []string, _ string, _ filesystem.ProgressFunc) error {
 			if len(sources) != 1 {
@@ -201,7 +201,7 @@ func TestPasteRemotePNGCleanup(t *testing.T) {
 
 	t.Run("cancel", func(t *testing.T) {
 		t.Parallel()
-		s := NewFileService(nil, nil, nil, t.TempDir())
+		s := NewFileService(nil, nil, nil, nil, t.TempDir())
 		entered := make(chan struct{})
 		var temp string
 		s.pasteUpload = func(ctx context.Context, sources []string, _ string, _ filesystem.ProgressFunc) error {
@@ -239,7 +239,7 @@ func TestPasteRemotePNGCleanup(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		t.Parallel()
-		s := NewFileService(nil, nil, nil, t.TempDir())
+		s := NewFileService(nil, nil, nil, nil, t.TempDir())
 		var temp string
 		s.pasteUpload = func(_ context.Context, sources []string, _ string, _ filesystem.ProgressFunc) error {
 			temp = sources[0]

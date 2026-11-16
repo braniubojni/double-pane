@@ -75,6 +75,18 @@ export const SearchDialog: FC<Props> = ({ open, onClose }) => {
           mode: p.mode === 'folders' || p.mode === 'files' ? p.mode : 'content',
           replaceOpen: Boolean(p.replaceOpen),
           caseSensitive: Boolean(p.caseSensitive),
+          minSize: p.minSize ?? 0,
+          maxSize: p.maxSize ?? 0,
+          modifiedAfter: p.modifiedAfter ?? 0,
+          modifiedBefore: p.modifiedBefore ?? 0,
+          type:
+            p.type === 'file' ||
+            p.type === 'dir' ||
+            p.type === 'image' ||
+            p.type === 'text' ||
+            p.type === 'archive'
+              ? p.type
+              : '',
         });
         setLoaded(true);
       })

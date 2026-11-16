@@ -93,7 +93,7 @@ export const allSameParentAsDest = (paths: string[], dest: string): boolean => {
 export const tabLabel = (path: string): string => {
   if (!path) return '';
   if (isRemotePath(path)) {
-    const m = path.match(/^(?:ssh|smb|mega):\/\/(?:[^@/]+@)?([^/:]+)(?::\d+)?(\/.*)?$/i);
+    const m = path.match(/^(?:ssh|smb|mega|ftp):\/\/(?:[^@/]+@)?([^/:]+)(?::\d+)?(\/.*)?$/i);
     const host = m?.[1] ?? 'ssh';
     const rest = (m?.[2] ?? '/').replace(/\/+$/, '');
     const base = rest.split('/').filter(Boolean).pop();
@@ -144,9 +144,9 @@ export const shortenPath = (path: string, max = SHORTEN_MAX): string => {
   if (!path || path.length <= max) return path;
   let prefix = '';
   let rest = path;
-  const m = path.match(/^(?:ssh|smb|mega):\/\/([^/]+)(\/.*)?$/i);
+  const m = path.match(/^(?:ssh|smb|mega|ftp):\/\/([^/]+)(\/.*)?$/i);
   if (m) {
-    prefix = `${m[1].replace(/:22$/, '').replace(/:445$/, '')}:`;
+    prefix = `${m[1].replace(/:22$/, '').replace(/:445$/, '').replace(/:21$/, '')}:`;
     rest = m[2] ?? '/';
   }
   const sep = rest.includes('\\') && !rest.includes('/') ? '\\' : '/';

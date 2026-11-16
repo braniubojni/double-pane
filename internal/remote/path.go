@@ -14,8 +14,9 @@ import (
 //	ssh://user@host:port/abs/path
 //	smb://user@host:port/Share/path
 //	mega://user@domain/CloudDrive/path  (email as user@host; no port)
+//	ftp://user@host:port/path
 //
-// Port is always present after normalize for ssh (22) and smb (445).
+// Port is always present after normalize for ssh (22), smb (445), and ftp (21).
 
 var (
 	// ssh user@host, ssh user@host:port, user@host, user@host:port
@@ -24,9 +25,9 @@ var (
 	smbSpecRe = regexp.MustCompile(`(?i)^(?:([^@\s]*)@)?([^@:\s]+)(?::(\d+))?$`)
 )
 
-// Spec is a parsed remote connection target (SSH, SMB, or MEGA).
+// Spec is a parsed remote connection target (SSH, SMB, MEGA, or FTP).
 type Spec struct {
-	Scheme        string // "ssh" (default), "smb", or "mega"
+	Scheme        string // "ssh" (default), "smb", "mega", or "ftp"
 	User          string
 	Host          string
 	Port          int
@@ -42,10 +43,15 @@ func (s Spec) scheme() string {
 		return "smb"
 	case "mega":
 		return "mega"
+	case "ftp":
+		return "ftp"
 	default:
 		return "ssh"
 	}
 }
+
+// IsFTP reports whether this spec targets FTP.
+func (s Spec) IsFTP() bool { return s.scheme() == "ftp" }
 
 // IsSMB reports whether this spec targets SMB.
 func (s Spec) IsSMB() bool { return s.scheme() == "smb" }
@@ -61,13 +67,17 @@ func (s Spec) MEGAEmail() string {
 	return s.User + "@" + s.Host
 }
 
-// SessionKey returns user@host:port for SSH, smb:user@host:port for SMB, or mega:user@host for MEGA.
+// SessionKey returns user@host:port for SSH, smb:user@host:port for SMB,
+// mega:user@host for MEGA, or ftp:user@host:port for FTP.
 func (s Spec) SessionKey() string {
 	if s.IsMEGA() {
 		return "mega:" + s.MEGAEmail()
 	}
 	if s.IsSMB() {
 		return fmt.Sprintf("smb:%s@%s:%d", s.User, s.Host, s.Port)
+	}
+	if s.IsFTP() {
+		return fmt.Sprintf("ftp:%s@%s:%d", s.User, s.Host, s.Port)
 	}
 	return fmt.Sprintf("%s@%s:%d", s.User, s.Host, s.Port)
 }
@@ -117,6 +127,9 @@ func ParseSpec(input string) (Spec, error) {
 	if isSMBInput(raw) {
 		return parseSMBSpec(raw)
 	}
+	if isFTPInput(raw) {
+		return parseFTPSpec(raw)
+	}
 	// Allow full URL form as input too
 	if strings.HasPrefix(strings.ToLower(raw), "ssh://") {
 		loc, err := ParseLocation(raw)
@@ -143,7 +156,45 @@ func ParseSpec(input string) (Spec, error) {
 			return SpecFromSSHConfigHost(h), nil
 		}
 	}
-	return Spec{}, fmt.Errorf("invalid format; use: ssh user@host, user@host:port, smb://host, mega://user@domain, or an SSH config Host alias")
+	return Spec{}, fmt.Errorf("invalid format; use: ssh user@host, user@host:port, smb://host, mega://user@domain, ftp://user@host, or an SSH config Host alias")
+}
+
+func isFTPInput(raw string) bool {
+	lower := strings.ToLower(strings.TrimSpace(raw))
+	return strings.HasPrefix(lower, "ftp://") ||
+		strings.HasPrefix(lower, "ftp:") ||
+		strings.HasPrefix(lower, "ftp ")
+}
+
+func parseFTPSpec(raw string) (Spec, error) {
+	raw = strings.TrimSpace(raw)
+	if strings.HasPrefix(strings.ToLower(raw), "ftp://") {
+		loc, err := ParseLocation(raw)
+		if err != nil {
+			return Spec{}, err
+		}
+		return loc.Spec, nil
+	}
+	rest := raw
+	switch {
+	case strings.HasPrefix(strings.ToLower(rest), "ftp:"):
+		rest = strings.TrimSpace(rest[4:])
+	case strings.HasPrefix(strings.ToLower(rest), "ftp "):
+		rest = strings.TrimSpace(rest[4:])
+	}
+	m := specRe.FindStringSubmatch(rest)
+	if m == nil {
+		return Spec{}, fmt.Errorf("invalid ftp target; use: ftp://user@host or ftp user@host:21")
+	}
+	port := 21
+	if m[3] != "" {
+		p, err := strconv.Atoi(m[3])
+		if err != nil || p <= 0 || p > 65535 {
+			return Spec{}, fmt.Errorf("invalid port")
+		}
+		port = p
+	}
+	return Spec{Scheme: "ftp", User: m[1], Host: m[2], Port: port}, nil
 }
 
 func isMEGAInput(raw string) bool {
@@ -248,9 +299,14 @@ type Location struct {
 	RemotePath string // absolute path on remote, e.g. /home/user or /Share/folder
 }
 
-// IsRemote reports whether path is an ssh://, smb://, or mega:// virtual path.
+// IsRemote reports whether path is an ssh://, smb://, mega://, or ftp:// virtual path.
 func IsRemote(path string) bool {
-	return IsSSH(path) || IsSMB(path) || IsMEGA(path)
+	return IsSSH(path) || IsSMB(path) || IsMEGA(path) || IsFTP(path)
+}
+
+// IsFTP reports whether path is an ftp:// virtual path.
+func IsFTP(path string) bool {
+	return strings.HasPrefix(strings.ToLower(strings.TrimSpace(path)), "ftp://")
 }
 
 // IsSSH reports whether path is an ssh:// virtual path.
@@ -268,13 +324,15 @@ func IsMEGA(path string) bool {
 	return strings.HasPrefix(strings.ToLower(strings.TrimSpace(path)), "mega://")
 }
 
-// SchemeOf returns "ssh", "smb", "mega", or "" for a path.
+// SchemeOf returns "ssh", "smb", "mega", "ftp", or "" for a path.
 func SchemeOf(path string) string {
 	switch {
 	case IsMEGA(path):
 		return "mega"
 	case IsSMB(path):
 		return "smb"
+	case IsFTP(path):
+		return "ftp"
 	case IsSSH(path):
 		return "ssh"
 	default:
@@ -293,14 +351,14 @@ func ParseLocation(path string) (Location, error) {
 		return Location{}, fmt.Errorf("invalid remote path: %w", err)
 	}
 	scheme := strings.ToLower(u.Scheme)
-	if scheme != "ssh" && scheme != "smb" && scheme != "mega" {
+	if scheme != "ssh" && scheme != "smb" && scheme != "mega" && scheme != "ftp" {
 		return Location{}, fmt.Errorf("unsupported scheme %q", u.Scheme)
 	}
 	user := ""
 	if u.User != nil {
 		user = u.User.Username()
 	}
-	if (scheme == "ssh" || scheme == "mega") && user == "" {
+	if (scheme == "ssh" || scheme == "mega" || scheme == "ftp") && user == "" {
 		return Location{}, fmt.Errorf("missing user in remote path")
 	}
 	host := u.Hostname()
@@ -321,6 +379,9 @@ func ParseLocation(path string) (Location, error) {
 	if scheme == "smb" {
 		port = 445
 	}
+	if scheme == "ftp" {
+		port = 21
+	}
 	if p := u.Port(); p != "" {
 		n, err := strconv.Atoi(p)
 		if err != nil || n <= 0 {
@@ -328,9 +389,14 @@ func ParseLocation(path string) (Location, error) {
 		}
 		port = n
 	}
-	name, domain := splitDomainUser(user)
-	if q := u.Query().Get("domain"); q != "" {
-		domain = q
+	name, domain := user, ""
+	if scheme != "ftp" {
+		name, domain = splitDomainUser(user)
+	}
+	if scheme == "smb" {
+		if q := u.Query().Get("domain"); q != "" {
+			domain = q
+		}
 	}
 	rp := u.Path
 	if rp == "" {

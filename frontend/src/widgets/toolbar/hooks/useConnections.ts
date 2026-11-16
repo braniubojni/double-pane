@@ -26,6 +26,7 @@ import type {
 } from '../../../features/connections/types';
 import { usePaneStore } from '../../../features/pane/paneStore';
 import { smbAuthFailMessage } from '../../../features/connections/smbCopy';
+import { buildFTPSpec, parseFTPForm } from '../../../features/connections/ftpValidate';
 import { parseSMBForm, smbShareError } from '../../../features/connections/smbValidate';
 import { megaEmailOk } from '../components/MEGAConnectFields';
 import { ConnectionService } from '../../../shared/api/bindings';
@@ -66,6 +67,7 @@ export const useConnections = () => {
   const sessionKeys = new Set(sessions.map((s) => s.key));
   const sshProfiles = profiles.filter((p) => p.protocol === 'ssh' || !p.protocol);
   const smbProfiles = profiles.filter((p) => p.protocol === 'smb');
+  const ftpProfiles = profiles.filter((p) => p.protocol === 'ftp');
   const megaProfiles = profiles.filter((p) => p.protocol === 'mega');
 
   const refresh = () => {
@@ -394,6 +396,35 @@ export const useConnections = () => {
       }
       return;
     }
+    if (dialog.mode === 'add_ftp') {
+      const parsed = parseFTPForm({
+        host: dialog.smbHost,
+        user: dialog.smbUser,
+        port: dialog.smbPort,
+      });
+      if (!parsed.ok) {
+        dispatch({
+          type: 'set_error',
+          error:
+            parsed.errors.host ||
+            parsed.errors.user ||
+            parsed.errors.port ||
+            'Fix the highlighted fields',
+        });
+        return;
+      }
+      dispatch({ type: 'set_busy', busy: true });
+      try {
+        const spec = buildFTPSpec(parsed.host, parsed.user, parsed.port);
+        const res = await ConnectionService.ConnectSpec(spec, dialog.password, dialog.save);
+        await afterConnect(res);
+      } catch (e) {
+        dispatch({ type: 'set_error', error: errMessage(e) });
+      } finally {
+        dispatch({ type: 'set_busy', busy: false });
+      }
+      return;
+    }
     if (dialog.mode === 'add_smb') {
       const parsed = parseSMBForm({
         host: dialog.smbHost,
@@ -504,6 +535,7 @@ export const useConnections = () => {
     dispatch,
     sshProfiles,
     smbProfiles,
+    ftpProfiles,
     megaProfiles,
     sessionKeys,
     onMenuConnect,

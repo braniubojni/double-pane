@@ -38,7 +38,8 @@ func main() {
 	remoteMgr := service.NewRemoteManager(db)
 	smbMgr := remote.NewSMBManager()
 	megaMgr := remote.NewMEGAManager()
-	fileSvc := service.NewFileService(remoteMgr, smbMgr, megaMgr, filepath.Join(cfgStore.Dir(), "trash"))
+	ftpMgr := remote.NewFTPManager()
+	fileSvc := service.NewFileService(remoteMgr, smbMgr, megaMgr, ftpMgr, filepath.Join(cfgStore.Dir(), "trash"))
 	if os.Getenv(config.EnvConfigDir) == "" {
 		fileSvc.SetTrashBackend(filesystem.NewPlatformTrash())
 	}
@@ -52,7 +53,7 @@ func main() {
 	service.StartVaultIdleTicker()
 	bookmarkSvc := service.NewBookmarkService(db)
 	termSvc := service.NewTerminalService(remoteMgr)
-	connSvc := service.NewConnectionService(db, remoteMgr, smbMgr, megaMgr)
+	connSvc := service.NewConnectionService(db, remoteMgr, smbMgr, megaMgr, ftpMgr)
 	updateSvc := service.NewUpdateService()
 	gitSvc := service.NewGitService()
 	portSvc := service.NewPortService()
@@ -110,6 +111,7 @@ func main() {
 		remoteMgr.CloseAll()
 		smbMgr.CloseAll()
 		megaMgr.CloseAll()
+		ftpMgr.CloseAll()
 		_ = db.Close()
 	})
 

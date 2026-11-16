@@ -39,6 +39,11 @@ const prefs = (patch: Partial<SearchPrefs> = {}): SearchPrefs => ({
   mode: 'content',
   replaceOpen: false,
   caseSensitive: true,
+  minSize: 0,
+  maxSize: 0,
+  modifiedAfter: 0,
+  modifiedBefore: 0,
+  type: '',
   ...patch,
 });
 
@@ -127,6 +132,11 @@ describe('useSearchSession hit batching', () => {
       true,
       false,
       500,
+      0,
+      0,
+      0,
+      0,
+      '',
     );
     const file = {
       name: 'readme.md',

@@ -20,7 +20,7 @@ func TestOCRScanPairsSameText(t *testing.T) {
 	writeFile(t, filepath.Join(root, "b.jpg"), flagJPEG(t, 48, 48, 1, 90))
 
 	const shared = "Login button submit form dashboard settings profile logout welcome"
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	s.ocrFile = func(ctx context.Context, path string) (string, error) {
 		return shared, nil
 	}
@@ -57,7 +57,7 @@ func TestOCRScanEmptyTextNoGroup(t *testing.T) {
 	writeFile(t, filepath.Join(root, "a.jpg"), flagJPEG(t, 64, 64, 0, 90))
 	writeFile(t, filepath.Join(root, "b.jpg"), flagJPEG(t, 48, 48, 1, 90))
 
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	s.ocrFile = func(ctx context.Context, path string) (string, error) {
 		return "  ", nil
 	}
@@ -89,7 +89,7 @@ func TestOCRScanExactPairNotInOCR(t *testing.T) {
 	writeFile(t, filepath.Join(root, "a.jpg"), same)
 	writeFile(t, filepath.Join(root, "b.jpg"), same)
 
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	s.ocrFile = func(ctx context.Context, path string) (string, error) {
 		t.Fatal("ocr should not run on exact twins")
 		return "", nil
@@ -121,7 +121,7 @@ func TestOCRScanTimeoutSkipNotFatal(t *testing.T) {
 	writeFile(t, filepath.Join(root, "a.jpg"), flagJPEG(t, 64, 64, 0, 90))
 	writeFile(t, filepath.Join(root, "b.jpg"), flagJPEG(t, 48, 48, 1, 90))
 
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	s.ocrFile = func(ctx context.Context, path string) (string, error) {
 		return "", context.DeadlineExceeded
 	}
@@ -153,7 +153,7 @@ func TestEstimateOcrSecondsAndMegaBytes(t *testing.T) {
 	writeFile(t, filepath.Join(root, "b.jpg"), flagJPEG(t, 40, 24, 1, 90))
 	writeFile(t, filepath.Join(root, "c.txt"), []byte("x"))
 
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	off, err := s.EstimateDuplicateScan(root, false, 0, "", false, 90, false)
 	if err != nil {
 		t.Fatal(err)
@@ -177,7 +177,7 @@ func TestEstimateOcrSecondsAndMegaBytes(t *testing.T) {
 }
 
 func TestOCRAvailableThin(t *testing.T) {
-	s := NewFileService(nil, nil, nil, t.TempDir())
+	s := NewFileService(nil, nil, nil, nil, t.TempDir())
 	// just ensure method is callable; value depends on host PATH
 	_ = s.OCRAvailable()
 }
@@ -191,7 +191,7 @@ func TestOCRScanCancelAborts(t *testing.T) {
 	writeFile(t, filepath.Join(root, "a.jpg"), flagJPEG(t, 48, 48, 0, 90))
 	writeFile(t, filepath.Join(root, "b.jpg"), flagJPEG(t, 32, 32, 1, 90))
 
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	block := make(chan struct{})
 	s.ocrFile = func(ctx context.Context, path string) (string, error) {
 		select {

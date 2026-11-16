@@ -91,6 +91,7 @@ func (s *FileService) searchFoldersRemote(
 	root, query, include, exclude string,
 	showHidden bool,
 	limit int,
+	hitFilter domain.SearchFilter,
 	onHit func(domain.SearchHit),
 	onDenied func(path string, err error),
 ) (truncated bool, err error) {
@@ -107,8 +108,9 @@ func (s *FileService) searchFoldersRemote(
 		if !filter.MatchDir(rel) {
 			return false, false // prune: do not descend into excluded dirs
 		}
-		if filter.Match(rel) && (q == "" || strings.Contains(strings.ToLower(e.Name), q)) {
-			onHit(domain.SearchHit{Name: e.Name, Path: e.Path, IsDir: true, RelPath: rel})
+		if filter.Match(rel) && (q == "" || strings.Contains(strings.ToLower(e.Name), q)) &&
+			filesystem.SearchCandidateAllowed(hitFilter, e.Name, true, e.Size, e.ModTime) {
+			onHit(domain.SearchHit{Name: e.Name, Path: e.Path, IsDir: true, RelPath: rel, Size: e.Size, ModTime: e.ModTime})
 			hits++
 			if hits >= limit {
 				truncated = true
@@ -133,6 +135,7 @@ func (s *FileService) searchFilesRemote(
 	root, query, include, exclude string,
 	showHidden bool,
 	limit int,
+	hitFilter domain.SearchFilter,
 	onHit func(domain.SearchHit),
 	onDenied func(path string, err error),
 ) (truncated bool, err error) {
@@ -152,8 +155,12 @@ func (s *FileService) searchFilesRemote(
 			}
 			return true, false
 		}
-		if filter.Match(rel) && strings.Contains(strings.ToLower(e.Name), q) {
-			onHit(domain.SearchHit{Name: e.Name, Path: e.Path, IsDir: false, RelPath: rel})
+		if filter.Match(rel) && strings.Contains(strings.ToLower(e.Name), q) &&
+			filesystem.SearchCandidateAllowed(hitFilter, e.Name, false, e.Size, e.ModTime) {
+			if hitFilter.Type == "text" && !remoteEntryIsText(be, e.Path) {
+				return false, false
+			}
+			onHit(domain.SearchHit{Name: e.Name, Path: e.Path, IsDir: false, RelPath: rel, Size: e.Size, ModTime: e.ModTime})
 			hits++
 			if hits >= limit {
 				truncated = true
@@ -178,6 +185,7 @@ func (s *FileService) searchContentRemote(
 	root, query, include, exclude string,
 	caseSensitive, showHidden bool,
 	limit int,
+	hitFilter domain.SearchFilter,
 	onHit func(domain.ContentSearchHit),
 	onDenied func(path string, err error),
 ) (truncated bool, err error) {
@@ -201,6 +209,9 @@ func (s *FileService) searchContentRemote(
 			return true, false
 		}
 		if !filter.Match(rel) {
+			return false, false
+		}
+		if !filesystem.SearchCandidateAllowed(hitFilter, e.Name, false, e.Size, e.ModTime) {
 			return false, false
 		}
 		if e.Size == 0 || e.Size > filesystem.MaxContentFileBytes {
@@ -243,4 +254,13 @@ func (s *FileService) searchContentRemote(
 		return truncated, walkErr
 	}
 	return truncated, nil
+}
+
+func remoteEntryIsText(be remoteBackend, path string) bool {
+	r, err := be.OpenRead(path)
+	if err != nil {
+		return false
+	}
+	defer func() { _ = r.Close() }()
+	return filesystem.ReaderIsText(r)
 }

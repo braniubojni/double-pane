@@ -119,13 +119,13 @@ export interface ConnectResult {
 }
 
 /**
- * ConnectionProfile is a saved remote connection (SSH, SMB, or MEGA).
+ * ConnectionProfile is a saved remote connection (SSH, SMB, MEGA, or FTP).
  */
 export interface ConnectionProfile {
     "id": string;
 
     /**
-     * "ssh", "smb", or "mega"
+     * "ssh", "smb", "mega", or "ftp"
      */
     "protocol": string;
     "user": string;
@@ -452,6 +452,16 @@ export interface SearchHit {
     "path": string;
     "isDir": boolean;
     "relPath": string;
+
+    /**
+     * bytes; 0 for content hits
+     */
+    "size": number;
+
+    /**
+     * unix ms; 0 for content hits
+     */
+    "modTime": number;
 }
 
 /**
@@ -469,6 +479,31 @@ export interface SearchPrefs {
     "mode": string;
     "replaceOpen": boolean;
     "caseSensitive": boolean;
+
+    /**
+     * bytes, 0 = no min
+     */
+    "minSize": number;
+
+    /**
+     * bytes, 0 = no max
+     */
+    "maxSize": number;
+
+    /**
+     * unix ms, 0 = no bound
+     */
+    "modifiedAfter": number;
+
+    /**
+     * unix ms, 0 = no bound
+     */
+    "modifiedBefore": number;
+
+    /**
+     * "" | file | dir | image | text | archive
+     */
+    "type": string;
 }
 
 /**
