@@ -15,7 +15,7 @@ export const mergeConfirmCopy = (protocol: string): string => {
   if (protocol === 'mega') {
     return 'Moved to MEGA trash. Restore from MEGA, not from this app.';
   }
-  if (protocol === 'ssh' || protocol === 'smb') {
+  if (protocol === 'ssh' || protocol === 'smb' || protocol === 'ftp') {
     return 'Permanent delete. App Undo will not restore these.';
   }
   return 'Moved to the system trash. Undo from the notification or open Trash.';

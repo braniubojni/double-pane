@@ -44,6 +44,14 @@ export const addConnectionReducer = (
       return { ...initialAddConnectionState, open: true, mode: 'add', save: true };
     case 'open_add_smb':
       return { ...initialAddConnectionState, open: true, mode: 'add_smb', save: true };
+    case 'open_add_ftp':
+      return {
+        ...initialAddConnectionState,
+        open: true,
+        mode: 'add_ftp',
+        save: true,
+        smbPort: '21',
+      };
     case 'open_add_mega':
       return {
         ...initialAddConnectionState,

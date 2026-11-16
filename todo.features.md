@@ -12,7 +12,7 @@ Not commitments — ideas to triage. Check here before proposing new features (s
 
 ## Core file-manager gaps (Double Commander parity)
 
-- [ ] Quick view panel (F3-style preview: images, text, PDF) without opening editor (spec: `specs/quick-view/v1.md`)
+- [x] Quick view panel (F3-style preview: images, text, PDF) without opening editor (spec: `specs/quick-view/v1.md`)
 - [ ] Folder compare/sync (diff two dirs, sync one-way or two-way)
 - [ ] Batch rename (pattern-based, regex, counter)
 - [ ] Checksum/hash tool (MD5/SHA) to verify after copy
@@ -20,14 +20,14 @@ Not commitments — ideas to triage. Check here before proposing new features (s
 
 ## Search
 
-- [ ] Filter results by size/date/type
+- [x] Filter results by size/date/type (spec: `specs/search-filters/v1.md`)
 - [ ] Save search as smart folder
 - [ ] Search inside archives
 - [x] Option to search by filename(currently implemented only by folder name and file content)
 
 ## Remote/SFTP
 
-- [ ] FTP support
+- [x] FTP support (plain FTP, anonymous and password; spec: `specs/ftp/v1.md`)
 - [ ] SMB Kerberos / ticket auth (NTLM only in V1)
 - [ ] Copy/move between SSH and SMB in one step
 - [ ] Persist remote passwords (SSH/SMB) in OS keychain
@@ -42,11 +42,11 @@ Not commitments — ideas to triage. Check here before proposing new features (s
 
 ## UI/UX polish
 
-## Terminal
-
-- [ ] As we have in iterm2 zsh, when I press on opt+arrow(left or right) the cursor starts to move word by word. The same happens in case of autocomplete, when opt is pressed and we click arrow I should see autocomplete word by word. Research about this and add this behaviour into our terminal as well.
+- [ ] In case of editor and quick look when we open file with diff we need to show the diff lines. Something similar to vscode/cursor
 
 ## Editor/terminal
+
+- [ ] As we have in iterm2 zsh, when I press on opt+arrow(left or right) the cursor starts to move word by word. The same happens in case of autocomplete, when opt is pressed and we click arrow I should see autocomplete word by word. Research about this and add this behaviour into our terminal as well.
 
 ## Other
 
@@ -64,3 +64,4 @@ Not commitments — ideas to triage. Check here before proposing new features (s
 - [ ] Plugin/extension points — low priority, only if long-term extensibility actually needed
 - [ ] New settings to show only in the tray or both tray and system menu
 - [ ] Password vault for local folders/files (spec: `specs/folder-vault/v1.md`) — per-file AES-256-GCM, no mount, auto-lock on leave/quit/idle. Not zip, not DMG.
+- [ ] An option to sign-up with google account

@@ -381,6 +381,23 @@ func normalizeSearchPrefs(p domain.SearchPrefs) domain.SearchPrefs {
 	default:
 		p.Mode = domain.SearchModeContent
 	}
+	if p.MinSize < 0 {
+		p.MinSize = 0
+	}
+	if p.MaxSize < 0 {
+		p.MaxSize = 0
+	}
+	if p.ModifiedAfter < 0 {
+		p.ModifiedAfter = 0
+	}
+	if p.ModifiedBefore < 0 {
+		p.ModifiedBefore = 0
+	}
+	switch p.Type {
+	case "", "file", "dir", "image", "text", "archive":
+	default:
+		p.Type = ""
+	}
 	return p
 }
 

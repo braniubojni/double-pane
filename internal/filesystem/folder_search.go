@@ -28,6 +28,7 @@ func SearchFolders(
 	root, query, include, exclude string,
 	showHidden bool,
 	limit int,
+	hitFilter domain.SearchFilter,
 	cb FolderSearchCallbacks,
 ) (truncated bool, err error) {
 	abs, err := Resolve(root)
@@ -92,8 +93,8 @@ func SearchFolders(
 				continue
 			}
 
-			// Skip symlinks
-			if info, err := entry.Info(); err == nil && info.Mode()&os.ModeSymlink != 0 {
+			info, infoErr := entry.Info()
+			if infoErr == nil && info.Mode()&os.ModeSymlink != 0 {
 				continue
 			}
 			if !entry.IsDir() {
@@ -110,21 +111,28 @@ func SearchFolders(
 				continue
 			}
 
+			var size, modTime int64
+			if infoErr == nil {
+				size = info.Size()
+				modTime = info.ModTime().UnixMilli()
+			}
+
 			// Emit only when include allows this folder path (exclude already via MatchDir).
-			if filter.Match(rel) {
-				if q == "" || strings.Contains(strings.ToLower(name), q) {
-					if cb.OnHit != nil {
-						cb.OnHit(domain.SearchHit{
-							Name:    name,
-							Path:    full,
-							IsDir:   true,
-							RelPath: rel,
-						})
-					}
-					hits++
-					if hits >= limit {
-						return true, nil
-					}
+			if filter.Match(rel) && (q == "" || strings.Contains(strings.ToLower(name), q)) &&
+				SearchCandidateAllowed(hitFilter, name, true, size, modTime) {
+				if cb.OnHit != nil {
+					cb.OnHit(domain.SearchHit{
+						Name:    name,
+						Path:    full,
+						IsDir:   true,
+						RelPath: rel,
+						Size:    size,
+						ModTime: modTime,
+					})
+				}
+				hits++
+				if hits >= limit {
+					return true, nil
 				}
 			}
 

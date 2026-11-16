@@ -203,6 +203,8 @@ type SearchHit struct {
 	Path    string `json:"path"`
 	IsDir   bool   `json:"isDir"`
 	RelPath string `json:"relPath"`
+	Size    int64  `json:"size"`    // bytes; 0 for content hits
+	ModTime int64  `json:"modTime"` // unix ms; 0 for content hits
 }
 
 // Search mode values for Find-in-files dialog.
@@ -225,13 +227,27 @@ type ContentSearchHit struct {
 
 // SearchPrefs is the last Find-in-files dialog state (persisted).
 type SearchPrefs struct {
-	Query         string `json:"query"`
-	Replace       string `json:"replace"`
-	Include       string `json:"include"`
-	Exclude       string `json:"exclude"`
-	Mode          string `json:"mode"` // content | folders | files
-	ReplaceOpen   bool   `json:"replaceOpen"`
-	CaseSensitive bool   `json:"caseSensitive"`
+	Query          string `json:"query"`
+	Replace        string `json:"replace"`
+	Include        string `json:"include"`
+	Exclude        string `json:"exclude"`
+	Mode           string `json:"mode"` // content | folders | files
+	ReplaceOpen    bool   `json:"replaceOpen"`
+	CaseSensitive  bool   `json:"caseSensitive"`
+	MinSize        int64  `json:"minSize"`        // bytes, 0 = no min
+	MaxSize        int64  `json:"maxSize"`        // bytes, 0 = no max
+	ModifiedAfter  int64  `json:"modifiedAfter"`  // unix ms, 0 = no bound
+	ModifiedBefore int64  `json:"modifiedBefore"` // unix ms, 0 = no bound
+	Type           string `json:"type"`           // "" | file | dir | image | text | archive
+}
+
+// SearchFilter is the size, date, and type test applied before a hit counts.
+type SearchFilter struct {
+	MinSize        int64
+	MaxSize        int64
+	ModifiedAfter  int64
+	ModifiedBefore int64
+	Type           string
 }
 
 // SearchDonePayload is emitted when a streaming search finishes.
@@ -469,10 +485,10 @@ type ShortcutDef struct {
 	Binding     string `json:"binding"`
 }
 
-// ConnectionProfile is a saved remote connection (SSH, SMB, or MEGA).
+// ConnectionProfile is a saved remote connection (SSH, SMB, MEGA, or FTP).
 type ConnectionProfile struct {
 	ID             string   `json:"id"`
-	Protocol       string   `json:"protocol"` // "ssh", "smb", or "mega"
+	Protocol       string   `json:"protocol"` // "ssh", "smb", "mega", or "ftp"
 	User           string   `json:"user"`
 	Host           string   `json:"host"`
 	Port           int      `json:"port"`

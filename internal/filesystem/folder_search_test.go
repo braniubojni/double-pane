@@ -17,7 +17,7 @@ func TestSearchFoldersFindsDirs(t *testing.T) {
 	_ = os.WriteFile(filepath.Join(root, "src", "main.go"), []byte("x"), 0o644)
 
 	var hits []domain.SearchHit
-	_, err := SearchFolders(context.Background(), root, "comp", "", "build", false, 50, FolderSearchCallbacks{
+	_, err := SearchFolders(context.Background(), root, "comp", "", "build", false, 50, domain.SearchFilter{}, FolderSearchCallbacks{
 		OnHit: func(h domain.SearchHit) { hits = append(hits, h) },
 	})
 	if err != nil {
@@ -50,7 +50,7 @@ func TestSearchFoldersEmptyQueryListsDirs(t *testing.T) {
 	_ = os.MkdirAll(filepath.Join(root, "a"), 0o755)
 	_ = os.MkdirAll(filepath.Join(root, "b"), 0o755)
 	var hits []domain.SearchHit
-	_, err := SearchFolders(context.Background(), root, "", "", "", false, 50, FolderSearchCallbacks{
+	_, err := SearchFolders(context.Background(), root, "", "", "", false, 50, domain.SearchFilter{}, FolderSearchCallbacks{
 		OnHit: func(h domain.SearchHit) { hits = append(hits, h) },
 	})
 	if err != nil {

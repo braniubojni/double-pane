@@ -117,7 +117,7 @@ func TestSearchFoldersRemotePrunesExcluded(t *testing.T) {
 	be := newFakeTree()
 
 	var hits []domain.SearchHit
-	_, err := s.searchFoldersRemote(context.Background(), be, "ssh://h/root", "", "", "excluded", false, 10,
+	_, err := s.searchFoldersRemote(context.Background(), be, "ssh://h/root", "", "", "excluded", false, 10, domain.SearchFilter{},
 		func(h domain.SearchHit) { hits = append(hits, h) },
 		func(string, error) {},
 	)
@@ -151,7 +151,7 @@ func TestSearchFilesRemoteBasenameOnly(t *testing.T) {
 	}
 
 	var hits []domain.SearchHit
-	_, err := s.searchFilesRemote(context.Background(), be, "ssh://h/root", "txt", "", "", false, 10,
+	_, err := s.searchFilesRemote(context.Background(), be, "ssh://h/root", "txt", "", "", false, 10, domain.SearchFilter{},
 		func(h domain.SearchHit) { hits = append(hits, h) },
 		func(string, error) {},
 	)
@@ -176,7 +176,7 @@ func TestSearchFilesRemoteBasenameOnly(t *testing.T) {
 	}
 
 	hits = nil
-	_, err = s.searchFilesRemote(context.Background(), be, "ssh://h/root", "src", "", "", false, 10,
+	_, err = s.searchFilesRemote(context.Background(), be, "ssh://h/root", "src", "", "", false, 10, domain.SearchFilter{},
 		func(h domain.SearchHit) { hits = append(hits, h) },
 		func(string, error) {},
 	)
@@ -188,7 +188,7 @@ func TestSearchFilesRemoteBasenameOnly(t *testing.T) {
 	}
 
 	hits = nil
-	_, err = s.searchFilesRemote(context.Background(), be, "ssh://h/root", "", "", "*.txt", false, 10,
+	_, err = s.searchFilesRemote(context.Background(), be, "ssh://h/root", "", "", "*.txt", false, 10, domain.SearchFilter{},
 		func(h domain.SearchHit) { hits = append(hits, h) },
 		func(string, error) {},
 	)
@@ -204,7 +204,7 @@ func TestSearchContentRemoteFindsMatch(t *testing.T) {
 	s := &FileService{}
 	be := newContentFake()
 	var hits []domain.ContentSearchHit
-	truncated, err := s.searchContentRemote(context.Background(), be, "ssh://h/root", "hello", "", "", false, false, 50,
+	truncated, err := s.searchContentRemote(context.Background(), be, "ssh://h/root", "hello", "", "", false, false, 50, domain.SearchFilter{},
 		func(h domain.ContentSearchHit) { hits = append(hits, h) },
 		func(string, error) {},
 	)
@@ -234,7 +234,7 @@ func TestSearchContentRemoteFindsMatch(t *testing.T) {
 func TestSearchContentRemoteSkipsHugeWithoutOpen(t *testing.T) {
 	s := &FileService{}
 	be := newContentFake()
-	_, err := s.searchContentRemote(context.Background(), be, "ssh://h/root", "x", "", "", false, false, 50,
+	_, err := s.searchContentRemote(context.Background(), be, "ssh://h/root", "x", "", "", false, false, 50, domain.SearchFilter{},
 		func(domain.ContentSearchHit) {},
 		func(string, error) {},
 	)
@@ -252,7 +252,7 @@ func TestSearchContentRemoteSkipsBinary(t *testing.T) {
 	s := &FileService{}
 	be := newContentFake()
 	var hits []domain.ContentSearchHit
-	_, err := s.searchContentRemote(context.Background(), be, "ssh://h/root", "x", "", "", false, false, 50,
+	_, err := s.searchContentRemote(context.Background(), be, "ssh://h/root", "x", "", "", false, false, 50, domain.SearchFilter{},
 		func(h domain.ContentSearchHit) { hits = append(hits, h) },
 		func(string, error) {},
 	)
@@ -271,7 +271,7 @@ func TestSearchContentRemoteDeniedContinues(t *testing.T) {
 	be := newContentFake()
 	var denied []string
 	var hits []domain.ContentSearchHit
-	_, err := s.searchContentRemote(context.Background(), be, "ssh://h/root", "hello", "", "", false, false, 50,
+	_, err := s.searchContentRemote(context.Background(), be, "ssh://h/root", "hello", "", "", false, false, 50, domain.SearchFilter{},
 		func(h domain.ContentSearchHit) { hits = append(hits, h) },
 		func(path string, _ error) { denied = append(denied, path) },
 	)
@@ -290,7 +290,7 @@ func TestSearchContentRemoteIncludeExclude(t *testing.T) {
 	s := &FileService{}
 	be := newContentFake()
 	var hits []domain.ContentSearchHit
-	_, err := s.searchContentRemote(context.Background(), be, "ssh://h/root", "hello", "*.go", "skip", false, false, 50,
+	_, err := s.searchContentRemote(context.Background(), be, "ssh://h/root", "hello", "*.go", "skip", false, false, 50, domain.SearchFilter{},
 		func(h domain.ContentSearchHit) { hits = append(hits, h) },
 		func(string, error) {},
 	)
@@ -306,7 +306,7 @@ func TestSearchContentRemoteLimitTruncates(t *testing.T) {
 	s := &FileService{}
 	be := newContentFake()
 	var hits []domain.ContentSearchHit
-	truncated, err := s.searchContentRemote(context.Background(), be, "ssh://h/root", "hello", "", "", false, false, 1,
+	truncated, err := s.searchContentRemote(context.Background(), be, "ssh://h/root", "hello", "", "", false, false, 1, domain.SearchFilter{},
 		func(h domain.ContentSearchHit) { hits = append(hits, h) },
 		func(string, error) {},
 	)
@@ -328,7 +328,7 @@ func TestSearchContentRemoteCancel(t *testing.T) {
 	cancel()
 	done := make(chan struct{})
 	go func() {
-		_, _ = s.searchContentRemote(ctx, be, "ssh://h/root", "hello", "", "", false, false, 50,
+		_, _ = s.searchContentRemote(ctx, be, "ssh://h/root", "hello", "", "", false, false, 50, domain.SearchFilter{},
 			func(domain.ContentSearchHit) {},
 			func(string, error) {},
 		)
@@ -341,9 +341,17 @@ func TestSearchContentRemoteCancel(t *testing.T) {
 	}
 }
 
+func TestStartSearchRejectsInvertedSize(t *testing.T) {
+	s := &FileService{}
+	err := s.StartSearch("job1", t.TempDir(), "a", domain.SearchModeFiles, "", "", false, false, 10, 200, 100, 0, 0, "")
+	if err == nil || !strings.Contains(err.Error(), "max size") {
+		t.Fatalf("got %v", err)
+	}
+}
+
 func TestStartSearchMEGAContentBlocked(t *testing.T) {
 	s := &FileService{}
-	err := s.StartSearch("job1", "mega://u@h/path", "hello", domain.SearchModeContent, "", "", false, false, 10)
+	err := s.StartSearch("job1", "mega://u@h/path", "hello", domain.SearchModeContent, "", "", false, false, 10, 0, 0, 0, 0, "")
 	if err == nil || !strings.Contains(err.Error(), "MEGA") {
 		t.Fatalf("want MEGA error, got %v", err)
 	}
@@ -359,7 +367,7 @@ func TestStartSearchMEGAFileNamesAllowed(t *testing.T) {
 			}
 		}
 	}}
-	err := s.StartSearch("job1", "mega://u@h/path", "readme", domain.SearchModeFiles, "", "", false, false, 10)
+	err := s.StartSearch("job1", "mega://u@h/path", "readme", domain.SearchModeFiles, "", "", false, false, 10, 0, 0, 0, 0, "")
 	if err != nil {
 		t.Fatal(err)
 	}

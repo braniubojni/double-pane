@@ -15,17 +15,18 @@ import (
 const kvConnections = "connections"
 const kvHostKeys = "ssh_host_keys"
 
-// ConnectionService manages remote connection profiles and SSH/SMB/MEGA sessions.
+// ConnectionService manages remote connection profiles and SSH/SMB/MEGA/FTP sessions.
 type ConnectionService struct {
 	db      *storage.DB
 	manager *remote.Manager
 	smb     *remote.SMBManager
 	mega    *remote.MEGAManager
+	ftp     *remote.FTPManager
 }
 
 // NewConnectionService creates the service. managers may be shared with FileService.
-func NewConnectionService(db *storage.DB, manager *remote.Manager, smb *remote.SMBManager, mega *remote.MEGAManager) *ConnectionService {
-	return &ConnectionService{db: db, manager: manager, smb: smb, mega: mega}
+func NewConnectionService(db *storage.DB, manager *remote.Manager, smb *remote.SMBManager, mega *remote.MEGAManager, ftp *remote.FTPManager) *ConnectionService {
+	return &ConnectionService{db: db, manager: manager, smb: smb, mega: mega, ftp: ftp}
 }
 
 // ListProfiles returns saved connection profiles.
@@ -86,7 +87,7 @@ func (s *ConnectionService) SetProfileDefaultWorkDir(profileID, vpath string) er
 		return fmt.Errorf("profile id required")
 	}
 	if !remote.IsRemote(vpath) {
-		return fmt.Errorf("default workdir must be a remote ssh://, smb://, or mega:// path")
+		return fmt.Errorf("default workdir must be a remote ssh://, smb://, mega://, or ftp:// path")
 	}
 	list, err := s.loadProfiles()
 	if err != nil {
@@ -149,6 +150,16 @@ func (s *ConnectionService) ConnectProfile(id string, password string) (domain.C
 		res.DefaultWorkDir = prof.DefaultWorkDir
 		return res, nil
 	}
+	if prof.Protocol == "ftp" {
+		spec := remote.Spec{Scheme: "ftp", User: prof.User, Host: prof.Host, Port: prof.Port}
+		res, err := s.connectFTP(spec, password, false)
+		if err != nil {
+			return domain.ConnectResult{}, err
+		}
+		res.ProfileID = prof.ID
+		res.DefaultWorkDir = prof.DefaultWorkDir
+		return res, nil
+	}
 	if prof.Protocol != "ssh" && prof.Protocol != "" {
 		return domain.ConnectResult{}, fmt.Errorf("protocol %s not implemented yet", prof.Protocol)
 	}
@@ -196,6 +207,9 @@ func (s *ConnectionService) ConnectSpec(specStr string, password string, save bo
 	if parsed.IsSMB() {
 		return s.connectSMB(parsed, password, save)
 	}
+	if parsed.IsFTP() {
+		return s.connectFTP(parsed, password, save)
+	}
 	parsed = remote.EnrichSpec(parsed)
 	var profileID string
 	if save {
@@ -231,6 +245,11 @@ func (s *ConnectionService) Disconnect(keyOrPath string) error {
 			err = err2
 		}
 	}
+	if s.ftp != nil {
+		if err2 := s.ftp.Disconnect(keyOrPath); err2 != nil && err == nil {
+			err = err2
+		}
+	}
 	return err
 }
 
@@ -242,6 +261,9 @@ func (s *ConnectionService) ListSessions() []domain.ActiveSession {
 	}
 	if s.mega != nil {
 		out = append(out, s.mega.ListSessions()...)
+	}
+	if s.ftp != nil {
+		out = append(out, s.ftp.ListSessions()...)
 	}
 	return out
 }
@@ -257,6 +279,9 @@ func (s *ConnectionService) ParseSpec(spec string) (domain.ConnectionProfile, er
 	}
 	if parsed.IsSMB() {
 		return profileFromSMBSpec(parsed), nil
+	}
+	if parsed.IsFTP() {
+		return profileFromFTPSpec(parsed), nil
 	}
 	parsed = remote.EnrichSpec(parsed)
 	return profileFromSpec(parsed, ""), nil
@@ -386,6 +411,87 @@ func (s *ConnectionService) ConnectMEGA(email, password, totp string, save bool)
 		return domain.ConnectResult{}, err
 	}
 	return s.connectMEGA(parsed, password, totp, save)
+}
+
+func (s *ConnectionService) connectFTP(spec remote.Spec, password string, save bool) (domain.ConnectResult, error) {
+	if s.ftp == nil {
+		return domain.ConnectResult{}, fmt.Errorf("remote not available")
+	}
+	spec.Scheme = "ftp"
+	if spec.Port <= 0 {
+		spec.Port = 21
+	}
+	var profileID, defaultWD string
+	if save {
+		p, err := s.upsertFTPProfile(spec)
+		if err != nil {
+			return domain.ConnectResult{}, err
+		}
+		profileID = p.ID
+		defaultWD = p.DefaultWorkDir
+	}
+	if err := s.ftp.Connect(spec, password); err != nil {
+		return domain.ConnectResult{}, err
+	}
+	home, err := s.ftp.HomePath(spec)
+	if err != nil {
+		home = spec.RootPath()
+	}
+	return domain.ConnectResult{
+		RootPath:       spec.RootPath(),
+		HomePath:       home,
+		Key:            spec.SessionKey(),
+		ProfileID:      profileID,
+		DefaultWorkDir: defaultWD,
+	}, nil
+}
+
+func (s *ConnectionService) upsertFTPProfile(spec remote.Spec) (domain.ConnectionProfile, error) {
+	list, err := s.loadProfiles()
+	if err != nil {
+		return domain.ConnectionProfile{}, err
+	}
+	key := spec.SessionKey()
+	for _, p := range list {
+		if p.Protocol != "ftp" {
+			continue
+		}
+		cand := remote.Spec{Scheme: "ftp", User: p.User, Host: p.Host, Port: p.Port}
+		if cand.Port <= 0 {
+			cand.Port = 21
+		}
+		if cand.SessionKey() == key {
+			return p, nil
+		}
+	}
+	p := profileFromFTPSpec(spec)
+	list = append(list, p)
+	if err := s.saveProfiles(list); err != nil {
+		return domain.ConnectionProfile{}, err
+	}
+	return p, nil
+}
+
+func profileFromFTPSpec(spec remote.Spec) domain.ConnectionProfile {
+	label := spec.Host
+	if spec.User != "" {
+		label = spec.User + "@" + spec.Host
+	}
+	port := spec.Port
+	if port <= 0 {
+		port = 21
+	}
+	if port != 21 {
+		label = fmt.Sprintf("%s:%d", label, port)
+	}
+	return domain.ConnectionProfile{
+		ID:       fmt.Sprintf("conn-%d", time.Now().UnixNano()),
+		Protocol: "ftp",
+		User:     spec.User,
+		Host:     spec.Host,
+		Port:     port,
+		Label:    label,
+	}
 }
 
 func (s *ConnectionService) connectMEGA(spec remote.Spec, password, totp string, save bool) (domain.ConnectResult, error) {

@@ -74,6 +74,30 @@ func TestTransferKind(t *testing.T) {
 			dest:    "ssh://u@h:22/b",
 			errSub:  "cross-protocol",
 		},
+		{
+			name:    "ftp to ftp",
+			sources: []string{"ftp://a@h:21/x"},
+			dest:    "ftp://a@h:21/y",
+			want:    transferRemoteWithin,
+		},
+		{
+			name:    "ftp to local download",
+			sources: []string{"ftp://a@h:21/x"},
+			dest:    "/tmp/out",
+			want:    transferDownload,
+		},
+		{
+			name:    "local to ftp upload",
+			sources: []string{"/tmp/a"},
+			dest:    "ftp://a@h:21/",
+			want:    transferUpload,
+		},
+		{
+			name:    "ftp to ssh rejected",
+			sources: []string{"ftp://a@h:21/x"},
+			dest:    "ssh://u@h:22/b",
+			errSub:  "cross-protocol",
+		},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -100,7 +124,7 @@ func TestTransferKind(t *testing.T) {
 
 func TestCopyMoveRemoteNil(t *testing.T) {
 	t.Parallel()
-	s := NewFileService(nil, nil, nil, t.TempDir())
+	s := NewFileService(nil, nil, nil, nil, t.TempDir())
 	if err := s.Copy("", []string{"ssh://u@h:22/a"}, "/tmp"); err == nil {
 		t.Fatal("expected error when remote manager is nil")
 	} else if !strings.Contains(err.Error(), "remote not available") {

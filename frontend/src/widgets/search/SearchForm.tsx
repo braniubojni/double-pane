@@ -9,6 +9,7 @@ import RadioGroup from '@mui/material/RadioGroup';
 import Typography from '@mui/material/Typography';
 import { memo, type FC } from 'react';
 import { HistoryTextField } from './HistoryTextField';
+import { SearchFilters } from './SearchFilters';
 import { fieldRowSx, headerRowSx, replaceRowSx } from './styles';
 import type { SearchMode, SearchPrefs } from './types';
 
@@ -109,6 +110,8 @@ const SearchFormInner: FC<Props> = ({
         testId="input-search-exclude"
       />
     </Box>
+
+    <SearchFilters prefs={prefs} patch={patch} onSearch={onSearch} />
 
     <Box sx={{ px: 1.5, pt: 1 }}>
       <RadioGroup

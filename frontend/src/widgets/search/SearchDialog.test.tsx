@@ -63,6 +63,11 @@ const prefs = (patch: Record<string, unknown> = {}) => ({
   mode: 'content',
   replaceOpen: true,
   caseSensitive: false,
+  minSize: 0,
+  maxSize: 0,
+  modifiedAfter: 0,
+  modifiedBefore: 0,
+  type: '',
   ...patch,
 });
 

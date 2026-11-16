@@ -63,7 +63,7 @@ func TestVisualScanResizedSamePhoto(t *testing.T) {
 	writeFile(t, filepath.Join(root, "big.jpg"), flagJPEG(t, 256, 256, 0, 90))
 	writeFile(t, filepath.Join(root, "small.jpg"), flagJPEG(t, 80, 80, 0, 70))
 
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	done := make(chan domain.DupDonePayload, 1)
 	s.onEvent = func(name string, data any) {
 		if name == "dup:done" {
@@ -97,7 +97,7 @@ func TestVisualScanDifferentPhotosEmpty(t *testing.T) {
 	writeFile(t, filepath.Join(root, "a.jpg"), flagJPEG(t, 128, 128, 0, 90))
 	writeFile(t, filepath.Join(root, "b.jpg"), flagJPEG(t, 96, 96, 1, 90))
 
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	done := make(chan domain.DupDonePayload, 1)
 	s.onEvent = func(name string, data any) {
 		if name == "dup:done" {
@@ -126,7 +126,7 @@ func TestVisualScanExactPairNotInVisual(t *testing.T) {
 	writeFile(t, filepath.Join(root, "a.jpg"), same)
 	writeFile(t, filepath.Join(root, "b.jpg"), same)
 
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	done := make(chan domain.DupDonePayload, 1)
 	s.onEvent = func(name string, data any) {
 		if name == "dup:done" {
@@ -162,7 +162,7 @@ func TestEstimateMegaBytesIncludesAllImagesWhenSimilar(t *testing.T) {
 	other := flagJPEG(t, 40, 24, 1, 90)
 	writeFile(t, filepath.Join(root, "other.jpg"), other)
 
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	off, err := s.EstimateDuplicateScan(root, false, 0, "", false, 90, false)
 	if err != nil {
 		t.Fatal(err)
@@ -199,7 +199,7 @@ func TestVisualScanCancelStopsHash(t *testing.T) {
 	writeFile(t, filepath.Join(root, "a.jpg"), flagJPEG(t, 48, 48, 0, 90))
 	writeFile(t, filepath.Join(root, "b.jpg"), flagJPEG(t, 32, 32, 1, 90))
 
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	started := make(chan struct{})
 	s.dhashFile = func(ctx context.Context, path string) (uint64, error) {
 		select {
@@ -252,7 +252,7 @@ func TestSimilarOffDoesNotVisualGroup(t *testing.T) {
 	writeFile(t, filepath.Join(root, "big.jpg"), flagJPEG(t, 256, 256, 0, 90))
 	writeFile(t, filepath.Join(root, "small.jpg"), flagJPEG(t, 80, 80, 0, 70))
 
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	done := make(chan domain.DupDonePayload, 1)
 	s.onEvent = func(name string, data any) {
 		if name == "dup:done" {

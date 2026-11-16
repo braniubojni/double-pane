@@ -18,6 +18,7 @@ func SearchFiles(
 	root, query, include, exclude string,
 	showHidden bool,
 	limit int,
+	hitFilter domain.SearchFilter,
 	cb FolderSearchCallbacks,
 ) (truncated bool, err error) {
 	abs, err := Resolve(root)
@@ -85,7 +86,8 @@ func SearchFiles(
 			if !showHidden && strings.HasPrefix(name, ".") {
 				continue
 			}
-			if info, err := entry.Info(); err == nil && info.Mode()&os.ModeSymlink != 0 {
+			info, infoErr := entry.Info()
+			if infoErr == nil && info.Mode()&os.ModeSymlink != 0 {
 				continue
 			}
 
@@ -106,12 +108,34 @@ func SearchFiles(
 			if !filter.Match(rel) || !strings.Contains(strings.ToLower(name), q) {
 				continue
 			}
+			var size, modTime int64
+			if infoErr == nil {
+				size = info.Size()
+				modTime = info.ModTime().UnixMilli()
+			}
+			if !SearchCandidateAllowed(hitFilter, name, false, size, modTime) {
+				continue
+			}
+			if hitFilter.Type == "text" {
+				text, err := fileIsText(full)
+				if err != nil {
+					if os.IsPermission(err) && cb.OnDenied != nil {
+						cb.OnDenied(full, err)
+					}
+					continue
+				}
+				if !text {
+					continue
+				}
+			}
 			if cb.OnHit != nil {
 				cb.OnHit(domain.SearchHit{
 					Name:    name,
 					Path:    full,
 					IsDir:   false,
 					RelPath: rel,
+					Size:    size,
+					ModTime: modTime,
 				})
 			}
 			hits++

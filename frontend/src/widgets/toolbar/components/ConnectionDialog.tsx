@@ -30,6 +30,7 @@ import { errMessage } from '../../../shared/lib/format';
 import { useSnack } from '../../../shared/ui/SnackbarHost';
 import { handleDialogEnter, handleDialogFormSubmit } from '../../../shared/lib/dialogSubmit';
 import type { ConnectionDialogProps } from '../types';
+import { FTPConnectFields, ftpFormFromDialog } from './FTPConnectFields';
 import { SMBConnectFields, smbFormFromDialog } from './SMBConnectFields';
 import { SMBSharePicker } from './SMBSharePicker';
 import { MEGAConnectFields, megaEmailOk } from './MEGAConnectFields';
@@ -37,6 +38,7 @@ import { MEGAConnectFields, megaEmailOk } from './MEGAConnectFields';
 const DIALOG_TITLES: Record<string, string> = {
   add: 'Add SSH connection',
   add_smb: 'Add SMB connection',
+  add_ftp: 'Add FTP connection',
   add_mega: 'Add MEGA connection',
   password: 'Password',
   ssh_config: 'Connect from SSH config',
@@ -60,16 +62,19 @@ export const ConnectionDialog: FC<ConnectionDialogProps> = ({
   const show = useSnack((s) => s.show);
   const localNetError = isLocalNetworkErrorMessage(dialog.error);
   const smbForm = smbFormFromDialog(dialog);
+  const ftpForm = ftpFormFromDialog(dialog);
   const shareInvalid = Boolean(smbShareError(dialog.shareChosen));
   const connectDisabled =
     dialog.busy ||
     (dialog.mode === 'add_smb' && !smbForm.ok) ||
+    (dialog.mode === 'add_ftp' && !ftpForm.ok) ||
     (dialog.mode === 'add_mega' && !megaEmailOk(dialog.spec)) ||
     (dialog.mode === 'smb_shares' && shareInvalid);
 
   const submit = () => {
     if (dialog.busy) return;
     if (dialog.mode === 'add_smb' && !smbForm.ok) return;
+    if (dialog.mode === 'add_ftp' && !ftpForm.ok) return;
     if (dialog.mode === 'smb_shares' && shareInvalid) return;
     // Password prompt (including ssh_config after an auth failure) must connect,
     // not reload the host list.
@@ -102,6 +107,14 @@ export const ConnectionDialog: FC<ConnectionDialogProps> = ({
               dispatch={dispatch}
               onSubmit={submit}
               errors={smbForm.errors}
+            />
+          )}
+          {dialog.mode === 'add_ftp' && (
+            <FTPConnectFields
+              dialog={dialog}
+              dispatch={dispatch}
+              onSubmit={submit}
+              errors={ftpForm.errors}
             />
           )}
           {dialog.mode === 'add_mega' && (
@@ -303,7 +316,7 @@ export const ConnectionDialog: FC<ConnectionDialogProps> = ({
                       autoFocus
                       label="Remote path"
                       placeholder="/home/user/project"
-                      helperText="Absolute path on the remote, or ssh:// / smb:// / mega://…"
+                      helperText="Absolute path on the remote, or ssh:// / smb:// / ftp:// / mega://…"
                       onKeyDown={(e) => handleDialogEnter(e, submit)}
                       data-testid="input-workdir-custom"
                     />
@@ -331,6 +344,7 @@ export const ConnectionDialog: FC<ConnectionDialogProps> = ({
             dialog.mode !== 'workdir' &&
             dialog.mode !== 'smb_shares' &&
             dialog.mode !== 'add_smb' &&
+            dialog.mode !== 'add_ftp' &&
             dialog.mode !== 'add_mega' && (
               <>
                 <TextField

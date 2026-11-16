@@ -78,6 +78,11 @@ export const useSearchSession = (open: boolean, root: string, showHidden: boolea
         p.caseSensitive,
         showHidden,
         p.mode === 'content' ? 2000 : 500,
+        p.minSize,
+        p.maxSize,
+        p.modifiedAfter,
+        p.modifiedBefore,
+        p.type,
       );
     } catch (e) {
       setSearching(false);
