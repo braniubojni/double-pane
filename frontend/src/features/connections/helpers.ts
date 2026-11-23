@@ -2,10 +2,10 @@
  * Session key for a remote virtual path — mirrors remote.Spec.SessionKey.
  * Null for local paths.
  */
-export const REMOTE_ORIGIN_RE = /^((?:ssh|smb|mega):\/\/[^/]+)(\/.*)?$/i;
+export const REMOTE_ORIGIN_RE = /^((?:ssh|smb|mega|ftp):\/\/[^/]+)(\/.*)?$/i;
 
 export const isRemotePath = (p?: string | null): boolean =>
-  Boolean(p && /^(ssh|smb|mega):\/\//i.test(p.trim()));
+  Boolean(p && /^(ssh|smb|mega|ftp):\/\//i.test(p.trim()));
 
 export const isSMBPath = (p?: string | null): boolean => Boolean(p && /^smb:\/\//i.test(p.trim()));
 
@@ -18,16 +18,17 @@ export const sessionKeyFromPath = (path: string): string | null => {
   try {
     const u = new URL(raw);
     const scheme = u.protocol.replace(/:$/, '').toLowerCase();
-    if (scheme !== 'ssh' && scheme !== 'smb' && scheme !== 'mega') return null;
+    if (scheme !== 'ssh' && scheme !== 'smb' && scheme !== 'mega' && scheme !== 'ftp') return null;
     // JS URL.hostname keeps IPv6 brackets; Go url.Hostname / Spec.Host do not.
     let host = u.hostname;
     if (host.startsWith('[') && host.endsWith(']')) host = host.slice(1, -1);
     if (!host) return null;
     const user = decodeURIComponent(u.username || '');
-    if ((scheme === 'ssh' || scheme === 'mega') && !user) return null;
+    if ((scheme === 'ssh' || scheme === 'mega' || scheme === 'ftp') && !user) return null;
     if (scheme === 'mega') return `mega:${user}@${host}`;
-    const port = u.port || (scheme === 'smb' ? '445' : '22');
+    const port = u.port || (scheme === 'smb' ? '445' : scheme === 'ftp' ? '21' : '22');
     if (scheme === 'smb') return `smb:${user}@${host}:${port}`;
+    if (scheme === 'ftp') return `ftp:${user}@${host}:${port}`;
     return `${user}@${host}:${port}`;
   } catch {
     return null;
@@ -42,6 +43,9 @@ export const sessionKeyFromProfile = (p: {
 }): string => {
   if (p.protocol === 'mega') {
     return `mega:${p.user}@${p.host}`;
+  }
+  if (p.protocol === 'ftp') {
+    return `ftp:${p.user}@${p.host}:${p.port || 21}`;
   }
   if (p.protocol === 'smb') {
     return `smb:${p.user}@${p.host}:${p.port || 445}`;
@@ -102,7 +106,8 @@ export const isAuthErrorMessage = (msg: string): boolean => {
     m.includes('2fa') ||
     m.includes('two-factor') ||
     m.includes('multi-factor') ||
-    m.includes('mega login failed')
+    m.includes('mega login failed') ||
+    m.includes('ftp login failed')
   );
 };
 

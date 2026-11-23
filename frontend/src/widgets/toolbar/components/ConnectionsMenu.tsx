@@ -30,6 +30,7 @@ export const ConnectionsMenu: FC = () => {
     dispatch,
     sshProfiles,
     smbProfiles,
+    ftpProfiles,
     megaProfiles,
     sessionKeys,
     onMenuConnect,
@@ -239,10 +240,24 @@ export const ConnectionsMenu: FC = () => {
 
         <Divider />
         <ListSubheader sx={{ lineHeight: '32px', bgcolor: 'background.paper' }}>FTP</ListSubheader>
-        <MenuItem disabled dense>
-          <Typography variant="body2" color="text.secondary">
-            Coming soon
-          </Typography>
+        {ftpProfiles.length === 0 && (
+          <MenuItem disabled dense>
+            <Typography variant="body2" color="text.secondary">
+              No saved FTP connections
+            </Typography>
+          </MenuItem>
+        )}
+        {ftpProfiles.map(renderProfile)}
+        <MenuItem
+          data-testid="menu-conn-ftp"
+          dense
+          onClick={() => {
+            setAnchor(null);
+            dispatch({ type: 'open_add_ftp' });
+          }}
+        >
+          <AddIcon fontSize="small" sx={{ mr: 1 }} />
+          FTP…
         </MenuItem>
       </Menu>
 

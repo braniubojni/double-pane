@@ -19,6 +19,7 @@ export type AddConnectionState = {
   mode:
     | 'add'
     | 'add_smb'
+    | 'add_ftp'
     | 'add_mega'
     | 'smb_confirm'
     | 'password'
@@ -52,6 +53,7 @@ export type AddConnectionState = {
 export type AddConnectionAction =
   | { type: 'open_add' }
   | { type: 'open_add_smb' }
+  | { type: 'open_add_ftp' }
   | { type: 'open_add_mega' }
   | { type: 'open_smb_confirm' }
   | { type: 'back_smb_form' }

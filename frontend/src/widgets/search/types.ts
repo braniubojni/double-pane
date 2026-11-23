@@ -1,5 +1,7 @@
 export type SearchMode = 'content' | 'folders' | 'files';
 
+export type SearchFileType = '' | 'file' | 'dir' | 'image' | 'text' | 'archive';
+
 export type ContentHit = {
   path: string;
   relPath: string;
@@ -29,6 +31,11 @@ export type SearchPrefs = {
   mode: SearchMode;
   replaceOpen: boolean;
   caseSensitive: boolean;
+  minSize: number;
+  maxSize: number;
+  modifiedAfter: number;
+  modifiedBefore: number;
+  type: SearchFileType;
 };
 
 export const defaultSearchPrefs = (): SearchPrefs => ({
@@ -39,6 +46,11 @@ export const defaultSearchPrefs = (): SearchPrefs => ({
   mode: 'content',
   replaceOpen: false,
   caseSensitive: false,
+  minSize: 0,
+  maxSize: 0,
+  modifiedAfter: 0,
+  modifiedBefore: 0,
+  type: '',
 });
 
 export type HistoryField = 'query' | 'replace' | 'include' | 'exclude';

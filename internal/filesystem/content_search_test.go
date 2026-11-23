@@ -21,7 +21,7 @@ func TestSearchContentFindsMatches(t *testing.T) {
 	_ = os.WriteFile(filepath.Join(root, "build", "out.txt"), []byte("hello in build\n"), 0o644)
 
 	var hits []domain.ContentSearchHit
-	truncated, err := SearchContent(context.Background(), root, "hello", "", "build", false, false, 50, ContentSearchCallbacks{
+	truncated, err := SearchContent(context.Background(), root, "hello", "", "build", false, false, 50, domain.SearchFilter{}, ContentSearchCallbacks{
 		OnHit: func(h domain.ContentSearchHit) { hits = append(hits, h) },
 	})
 	if err != nil {
@@ -47,7 +47,7 @@ func TestSearchContentCaseSensitive(t *testing.T) {
 	root := t.TempDir()
 	_ = os.WriteFile(filepath.Join(root, "a.txt"), []byte("Hello\nhello\n"), 0o644)
 	var hits []domain.ContentSearchHit
-	_, err := SearchContent(context.Background(), root, "Hello", "", "", false, true, 50, ContentSearchCallbacks{
+	_, err := SearchContent(context.Background(), root, "Hello", "", "", false, true, 50, domain.SearchFilter{}, ContentSearchCallbacks{
 		OnHit: func(h domain.ContentSearchHit) { hits = append(hits, h) },
 	})
 	if err != nil {
@@ -63,7 +63,7 @@ func TestSearchContentInclude(t *testing.T) {
 	_ = os.WriteFile(filepath.Join(root, "a.ts"), []byte("findme\n"), 0o644)
 	_ = os.WriteFile(filepath.Join(root, "a.go"), []byte("findme\n"), 0o644)
 	var hits []domain.ContentSearchHit
-	_, err := SearchContent(context.Background(), root, "findme", "*.ts", "", false, false, 50, ContentSearchCallbacks{
+	_, err := SearchContent(context.Background(), root, "findme", "*.ts", "", false, false, 50, domain.SearchFilter{}, ContentSearchCallbacks{
 		OnHit: func(h domain.ContentSearchHit) { hits = append(hits, h) },
 	})
 	if err != nil {
@@ -82,7 +82,7 @@ func TestSearchContentCancel(t *testing.T) {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	_, err := SearchContent(ctx, root, "needle", "", "", false, false, 50, ContentSearchCallbacks{})
+	_, err := SearchContent(ctx, root, "needle", "", "", false, false, 50, domain.SearchFilter{}, ContentSearchCallbacks{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -118,7 +118,7 @@ func TestSearchContentLongLineMatchIndices(t *testing.T) {
 	_ = os.WriteFile(filepath.Join(root, "long.txt"), []byte(line), 0o644)
 
 	var hits []domain.ContentSearchHit
-	_, err := SearchContent(context.Background(), root, "findme", "", "", false, true, 10, ContentSearchCallbacks{
+	_, err := SearchContent(context.Background(), root, "findme", "", "", false, true, 10, domain.SearchFilter{}, ContentSearchCallbacks{
 		OnHit: func(h domain.ContentSearchHit) { hits = append(hits, h) },
 	})
 	if err != nil {
@@ -155,7 +155,7 @@ func TestSearchContentPermissionDenied(t *testing.T) {
 	t.Cleanup(func() { _ = os.Chmod(secret, 0o755) })
 
 	var denied []string
-	_, err := SearchContent(context.Background(), root, "needle", "", "", false, false, 50, ContentSearchCallbacks{
+	_, err := SearchContent(context.Background(), root, "needle", "", "", false, false, 50, domain.SearchFilter{}, ContentSearchCallbacks{
 		OnDenied: func(path string, _ error) { denied = append(denied, path) },
 	})
 	if err != nil {
@@ -163,5 +163,21 @@ func TestSearchContentPermissionDenied(t *testing.T) {
 	}
 	if len(denied) == 0 {
 		t.Fatal("expected permission denied callback")
+	}
+}
+
+func TestSearchContentMinSizeSkipsSmallFile(t *testing.T) {
+	root := t.TempDir()
+	_ = os.WriteFile(filepath.Join(root, "a-small.txt"), []byte("hello"), 0o644)
+	_ = os.WriteFile(filepath.Join(root, "b-big.txt"), []byte("hello "+strings.Repeat("x", 100)), 0o644)
+	var hits []domain.ContentSearchHit
+	_, err := SearchContent(context.Background(), root, "hello", "", "", false, false, 50, domain.SearchFilter{MinSize: 100}, ContentSearchCallbacks{
+		OnHit: func(h domain.ContentSearchHit) { hits = append(hits, h) },
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(hits) != 1 || hits[0].RelPath != "b-big.txt" {
+		t.Fatalf("got %#v", hits)
 	}
 }

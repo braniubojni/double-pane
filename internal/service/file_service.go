@@ -36,6 +36,7 @@ type FileService struct {
 	remote       *remote.Manager
 	smb          *remote.SMBManager
 	mega         *remote.MEGAManager
+	ftp          *remote.FTPManager
 	trash        *filesystem.Trash
 	osTrash      filesystem.TrashBackend
 	app          *application.App
@@ -70,7 +71,7 @@ type remoteBackend interface {
 	OpenRead(path string) (io.ReadCloser, error)
 }
 
-func NewFileService(remoteMgr *remote.Manager, smbMgr *remote.SMBManager, megaMgr *remote.MEGAManager, trashDir string) *FileService {
+func NewFileService(remoteMgr *remote.Manager, smbMgr *remote.SMBManager, megaMgr *remote.MEGAManager, ftpMgr *remote.FTPManager, trashDir string) *FileService {
 	// dup-cache lives next to trash/ under the config dir, not inside trash/.
 	cfgDir := filepath.Dir(trashDir)
 	dupCache := filepath.Join(cfgDir, "dup-cache")
@@ -80,6 +81,7 @@ func NewFileService(remoteMgr *remote.Manager, smbMgr *remote.SMBManager, megaMg
 		remote:       remoteMgr,
 		smb:          smbMgr,
 		mega:         megaMgr,
+		ftp:          ftpMgr,
 		trash:        filesystem.NewTrash(trashDir),
 		osTrash:      filesystem.NewXDGTrash(filepath.Join(cfgDir, "Trash")),
 		vols:         volumes.NewManager(),
@@ -130,6 +132,12 @@ func (s *FileService) backendFor(path string) (remoteBackend, error) {
 			return nil, fmt.Errorf("remote not available")
 		}
 		return s.smb, nil
+	}
+	if remote.IsFTP(path) {
+		if s.ftp == nil {
+			return nil, fmt.Errorf("remote not available")
+		}
+		return s.ftp, nil
 	}
 	if remote.IsRemote(path) {
 		if s.remote == nil {
@@ -436,6 +444,12 @@ func (s *FileService) runTransfer(jobID, kind string, sources []string, destDir 
 			}
 			return mega.CopyWithinCtx(ctx, sources, destDir, onProgress)
 		}
+		if ftp, ok := be.(*remote.FTPManager); ok {
+			if isMove {
+				return ftp.MoveWithinCtx(ctx, sources, destDir, onProgress)
+			}
+			return ftp.CopyWithinCtx(ctx, sources, destDir, onProgress)
+		}
 		if isMove {
 			return be.MoveWithin(sources, destDir)
 		}
@@ -455,6 +469,10 @@ func (s *FileService) runTransfer(jobID, kind string, sources []string, destDir 
 			}
 		} else if mega, ok := be.(*remote.MEGAManager); ok {
 			if err := mega.DownloadCtx(ctx, sources, destDir, onProgress); err != nil {
+				return err
+			}
+		} else if ftp, ok := be.(*remote.FTPManager); ok {
+			if err := ftp.DownloadCtx(ctx, sources, destDir, onProgress); err != nil {
 				return err
 			}
 		} else if err := be.Download(sources, destDir); err != nil {
@@ -479,6 +497,10 @@ func (s *FileService) runTransfer(jobID, kind string, sources []string, destDir 
 			}
 		} else if mega, ok := be.(*remote.MEGAManager); ok {
 			if err := mega.UploadCtx(ctx, sources, destDir, onProgress); err != nil {
+				return err
+			}
+		} else if ftp, ok := be.(*remote.FTPManager); ok {
+			if err := ftp.UploadCtx(ctx, sources, destDir, onProgress); err != nil {
 				return err
 			}
 		} else if err := be.Upload(sources, destDir); err != nil {
@@ -963,7 +985,19 @@ func (s *FileService) StartSearch(
 	jobID, root, query, mode, include, exclude string,
 	caseSensitive, showHidden bool,
 	limit int,
+	minSize, maxSize, modifiedAfter, modifiedBefore int64,
+	fileType string,
 ) error {
+	hitFilter := domain.SearchFilter{
+		MinSize:        minSize,
+		MaxSize:        maxSize,
+		ModifiedAfter:  modifiedAfter,
+		ModifiedBefore: modifiedBefore,
+		Type:           fileType,
+	}
+	if hitFilter.MaxSize > 0 && hitFilter.MaxSize < hitFilter.MinSize {
+		return fmt.Errorf("max size is smaller than min size")
+	}
 	if filesystem.IsTrashPath(root) {
 		return fmt.Errorf("search is not available in trash")
 	}
@@ -977,7 +1011,7 @@ func (s *FileService) StartSearch(
 		return fmt.Errorf("jobID required")
 	}
 	ctx := s.jobCtx(jobID)
-	go s.runSearch(ctx, jobID, root, query, mode, include, exclude, caseSensitive, showHidden, limit)
+	go s.runSearch(ctx, jobID, root, query, mode, include, exclude, caseSensitive, showHidden, limit, hitFilter)
 	return nil
 }
 
@@ -986,6 +1020,7 @@ func (s *FileService) runSearch(
 	jobID, root, query, mode, include, exclude string,
 	caseSensitive, showHidden bool,
 	limit int,
+	hitFilter domain.SearchFilter,
 ) {
 	defer func() { _ = s.FinishJob(jobID) }()
 
@@ -1027,11 +1062,11 @@ func (s *FileService) runSearch(
 			var be remoteBackend
 			be, err = s.backendFor(root)
 			if err == nil {
-				truncated, err = s.searchFoldersRemote(ctx, be, root, query, include, exclude, showHidden, limit, onHit, onDenied)
+				truncated, err = s.searchFoldersRemote(ctx, be, root, query, include, exclude, showHidden, limit, hitFilter, onHit, onDenied)
 			}
 			break
 		}
-		truncated, err = filesystem.SearchFolders(ctx, root, query, include, exclude, showHidden, limit, filesystem.FolderSearchCallbacks{
+		truncated, err = filesystem.SearchFolders(ctx, root, query, include, exclude, showHidden, limit, hitFilter, filesystem.FolderSearchCallbacks{
 			OnHit:    onHit,
 			OnDenied: onDenied,
 		})
@@ -1049,11 +1084,11 @@ func (s *FileService) runSearch(
 			var be remoteBackend
 			be, err = s.backendFor(root)
 			if err == nil {
-				truncated, err = s.searchFilesRemote(ctx, be, root, query, include, exclude, showHidden, limit, onHit, onDenied)
+				truncated, err = s.searchFilesRemote(ctx, be, root, query, include, exclude, showHidden, limit, hitFilter, onHit, onDenied)
 			}
 			break
 		}
-		truncated, err = filesystem.SearchFiles(ctx, root, query, include, exclude, showHidden, limit, filesystem.FolderSearchCallbacks{
+		truncated, err = filesystem.SearchFiles(ctx, root, query, include, exclude, showHidden, limit, hitFilter, filesystem.FolderSearchCallbacks{
 			OnHit:    onHit,
 			OnDenied: onDenied,
 		})
@@ -1071,11 +1106,11 @@ func (s *FileService) runSearch(
 			var be remoteBackend
 			be, err = s.backendFor(root)
 			if err == nil {
-				truncated, err = s.searchContentRemote(ctx, be, root, query, include, exclude, caseSensitive, showHidden, limit, onHit, onDenied)
+				truncated, err = s.searchContentRemote(ctx, be, root, query, include, exclude, caseSensitive, showHidden, limit, hitFilter, onHit, onDenied)
 			}
 			break
 		}
-		truncated, err = filesystem.SearchContent(ctx, root, query, include, exclude, showHidden, caseSensitive, limit, filesystem.ContentSearchCallbacks{
+		truncated, err = filesystem.SearchContent(ctx, root, query, include, exclude, showHidden, caseSensitive, limit, hitFilter, filesystem.ContentSearchCallbacks{
 			OnHit:    onHit,
 			OnDenied: onDenied,
 		})

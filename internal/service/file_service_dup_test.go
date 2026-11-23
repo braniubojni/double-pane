@@ -46,7 +46,7 @@ func TestDuplicateScanIdenticalAndDifferent(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	est, err := s.EstimateDuplicateScan(root, false, 0, "", false, 90, false)
 	if err != nil {
 		t.Fatal(err)
@@ -124,7 +124,7 @@ func TestDuplicateScanDoesNotFloodProgress(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	var mu sync.Mutex
 	var ticks []domain.DupProgressPayload
 	var groupN int
@@ -177,7 +177,7 @@ func TestStartDuplicateScanRejectsArchiveAndBadRoot(t *testing.T) {
 	if err := filesystem.Archive(context.Background(), []string{src}, zipPath, "zip", "", nil); err != nil {
 		t.Fatal(err)
 	}
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	if err := s.StartDuplicateScan(s.NewJobID(), zipPath, false, 0, "", false, 90, false); err == nil {
 		t.Fatal("expected archive root rejected")
 	}
@@ -204,7 +204,7 @@ func TestStartDuplicateScanCancelDuringHash(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(root, "b.bin"), []byte("aa"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	started := make(chan struct{})
 	s.hashFile = func(ctx context.Context, path string) (string, error) {
 		select {
@@ -272,7 +272,7 @@ func TestStartDuplicateScanCancelStopsWalk(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	s.dupCacheDir = filepath.Join(work, "dup-cache")
 	if err := os.MkdirAll(s.dupCacheDir, 0o700); err != nil {
 		t.Fatal(err)
@@ -324,7 +324,7 @@ func TestStartDuplicateScanOneJob(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(work, "a.txt"), []byte("x"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	block := make(chan struct{})
 	s.hashFile = func(ctx context.Context, path string) (string, error) {
 		<-block
@@ -362,7 +362,7 @@ func TestDuplicateScanExcludeMarkdown(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	all, err := s.EstimateDuplicateScan(root, false, 0, "", false, 90, false)
 	if err != nil {
 		t.Fatal(err)
@@ -419,7 +419,7 @@ func TestDuplicateScanExcludeMarkdown(t *testing.T) {
 func TestDupCacheDirIsSiblingOfTrash(t *testing.T) {
 	work := t.TempDir()
 	trash := filepath.Join(work, "trash")
-	s := NewFileService(nil, nil, nil, trash)
+	s := NewFileService(nil, nil, nil, nil, trash)
 	want := filepath.Join(work, "dup-cache")
 	if s.megaCacheDir() != want {
 		t.Fatalf("dup-cache=%q want %q (not under trash)", s.megaCacheDir(), want)
@@ -440,7 +440,7 @@ func TestMigrateDupCacheFromTrash(t *testing.T) {
 	if err := os.WriteFile(legacy, []byte("x"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	s := NewFileService(nil, nil, nil, trash)
+	s := NewFileService(nil, nil, nil, nil, trash)
 	want := filepath.Join(work, "dup-cache", "leftover")
 	if _, err := os.Stat(want); err != nil {
 		t.Fatalf("migrated file missing: %v", err)
@@ -456,7 +456,7 @@ func TestMigrateDupCacheFromTrash(t *testing.T) {
 func TestPurgeTrashDoesNotDeleteDupCache(t *testing.T) {
 	work := t.TempDir()
 	trash := filepath.Join(work, "trash")
-	s := NewFileService(nil, nil, nil, trash)
+	s := NewFileService(nil, nil, nil, nil, trash)
 	cache := s.megaCacheDir()
 	if err := os.MkdirAll(cache, 0o700); err != nil {
 		t.Fatal(err)
@@ -499,7 +499,7 @@ func TestPurgeTrashDoesNotDeleteDupCache(t *testing.T) {
 
 func TestPurgeDupCacheAge(t *testing.T) {
 	work := t.TempDir()
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	cache := s.megaCacheDir()
 	if err := os.MkdirAll(cache, 0o700); err != nil {
 		t.Fatal(err)
@@ -552,7 +552,7 @@ func TestCancelClearsInFlightDupTemp(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	cache := s.megaCacheDir()
 	if err := os.MkdirAll(cache, 0o700); err != nil {
 		t.Fatal(err)

@@ -12,7 +12,7 @@ import (
 func TestDeleteRestoreViaXDGTrash(t *testing.T) {
 	t.Parallel()
 	work := t.TempDir()
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	file := filepath.Join(work, "note.txt")
 	if err := os.WriteFile(file, []byte("hi"), 0o600); err != nil {
 		t.Fatal(err)
@@ -60,7 +60,7 @@ func TestDeleteRestoreViaXDGTrash(t *testing.T) {
 func TestDeletePermanentSkipsTrash(t *testing.T) {
 	t.Parallel()
 	work := t.TempDir()
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	file := filepath.Join(work, "gone.txt")
 	if err := os.WriteFile(file, []byte("x"), 0o600); err != nil {
 		t.Fatal(err)
@@ -85,7 +85,7 @@ func TestDeletePermanentSkipsTrash(t *testing.T) {
 func TestRestoreDeletedToken(t *testing.T) {
 	t.Parallel()
 	work := t.TempDir()
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	file := filepath.Join(work, "undo.txt")
 	if err := os.WriteFile(file, []byte("back"), 0o600); err != nil {
 		t.Fatal(err)
@@ -104,7 +104,7 @@ func TestRestoreDeletedToken(t *testing.T) {
 
 func TestMkdirRejectedInTrash(t *testing.T) {
 	t.Parallel()
-	s := NewFileService(nil, nil, nil, filepath.Join(t.TempDir(), "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(t.TempDir(), "trash"))
 	if _, err := s.Mkdir(filesystem.TrashURI, "nope"); err == nil {
 		t.Fatal("expected trash write reject")
 	}
@@ -113,7 +113,7 @@ func TestMkdirRejectedInTrash(t *testing.T) {
 func TestLeftoverBatchRestoreDeleted(t *testing.T) {
 	t.Parallel()
 	work := t.TempDir()
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	file := filepath.Join(work, "old.txt")
 	if err := os.WriteFile(file, []byte("legacy"), 0o600); err != nil {
 		t.Fatal(err)
@@ -146,7 +146,7 @@ func TestLeftoverBatchRestoreDeleted(t *testing.T) {
 func TestRenameRejectedInTrash(t *testing.T) {
 	t.Parallel()
 	work := t.TempDir()
-	s := NewFileService(nil, nil, nil, filepath.Join(work, "trash"))
+	s := NewFileService(nil, nil, nil, nil, filepath.Join(work, "trash"))
 	file := filepath.Join(work, "note.txt")
 	if err := os.WriteFile(file, []byte("x"), 0o600); err != nil {
 		t.Fatal(err)
